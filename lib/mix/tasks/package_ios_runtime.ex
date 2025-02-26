@@ -130,7 +130,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
-          --enable-static-nifs=#{Enum.join(nifs, ",")}
+          --enable-static-nifs=#{Enum.join(nifs, ",")} #{System.get_env("KERL_CONFIGURE_OPTIONS", "")}
         ),
           env
         )
