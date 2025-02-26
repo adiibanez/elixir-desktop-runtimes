@@ -55,7 +55,7 @@ jobs:
       - name: Archive Android runtimes
         uses: actions/upload-artifact@v4
         with:
-          name: android-${{ matrix.arch }}-${{ matrix.erlixir.otp_version }}-${{ matrix.erlixir.elixir_version }}-runtime.zip
+          name: android-${{ matrix.arch }}-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.elixir-version }}-runtime.zip
           path: _build/*.zip
 
       - name: Android ${{ matrix.arch }} release
@@ -69,7 +69,7 @@ jobs:
       fail-fast: false
       matrix:
         erlixir:
-          - { otp-version: 27.2.4, elixir-version: 1.18.2 , erl-opts: "--disable-year2038"}
+          - { otp-version: 27.2.4, elixir-version: 1.18.2 } # , erl-opts: "--disable-year2038", configured in package_ios_runtime.ex configuration
           - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
@@ -113,10 +113,10 @@ jobs:
             /Users/runner/.asdf
           key: macos-asdf-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.elixir-version }}
 
-      - name: Configure erl options
-        if: ${{ matrix.erlixir.erl-opts }} != ''
-        run: |
-          KERL_CONFIGURE_OPTIONS=${{matrix.erlixir.erl-opts}}
+      # - name: Configure erl options
+      #   if: ${{ matrix.erlixir.erl-opts }} != ''
+      #   run: |
+      #     KERL_CONFIGURE_OPTIONS=${{matrix.erlixir.erl-opts}}
 
       - name: Build iOS runtime
         run:  |
@@ -126,7 +126,7 @@ jobs:
       - name: Archive runtimes
         uses: actions/upload-artifact@v4
         with:
-          name: ios-${{ matrix.erlixir.otp_version }}-${{ matrix.erlixir.elixir_version }}-runtime.xcframework.zip
+          name: ios-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework.zip
           path: _build/liberlang.xcframework
 
       - name: iOS release
