@@ -106,9 +106,8 @@ jobs:
           asdf plugin add elixir
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
-          asdf install
-          asdf reshim erlang
-          asdf reshim elixir
+          asdf install erlang
+          asdf install elixir
 
       - name: Save asdf Cache
         if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
