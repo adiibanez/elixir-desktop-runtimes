@@ -19,10 +19,25 @@ jobs:
 
     steps:
       - name: Setup elixir
+        id: setup-beam
         uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.erlixir.otp-version }}
           elixir-version: ${{ matrix.erlixir.elixir-version }}
+
+      - name: erlef/setup-beam Cache
+        uses: actions/cache@v3
+        id: beam-cache
+        with:
+          path: /home/runner/work/_temp/.setup-beam/
+          key: android-setup-beam-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.elixir-version }}
+
+      - name: Save erlef/setup-beam Cache
+        if: steps.beam-cache.outputs.cache-hit != 'true' && steps.setup-beam.outcome == 'success'
+        uses: actions/cache/save@v3
+        with:
+          path: /home/runner/work/_temp/.setup-beam/
+          key: android-setup-beam-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.elixir-version }}
 
       - name: Debug erlef/setup-beam install locations
         shell: bash
@@ -54,7 +69,7 @@ jobs:
       fail-fast: false
       matrix:
         erlixir:
-          - { otp-version: 27.2.4, elixir-version: 1.18.2 }
+          - { otp-version: 27.2.4, elixir-version: 1.18.2 , erl-opts: "--disable-year2038"}
           - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
@@ -84,9 +99,11 @@ jobs:
           . $HOME/.asdf/asdf.sh
           asdf plugin add erlang
           asdf plugin add elixir
-          echo "erlang 26.2.5.6" >> .tool-versions
-          echo "elixir 1.16.3-otp-24" >> .tool-versions
+          echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
+          echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
           asdf install
+          asdf reshim erlang
+          asdf reshim elixir
 
       - name: Save asdf Cache
         if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
@@ -95,6 +112,11 @@ jobs:
           path: |
             /Users/runner/.asdf
           key: macos-asdf-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.elixir-version }}
+
+      - name: Configure erl options
+        if: ${{ matrix.erlixir.erl-opts }} != ''
+        run: |
+          KERL_CONFIGURE_OPTIONS=${{matrix.erlixir.erl-opts}}
 
       - name: Build iOS runtime
         run:  |
