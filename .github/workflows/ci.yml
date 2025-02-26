@@ -2,10 +2,9 @@ name: "CI"
 on: ["push", "pull_request"]
 env:
   OTP_SOURCE: https://github.com/erlang/otp
+
 jobs:
-  build:
-    name: "Build Android runtimes"
-    runs-on: "ubuntu-latest"
+  build-android:
     strategy:
       matrix:
         arch: ["arm", "arm64", "x86_64"]
@@ -13,67 +12,71 @@ jobs:
           - { otp-version: 27.2.4, elixir-version: 1.18.1 }
           - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
     env:
-      OTP_TAG: OTP-${{matrix.erlixir.otp-version}}
+      OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
+    name: "Build Android runtimes"
+    runs-on: "ubuntu-latest"
+
     steps:
-    - name: Setup elixir
-      uses: erlef/setup-beam@v1
-      with:
-        otp-version: ${{ matrix.erlixir.otp-version }}
-        elixir-version: ${{ matrix.erlixir.elixir-version }}
+      - name: Setup elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.erlixir.otp-version }}
+          elixir-version: ${{ matrix.erlixir.elixir-version }}
 
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - run: |
-        scripts/install_elixir.sh "$HOME/elixir"
-        echo "$HOME/elixir/bin" >> $GITHUB_PATH
+      - name: Build Android ${{ matrix.arch }} runtimes
+        run: |
+          mix deps.get
+          ARCH=${{ matrix.arch }} mix package.android.runtime
+          ARCH=${{ matrix.arch }} mix package.android.nif
 
-    - name: Build Android ${{ matrix.arch }} runtimes
-      run: |
-        mix deps.get
-        ARCH=${{ matrix.arch }} mix package.android.runtime
-        ARCH=${{ matrix.arch }} mix package.android.nif
-    - name: Archive Android runtimes
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.arch }}-${{ matrix.erlixir.otp_version }}-${{ matrix.erlixir.elixir_version }}-runtime
-        path: _build/*.zip
-    - name: Android ${{ matrix.arch }} release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: _build/*.zip
+      - name: Archive Android runtimes
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.arch }}-${{ matrix.erlixir.otp_version }}-${{ matrix.erlixir.elixir_version }}-runtime.zip
+          path: _build/*.zip
 
-  ios:
+      - name: Android ${{ matrix.arch }} release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: _build/*.zip
+
+  build-ios:
+    strategy:
+      matrix:
+        arch: ["arm64", "x86_64"]
+        erlixir:
+          - { otp-version: 27.2.4, elixir-version: 1.18.1 }
+          - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
+
     name: "Build iOS runtime"
     runs-on: "macos-latest"
     steps:
-    - run: brew install git carthage coreutils
-    - uses: actions/checkout@v4
+      - run: brew install git carthage coreutils
 
-    - name: Setup elixir
-      run: |
-        git clone https://github.com/asdf-vm/asdf.git ~/.asdf
-        . $HOME/.asdf/asdf.sh
-        asdf plugin add erlang
-        asdf plugin add elixir
-        echo "erlang 26.2.5.6" >> .tool-versions
-        echo "elixir 1.16.3-otp-24" >> .tool-versions
-        asdf install
+      - uses: actions/checkout@v4
 
-    - name: Build runtime
-      run:  |
-        . $HOME/.asdf/asdf.sh
-        mix package.ios.runtime
+      - name: Setup elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.erlixir.otp-version }}
+          elixir-version: ${{ matrix.erlixir.elixir-version }}
 
-    - name: Archive runtimes
-      uses: actions/upload-artifact@v4
-      with:
-        #name: iOS-runtime
-        name: iOS-${{ matrix.erlixir.otp_version }}-${{ matrix.erlixir.elixir_version }}-runtime
-        path: _build/liberlang.xcframework
-        
-    - name: iOS release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: _build/liberlang.xcframework
+      - name: Build iOS runtime ${{ matrix.arch }}
+        run:  |
+          ARCH=${{ matrix.arch }} mix package.ios.runtime
+
+      - name: Archive runtimes
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ matrix.arch }}-${{ matrix.erlixir.otp_version }}-${{ matrix.erlixir.elixir_version }}-runtime.xcframework.zip
+          path: _build/liberlang.xcframework
+          
+
+      - name: iOS release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: _build/liberlang.xcframework
