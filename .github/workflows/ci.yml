@@ -6,6 +6,7 @@ env:
 jobs:
   build-android:
     strategy:
+      fail-fast: false
       matrix:
         arch: ["arm", "arm64", "x86_64"]
         erlixir:
@@ -45,6 +46,7 @@ jobs:
 
   build-ios:
     strategy:
+      fail-fast: false
       matrix:
         arch: ["arm64", "x86_64"]
         erlixir:
