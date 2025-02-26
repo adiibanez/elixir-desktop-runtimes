@@ -72,10 +72,15 @@ jobs:
           path: /Users/runner/.asdf
           key: macos-asdf-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.elixir-version }}
 
-      - name: Setup elixir
-        id: asdf-setup
+      - name: Setup asdf
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: |
           git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+
+      - name: Setup elixir
+        id: asdf-setup
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        run: |
           . $HOME/.asdf/asdf.sh
           asdf plugin add erlang
           asdf plugin add elixir
@@ -84,7 +89,7 @@ jobs:
           asdf install
 
       - name: Save asdf Cache
-        if: steps.asdf-setup.outcome == 'success' && steps.asdf-cache.outputs.cache-hit != 'true'
+        if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
         uses: actions/cache/save@v3
         with:
           path: |
