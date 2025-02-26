@@ -9,7 +9,7 @@ jobs:
       matrix:
         arch: ["arm", "arm64", "x86_64"]
         erlixir:
-          - { otp-version: 27.2.4, elixir-version: 1.18.1 }
+          # - { otp-version: 27.2.4, elixir-version: 1.18.1 }
           - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
@@ -48,8 +48,10 @@ jobs:
       matrix:
         arch: ["arm64", "x86_64"]
         erlixir:
-          - { otp-version: 27.2.4, elixir-version: 1.18.1 }
+          #- { otp-version: 27.2.4, elixir-version: 1.18.1 }
           - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
+    env:
+      OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
 
     name: "Build iOS runtime"
     runs-on: "macos-latest"
