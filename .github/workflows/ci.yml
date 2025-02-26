@@ -1,9 +1,7 @@
 name: "CI"
 on: ["push", "pull_request"]
 env:
-  OTP_TAG: OTP-26.2.5.6
   OTP_SOURCE: https://github.com/erlang/otp
-
 jobs:
   build:
     name: "Build Android runtimes"
@@ -11,12 +9,19 @@ jobs:
     strategy:
       matrix:
         arch: ["arm", "arm64", "x86_64"]
+        erlixir:
+          # - { otp_version: OTP-24.3.4.14, wxwidgets_version: master, elixir_version: 1.16.3, elixir_variant: "-otp-24" }
+          #- { otp_version: OTP-27.2.4, wxwidgets_version: WX_3_0_BRANCH, elixir_version: 1.18.1, elixir_variant: "-otp-27" }
+          - { otp_version: 27.2.4, elixir_version: 1.18.1 }
+          - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
+    env:
+      OTP_TAG: OTP-${{matrix.erlixir.otp_version}}
     steps:
     - name: Setup elixir
       uses: erlef/setup-beam@v1
       with:
-        otp-version: 26.2.5.6
-        elixir-version: 1.16.3
+        otp-version: ${{ matrix.erlixir.otp_version }}
+        elixir-version: ${{ matrix.erlixir.elixir_version }}
 
     - uses: actions/checkout@v4
 
@@ -32,7 +37,7 @@ jobs:
     - name: Archive Android runtimes
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.arch }}-runtime
+        name: ${{ matrix.arch }}-${{ matrix.erlixir.otp_version }}-${{ matrix.erlixir.elixir_version }}-runtime
         path: _build/*.zip
     - name: Android ${{ matrix.arch }} release
       uses: softprops/action-gh-release@v1
@@ -65,7 +70,8 @@ jobs:
     - name: Archive runtimes
       uses: actions/upload-artifact@v4
       with:
-        name: iOS-runtime
+        #name: iOS-runtime
+        name: iOS-${{ matrix.erlixir.otp_version }}-${{ matrix.erlixir.elixir_version }}-runtime
         path: _build/liberlang.xcframework
         
     - name: iOS release
