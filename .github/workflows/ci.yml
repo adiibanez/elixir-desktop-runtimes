@@ -10,18 +10,16 @@ jobs:
       matrix:
         arch: ["arm", "arm64", "x86_64"]
         erlixir:
-          # - { otp_version: OTP-24.3.4.14, wxwidgets_version: master, elixir_version: 1.16.3, elixir_variant: "-otp-24" }
-          #- { otp_version: OTP-27.2.4, wxwidgets_version: WX_3_0_BRANCH, elixir_version: 1.18.1, elixir_variant: "-otp-27" }
-          - { otp_version: 27.2.4, elixir_version: 1.18.1 }
+          - { otp-version: 27.2.4, elixir-version: 1.18.1 }
           - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
     env:
-      OTP_TAG: OTP-${{matrix.erlixir.otp_version}}
+      OTP_TAG: OTP-${{matrix.erlixir.otp-version}}
     steps:
     - name: Setup elixir
       uses: erlef/setup-beam@v1
       with:
-        otp-version: ${{ matrix.erlixir.otp_version }}
-        elixir-version: ${{ matrix.erlixir.elixir_version }}
+        otp-version: ${{ matrix.erlixir.otp-version }}
+        elixir-version: ${{ matrix.erlixir.elixir-version }}
 
     - uses: actions/checkout@v4
 
