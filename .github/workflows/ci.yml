@@ -10,7 +10,7 @@ jobs:
       matrix:
         arch: ["arm", "arm64", "x86_64"]
         erlixir:
-          # - { otp-version: 27.2.4, elixir-version: 1.18.1 }
+          - { otp-version: 27.2.4, elixir-version: 1.18.2 }
           - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
@@ -53,9 +53,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ["arm64", "x86_64"]
         erlixir:
-          #- { otp-version: 27.2.4, elixir-version: 1.18.1 }
+          - { otp-version: 27.2.4, elixir-version: 1.18.2 }
           - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
@@ -92,16 +91,15 @@ jobs:
             /Users/runner/.asdf
           key: macos-asdf-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.elixir-version }}
 
-
-      - name: Build iOS runtime ${{ matrix.arch }}
+      - name: Build iOS runtime
         run:  |
           . $HOME/.asdf/asdf.sh
-          ARCH=${{ matrix.arch }} mix package.ios.runtime
+          mix package.ios.runtime
 
       - name: Archive runtimes
         uses: actions/upload-artifact@v4
         with:
-          name: ios-${{ matrix.arch }}-${{ matrix.erlixir.otp_version }}-${{ matrix.erlixir.elixir_version }}-runtime.xcframework.zip
+          name: ios-${{ matrix.erlixir.otp_version }}-${{ matrix.erlixir.elixir_version }}-runtime.xcframework.zip
           path: _build/liberlang.xcframework
 
       - name: iOS release
