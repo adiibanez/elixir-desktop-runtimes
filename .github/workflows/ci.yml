@@ -24,6 +24,11 @@ jobs:
           otp-version: ${{ matrix.erlixir.otp-version }}
           elixir-version: ${{ matrix.erlixir.elixir-version }}
 
+      - name: Debug erlef/setup-beam install locations
+        shell: bash
+        run: |
+          env | grep INSTALL_DIR_FOR_
+
       - uses: actions/checkout@v4
 
       - name: Build Android ${{ matrix.arch }} runtimes
@@ -61,7 +66,15 @@ jobs:
       - run: brew install git carthage coreutils
       - uses: actions/checkout@v4
 
+      - name: Asdf Cache
+        uses: actions/cache@v3
+        id: asdf-cache
+        with:
+          path: /Users/runner/.asdf
+          key: macos-asdf-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.elixir-version }}
+
       - name: Setup elixir
+        id: asdf-setup
         run: |
           git clone https://github.com/asdf-vm/asdf.git ~/.asdf
           . $HOME/.asdf/asdf.sh
@@ -71,8 +84,18 @@ jobs:
           echo "elixir 1.16.3-otp-24" >> .tool-versions
           asdf install
 
+      - name: Save asdf Cache
+        if: steps.asdf-setup.outcome == 'success' && steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            /Users/runner/.asdf
+          key: macos-asdf-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.elixir-version }}
+
+
       - name: Build iOS runtime ${{ matrix.arch }}
         run:  |
+          . $HOME/.asdf/asdf.sh
           ARCH=${{ matrix.arch }} mix package.ios.runtime
 
       - name: Archive runtimes
