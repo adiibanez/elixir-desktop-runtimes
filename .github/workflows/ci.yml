@@ -80,6 +80,7 @@ jobs:
           name: android-${{ matrix.arch }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.zip
           path: _build/*.zip
 
+<<<<<<< Updated upstream
       - name: Generate Android Checksums and Release Notes
         id: android-checksums
         run: |
@@ -106,7 +107,6 @@ jobs:
           body: |
             Android Checksums:
             ${{ steps.android-checksums.outputs.android_checksums }}
-
   build-ios:
     strategy:
       fail-fast: false
@@ -172,6 +172,7 @@ jobs:
           name: ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework.zip
           path: _build/liberlang.xcframework
 
+<<<<<<< Updated upstream
       - name: Generate iOS Checksums and Release Notes
         id: ios-checksums
         run: |
