@@ -157,6 +157,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         "#{otp_target(arch)}/lib/crypto/priv/lib/#{arch.name}/crypto.a"
         | extra_nifs
       ]
+      
+      IO.puts("Extra nifs: #{inspect(nifs)}")
 
       Runtimes.run(
         ~w(
