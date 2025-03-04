@@ -119,7 +119,7 @@ jobs:
     name: "Build iOS runtime"
     runs-on: "macos-latest"
     steps:
-      - run: brew install git carthage coreutils
+      - run: brew install git carthage coreutils && brew unlink openssl@1.1 && brew link openssl@3
       - uses: actions/checkout@v4
 
       - name: Asdf Cache
@@ -134,6 +134,12 @@ jobs:
         run: |
           git clone https://github.com/asdf-vm/asdf.git ~/.asdf
 
+      - name: Configure erl options
+        if: ${{ matrix.erlixir.erl-opts }} != ''
+        run: |
+          KERL_CONFIGURE_OPTIONS="--with-ssl=$(brew --prefix openssl@3) ${{matrix.erlixir.erl-opts}}"
+          #ERL_COMPILER_OPTIONS=${{matrix.erlixir.erl-opts}}
+
       - name: Setup elixir
         id: asdf-setup
         if: steps.asdf-cache.outputs.cache-hit != 'true'
@@ -143,7 +149,7 @@ jobs:
           asdf plugin add elixir
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
-          asdf install erlang
+          KERL_CONFIGURE_OPTIONS="--with-ssl=$(brew --prefix openssl@3) ${{matrix.erlixir.erl-opts}}" asdf install erlang
           asdf install elixir
 
       - name: Save asdf Cache
@@ -153,12 +159,6 @@ jobs:
           path: |
             /Users/runner/.asdf
           key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
-
-      - name: Configure erl options
-        if: ${{ matrix.erlixir.erl-opts }} != ''
-        run: |
-          KERL_CONFIGURE_OPTIONS=${{matrix.erlixir.erl-opts}}
-          #ERL_COMPILER_OPTIONS=${{matrix.erlixir.erl-opts}}
 
       - name: Build iOS runtime
         run:  |
