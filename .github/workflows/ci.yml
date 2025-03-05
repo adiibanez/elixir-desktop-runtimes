@@ -28,6 +28,7 @@ jobs:
         erlixir:
           #- { otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"}
           - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
+          - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
     name: "Build Android runtimes"
@@ -113,6 +114,7 @@ jobs:
         erlixir:
           #- { otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"} # configured in package_ios_runtime.ex too configuration
           - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
+          - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
 
@@ -135,10 +137,12 @@ jobs:
           git clone https://github.com/asdf-vm/asdf.git ~/.asdf
 
       - name: Configure erl options
-        if: ${{ matrix.erlixir.erl-opts }} != ''
+        #if: ${{ matrix.erlixir.erl-opts }} != ''
         run: |
+          OPENSSL_HASH=002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
+          OPENSSL_VERSION=3.4.1
+          OPENSSL_PREFIX=/Users/runner/.custom-openssl-ios-runtime
           KERL_CONFIGURE_OPTIONS="--with-ssl=$(brew --prefix openssl@3) ${{matrix.erlixir.erl-opts}}"
-          #ERL_COMPILER_OPTIONS=${{matrix.erlixir.erl-opts}}
 
       - name: Setup elixir
         id: asdf-setup
@@ -149,7 +153,7 @@ jobs:
           asdf plugin add elixir
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
-          KERL_CONFIGURE_OPTIONS="--with-ssl=$(brew --prefix openssl@3) ${{matrix.erlixir.erl-opts}}" asdf install erlang
+          asdf install erlang
           asdf install elixir
 
       - name: Save asdf Cache

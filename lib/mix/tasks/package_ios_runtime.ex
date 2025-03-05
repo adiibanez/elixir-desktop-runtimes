@@ -92,11 +92,15 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     if File.exists?(openssl_lib(arch)) do
       IO.puts("OpenSSL (#{arch.id}) already exists...")
     else
-      Runtimes.run("scripts/install_openssl.sh",
+      case Runtimes.run("scripts/install_openssl.sh",
         ARCH: arch.openssl_arch,
         OPENSSL_PREFIX: openssl_target(arch),
         MAKEFLAGS: "-j10 -O"
-      )
+      ) do
+        {:ok} -> IO.puts("OpenSSL ok")
+        {:error, error } -> IO.puts("OpenSSL error: #{error}")
+        _ -> IO.puts("OpenSSL not sure ...")
+      end
     end
 
     # Building OTP
