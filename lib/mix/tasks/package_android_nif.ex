@@ -3,31 +3,28 @@ defmodule Mix.Tasks.Package.Android.Nif do
   alias Mix.Tasks.Package.Android.Runtime
   require EEx
 
-  # def run([]) do
-  #   for nif <- Runtimes.default_nifs() do
-  #     for arch <- Runtime.default_archs() do
-  #       build(arch, Runtimes.get_nif(nif))
-  #     end
-  #   end
-  # end
-
-  # def run(args) do
-  #   {git, _tag} =
-  #     case args do
-  #       [] -> raise "Need git url parameter"
-  #       [git] -> {git, nil}
-  #       [git, tag] -> {git, tag}
-  #     end
-
-  #   build("arm64", Runtimes.get_nif(git))
-  # end
-
   def run([]) do
-    arch = System.get_env("ARCH")
-
     for nif <- Runtimes.default_nifs() do
-      build(arch, Runtimes.get_nif(nif))
+      for arch <- Runtime.default_archs() do
+        build(arch, Runtimes.get_nif(nif))
+      end
     end
+  end
+
+  def run(args) do
+    {parsed, _, _} = OptionParser.parse(args, strict: [arch: :string, git: :list])
+    IO.inspect(parsed, label: "Received args")
+
+    System.halt(0)
+
+    {git, _tag} =
+      case args do
+        [] -> raise "Need git url parameter"
+        [git] -> {git, nil}
+        [git, tag] -> {git, tag}
+      end
+
+    build(parsed.arch, Runtimes.get_nif(git))
   end
 
   defp build(arch, nif) do

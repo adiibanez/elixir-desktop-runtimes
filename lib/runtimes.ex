@@ -12,7 +12,7 @@ defmodule Runtimes do
         end
       end)
 
-    file = File.open("runtimes_run.log")
+    file = "runtimes_run.log"
     File.write(file, args)
     File.write(file, "\n")
     File.close(file)

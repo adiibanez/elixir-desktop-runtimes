@@ -3,6 +3,15 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   use Mix.Task
   require EEx
 
+  @default_nifs [
+    "https://github.com/elixir-desktop/exqlite"
+  ]
+
+  @diode_nifs [
+    "https://github.com/diodechain/esqlite.git",
+    "https://github.com/diodechain/libsecp256k1.git"
+  ]
+
   def architectures() do
     # Not sure if we still need arm-32 at all https://blakespot.com/ios_device_specifications_grid.html
     %{
@@ -50,22 +59,32 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   end
 
   def run(["with_diode_nifs"]) do
-    nifs = [
-      "https://github.com/diodechain/esqlite.git",
-      "https://github.com/diodechain/libsecp256k1.git"
-    ]
+    IO.puts("with_diode_nifs")
 
-    run(nifs)
+    System.halt(0)
+
+    buildall(architectures(), @diode_nifs)
   end
 
   def run([]) do
-    run(["https://github.com/elixir-desktop/exqlite"])
+    IO.puts("with empty []")
+
+    System.halt(0)
+    buildall(architectures(), @default_nifs)
   end
 
-  def run(nifs) do
-    IO.puts("Validating nifs...")
-    Enum.each(nifs, fn nif -> Runtimes.get_nif(nif) end)
-    buildall(Map.keys(architectures()), nifs)
+  def run(args) do
+    {parsed, _, _} = OptionParser.parse(args, strict: [arch: :string, nifs: :string])
+    IO.inspect(parsed, label: "Received args")
+
+    # System.halt(0)
+
+    nifs = Keyword.get(parsed, :nifs, @default_nifs)
+
+    build(parsed[:arch], nifs)
+    # IO.puts("Validating nifs...")
+    # Enum.each(nifs, fn nif -> Runtimes.get_nif(nif) end)
+    # buildall(Map.keys(architectures()), nifs)
   end
 
   def openssl_target(arch) do
@@ -92,7 +111,11 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     path
   end
 
-  def build(archid, extra_nifs) do
+  def build(archid, extra_nifs) when is_binary(extra_nifs) do
+    build(archid, String.split(extra_nifs, ","))
+  end
+
+  def build(archid, extra_nifs) when is_list(extra_nifs) do
     arch = get_arch(archid)
     File.mkdir_p!("_build/runtime_cache/#{arch.name}")
 
