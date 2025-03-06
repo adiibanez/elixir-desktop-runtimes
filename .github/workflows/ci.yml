@@ -25,6 +25,9 @@ concurrency:
 
 env:
   OTP_SOURCE: https://github.com/erlang/otp
+  OPENSSL_HASH: 002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
+  OPENSSL_VERSION: 3.4.1
+
 jobs:
   build-android:
     strategy:
@@ -37,6 +40,7 @@ jobs:
           - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
+
     name: "Build Android runtimes"
     runs-on: "ubuntu-latest"
 
@@ -195,8 +199,8 @@ jobs:
           - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
-      OPENSSL_HASH: 002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
-      OPENSSL_VERSION: 3.4.1
+      #OPENSSL_HASH: 002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
+      #OPENSSL_VERSION: 3.4.1
 
     name: "Build iOS runtime"
     runs-on: "macos-latest"
