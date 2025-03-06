@@ -105,9 +105,12 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
              OPENSSL_PREFIX: openssl_target(arch),
              MAKEFLAGS: "-j10 -O"
            ) do
-        {:ok} -> IO.puts("OpenSSL ok")
-        {:error, error} -> IO.puts("OpenSSL error: #{error}")
-        _ -> IO.puts("OpenSSL not sure ...")
+        :ok ->
+          IO.puts("OpenSSL ok")
+
+        {:error, error} ->
+          IO.puts("OpenSSL error: #{error}")
+          # response -> IO.puts("OpenSSL not sure ... #{inspect(response)}")
       end
     end
 
@@ -135,9 +138,9 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
 
         # First round build to generate headers and libs required to build nifs:
 
+        # git clean -xdf &&
         cmd = ~w(
           cd #{otp_target(arch)} &&
-          git clean -xdf &&
           ./otp_build setup
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
@@ -154,6 +157,11 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
 
         Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
         Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
+
+        IO.puts("Generated #{otp_target(arch)}")
+
+        IO.puts("Built openssl")
+        System.halt(1)
       end
 
       # Second round
