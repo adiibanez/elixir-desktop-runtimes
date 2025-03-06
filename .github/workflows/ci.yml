@@ -353,16 +353,16 @@ jobs:
       - name: Restructure dir for iOS artifact
         shell: bash
         run: |
-          mkdir /tmp/ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework
+          mkdir ${{github.workspace}}/_build/ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework
           ls -lah _build
-          cp _build/liberlang.xcframework /tmp/ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework/
+          cp _build/liberlang.xcframework ${{github.workspace}}/_build/ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework/
 
       - name: Archive runtimes
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework.zip
           #path: _build/liberlang.xcframework
-          path: /tmp/ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework
+          path: ${{github.workspace}}/_build/ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework
 
       - name: Generate iOS Checksums and Release Notes
         id: ios-checksums
