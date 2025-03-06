@@ -1,10 +1,10 @@
-FROM dockcross/android-${ARCH_ID}
-
 # ARG instructions
 ARG ARCH_ID
 ARG ANDROID_NAME
 ARG ABI
 ARG KERL_CONFIGURE_OPTIONS
+
+FROM dockcross/android-${ARCH_ID}
 
 # ENV instructions
 ENV NDK_ROOT $CROSS_ROOT
