@@ -60,7 +60,7 @@ jobs:
           }
         erlixir:
           #- { otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"}
-          - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
+          #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
           - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
@@ -162,6 +162,8 @@ jobs:
             --build-arg ABI=${{matrix.archs.abi}}
             --build-arg OPENSSL_VERSION=${{env.OPENSSL_VERSION}}
             --build-arg OPENSSL_HASH=${{env.OPENSSL_HASH}}
+            --build-arg OTP_SOURCE=${{env.OTP_SOURCE}}
+            --build-arg OTP_TAG=${{matrix.erlixir.otp-version}}
             --build-arg KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}"
 
       # - name: Linux docker android nif builder image
@@ -201,12 +203,16 @@ jobs:
           ARCH: ${{matrix.archs.id}}
           BUILDER_IMAGE: ghcr.io/adiibanez/android_beam:arch_${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}"
         run: |
-
           docker images
-
           mix deps.get
           mix package.android.runtime
           mix package.android.nif # runs multiple iterations based on default_nifs
+
+      - name: Runtime logs
+        shell: bash
+        run: |
+          find . -name runtimes_run.log
+          cat `find . -name runtimes_run.log` || true
 
       - name: Archive Android runtimes
         uses: actions/upload-artifact@v4
@@ -248,7 +254,7 @@ jobs:
       matrix:
         erlixir:
           #- { otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"} # configured in package_ios_runtime.ex too configuration
-          - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
+          #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
           - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
@@ -331,6 +337,12 @@ jobs:
         run:  |
           . $HOME/.asdf/asdf.sh
           mix package.ios.runtime
+
+      - name: Runtime logs
+        shell: bash
+        run: |
+          find . -name runtimes_run.log
+          cat `find . -name runtimes_run.log` || true
 
       - name: Info Openssl
         shell: bash
