@@ -1,4 +1,5 @@
 /otp
+/_build/ios*
 /_build/dev
 /_build/x86_64
 /_build/arm

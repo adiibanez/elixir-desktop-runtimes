@@ -1,0 +1,1 @@
+OPENSSL_HASH=002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3 OPENSSL_VERSION=3.4.1 mix package.ios.runtime

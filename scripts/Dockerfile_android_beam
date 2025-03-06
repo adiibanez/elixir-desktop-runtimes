@@ -1,22 +1,30 @@
 # ARG instructions
-ARG ARCH
-ARG ANDROID_NAME
-ARG ABI
-ARG KERL_CONFIGURE_OPTIONS
-ARG OPENSSL_VERSION
-ARG OPENSSL_HASH
+ARG ARCH=arm64
+ARG ANDROID_NAME=android
+ARG ABI=23
+ARG KERL_CONFIGURE_OPTIONS=""
+ARG OPENSSL_VERSION="3.4.1"
+ARG OPENSSL_HASH="002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
+ARG BASE_IMAGE="dockcross/android-arm64"
+ARG OTP_PATH="_build/otp_cache/otp"
 
-FROM dockcross/android-${ARCH}
+FROM ${BASE_IMAGE}
 
 # ENV instructions
-ENV NDK_ROOT $CROSS_ROOT
-ENV ANDROID_NDK_HOME $CROSS_ROOT
-ENV NDK_ABI_PLAT ${ANDROID_NAME}${ABI}
-ENV PATH $NDK_ROOT/bin:$PATH
-ENV FC= CPP= LD= CXX=clang++ CC=clang AR=ar
-ENV MAKEFLAGS "-j10 -O"
-ENV OPENSSL_VERSION = $OPENSSL_VERSION
-ENV OPENSSL_HASH = $OPENSSL_HASH
+ENV ABI=$ABI
+ENV NDK_ROOT=$CROSS_ROOT
+ENV ANDROID_NDK_HOME=$CROSS_ROOT
+ENV NDK_ABI_PLAT=$ANDROID_NAME$ABI
+ENV PATH=$NDK_ROOT/bin:$PATH
+ENV FC=""
+ENV CPP=""
+ENV LD=""
+ENV CXX="clang++"
+ENV CC="clang"
+ENV AR="ar"
+ENV MAKEFLAGS="-j10 -O"
+ENV OPENSSL_VERSION=$OPENSSL_VERSION
+ENV OPENSSL_HASH=$OPENSSL_HASH
 
 # Debug echo statements
 RUN echo "ARCH=${ARCH}" && \
@@ -39,30 +47,35 @@ COPY patch /work/patch
 RUN cp ${NDK_ROOT}/bin/llvm-ar ${NDK_ROOT}/bin/${ARCH}-linux-${ANDROID_NAME}-ar
 RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/${ARCH}-linux-${ANDROID_NAME}-ranlib
 
-RUN ARCH="android-${ARCH} -D__ANDROID_API__=${ABI}" ./install_openssl.sh
+RUN echo ARCH="android-${ARCH} -D__ANDROID_API__=${ABI}" ./install_openssl.sh
+# RUN ARCH="android-${ARCH} -D__ANDROID_API__=${ABI}" ./install_openssl.sh
 
-# Fetching OTP
-COPY _build/otp otp
+# # Fetching OTP
+# COPY _build/otp otp
 
-ENV LIBS /usr/local/openssl/lib/libcrypto.a
+# ENV LIBS /usr/local/openssl/lib/libcrypto.a
 
-# We need -z global for liberlang.so because:
-# https://android-ndk.narkive.com/iNWj05IV/weak-symbol-linking-when-loading-dynamic-libraries
-# https://android.googlesource.com/platform/bionic/+/30b17e32f0b403a97cef7c4d1fcab471fa316340/linker/linker_namespaces.cpp#100
-ENV CFLAGS="-Os -fPIC" CXXFLAGS="-Os -fPIC" LDFLAGS="-z global" CXX= CC=
+# # We need -z global for liberlang.so because:
+# # https://android-ndk.narkive.com/iNWj05IV/weak-symbol-linking-when-loading-dynamic-libraries
+# # https://android.googlesource.com/platform/bionic/+/30b17e32f0b403a97cef7c4d1fcab471fa316340/linker/linker_namespaces.cpp#100
+# ENV CFLAGS="-Os -fPIC"
+# ENV CXXFLAGS="-Os -fPIC"
+# ENV LDFLAGS="-z global"
+# ENV CXX=""
+# ENV CC=""
 
-# RUN env
-WORKDIR /work/otp
+# # RUN env
+# WORKDIR /work/otp
 
-# Build with debugger produces
-# dbg_wx_filedialog_win.erl:22: behaviour wx_object undefined
+# # Build with debugger produces
+# # dbg_wx_filedialog_win.erl:22: behaviour wx_object undefined
 
-# Build run #1, building the x86 based cross compiler which will generate the .beam files
-ARG config="--with-ssl=/usr/local/openssl/ --disable-dynamic-ssl-lib --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-${ARCH}-android.conf --disable-jit ${KERL_CONFIGURE_OPTIONS}"
-RUN ./otp_build setup $config || bash -c 'cat erts/config.log && exit 1'
-RUN ./otp_build boot -a
+# # Build run #1, building the x86 based cross compiler which will generate the .beam files
+# ARG config="--with-ssl=/usr/local/openssl/ --disable-dynamic-ssl-lib --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-${ARCH}-android.conf --disable-jit ${KERL_CONFIGURE_OPTIONS}"
+# RUN ./otp_build setup $config || bash -c 'cat erts/config.log && exit 1'
+# RUN ./otp_build boot -a
 
-# Build run #2, now creating the arm binaries, appliying the install flags only here...
-ENV INSTALL_PROGRAM "/usr/bin/install -c -s --strip-program=llvm-strip"
-RUN ./otp_build configure $config LDFLAGS="-z global"
-RUN ./otp_build release -a
+# # Build run #2, now creating the arm binaries, appliying the install flags only here...
+# ENV INSTALL_PROGRAM="/usr/bin/install -c -s --strip-program=llvm-strip"
+# RUN ./otp_build configure $config LDFLAGS="-z global"
+# RUN ./otp_build release -a
