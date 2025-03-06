@@ -347,6 +347,21 @@ jobs:
           restore-keys: |
             macos-otp-${{ matrix.erlixir.otp-version }}-
             macos-otp-
+
+      - name: Checkout opt ${{matrix.erlixir.otp-version}}
+        uses: actions/checkout@v3
+        if: steps.otp-cache.outputs.cache-hit != 'true'
+        with: 
+          path: _build/otp_cache/otp
+          repository: erlang/otp
+          ref: ${{ env.OTP_TAG }}
+
+      - name: Check otp 
+        shell: bash
+        run: |
+          ls -lah _build/otp_cache/otp
+          find _build/otp_cache/ -name vsn.mk
+          pwd
       
       - name: Openssl Cache
         uses: actions/cache@v3

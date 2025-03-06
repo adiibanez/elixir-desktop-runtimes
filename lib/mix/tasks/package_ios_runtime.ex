@@ -199,7 +199,10 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       ]
 
       IO.puts("Extra nifs: #{inspect(nifs)}")
-      IO.puts(System.get_env("KERL_CONFIGURE_OPTIONS", ""), label: "Kerl configure options")
+
+      IO.inspect(System.get_env("KERL_CONFIGURE_OPTIONS", ""),
+        label: "Kerl configure options"
+      )
 
       Runtimes.run(
         ~w(
