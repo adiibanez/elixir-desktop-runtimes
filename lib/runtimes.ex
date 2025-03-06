@@ -77,14 +77,21 @@ defmodule Runtimes do
     if !File.exists?("_build/otp_cache/otp") do
       File.mkdir_p!("_build")
 
+      IO.puts(
+        "git clone --depth 1 #{Runtimes.otp_source()} _build/otp_cache/otp --branch #{Runtimes.otp_tag()}"
+      )
+
+      # Runtimes.run(
+      #   "git clone #{Runtimes.otp_source()} _build/otp_cache/otp && cd _build/otp_cache/otp && git checkout #{Runtimes.otp_tag()}"
+      # )
       Runtimes.run(
-        "git clone #{Runtimes.otp_source()} _build/otp_cache/otp && cd _build/otp_cache/otp && git checkout #{Runtimes.otp_tag()}"
+        "git clone --depth 1 #{Runtimes.otp_source()} _build/otp_cache/otp --branch #{Runtimes.otp_tag()}"
       )
     end
   end
 
   def erts_version() do
-    # ensure_otp()
+    ensure_otp()
     content = File.read!("_build/otp_cache/otp/erts/vsn.mk")
     [[_, vsn]] = Regex.scan(~r/VSN *= *([0-9\.]+)/, content)
     vsn
