@@ -116,10 +116,10 @@ jobs:
         with:
           path: |
             _build/otp_cache/
-          key: android-otp-${{ matrix.archs}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}
+          key: android-otp-${{ matrix.archs.id }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}
           restore-keys: |
-            android-otp-${{ matrix.archs}}-${{ matrix.erlixir.otp-version }}-
-            android-otp-${{ matrix.archs}}-
+            android-otp-${{ matrix.archs.id }}-${{ matrix.erlixir.otp-version }}-
+            android-otp-${{ matrix.archs.id }}-
       
       # - name: Checkout opt ${{matrix.erlixir.otp-version}}
       #   uses: actions/checkout@v3
@@ -134,7 +134,7 @@ jobs:
         if: steps.otp-cache.outputs.cache-hit != 'true'
         run: | 
           curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
-          mkdire -p _build/otp_cache/
+          mkdir -p _build/otp_cache/
           mv otp_src_${{matrix.erlixir.otp-version}}.tar.gz _build/otp_cache/
 
       - name: Save OTP Cache
@@ -144,7 +144,7 @@ jobs:
         with:
           path: |
             _build/otp_cache/
-          key: android-otp-${{ matrix.archs}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}      
+          key: android-otp-${{ matrix.archs.id }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}      
 
       - name: Check otp 
         shell: bash
