@@ -26,7 +26,7 @@ concurrency:
 env:
   OTP_SOURCE: https://github.com/erlang/otp
   OPENSSL_HASH: 002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
-  OPENSSL_VERSION: 3.4.1
+  OPENSSL_VERSION: 3.4.1v
 
 jobs:
   build-android:
@@ -139,7 +139,7 @@ jobs:
             --build-arg ARCH=${{matrix.archs.id}}
             --build-arg ANDROID_NAME=${{matrix.archs.name}}
             --build-arg ABI=${{matrix.archs.abi}}
-            --build-arg OPENSSL_VERSION=${{env.OPENSSL_VERSION}}v # add v suffix for download from source tar.gz
+            --build-arg OPENSSL_VERSION=${{env.OPENSSL_VERSION}}
             --build-arg OPENSSL_HASH=${{env.OPENSSL_HASH}}
             --build-arg KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}"
 
