@@ -74,6 +74,9 @@ defmodule Runtimes do
   end
 
   def ensure_otp() do
+    Runtimes.run("pwd")
+    Runtimes.run("ls -lah ./")
+
     if !File.exists?("_build/otp_cache/otp") do
       File.mkdir_p!("_build")
 
