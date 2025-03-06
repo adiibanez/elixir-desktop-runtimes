@@ -19,11 +19,11 @@ RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-<%= @a
 RUN ARCH="android-<%= @arch.id %> -D__ANDROID_API__=<%= @arch.abi %>" ./install_openssl.sh
 
 # Fetching OTP
-#RUN git clone --depth 1 <%= @otp_source %> _build/otp_cache/otp --branch <%= @otp_tag %>
-COPY _build/otp_cache/otp_src_<%= @otp_tag %>.tar.gz ./
-RUN tar -xzf otp_src_<%= @otp_tag %>.tar.gz \
-    && mv otp_src_<%= @otp_tag %> otp \
-    && rm otp_src_<%= @otp_tag %>.tar.gz
+#RUN git clone --depth 1 <%= @otp_source %> _build/otp_cache/otp --branch <%= @otp_version %>
+COPY _build/otp_cache/otp_src_<%= @otp_version %>.tar.gz ./
+RUN tar -xzf otp_src_<%= @otp_version %>.tar.gz \
+    && mv otp_src_<%= @otp_version %> otp \
+    && rm otp_src_<%= @otp_version %>.tar.gz
 
 ENV LIBS /usr/local/openssl/lib/libcrypto.a
 

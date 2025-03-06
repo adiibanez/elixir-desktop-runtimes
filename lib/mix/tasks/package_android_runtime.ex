@@ -95,16 +95,20 @@ defmodule Mix.Tasks.Package.Android.Runtime do
   def generate_beam_dockerfile(arch) do
     otp_source = System.get_env("OTP_SOURCE")
     otp_tag = System.get_env("OTP_TAG")
+    otp_version = System.get_env("OTP_VERSION")
 
-    if is_nil(otp_source) or is_nil(otp_tag) do
-      IO.puts("generate_beam_dockerfile OTP_SOURCE #{otp_source} or OTP_TAG #{otp_tag} not set")
+    if is_nil(otp_source) or is_nil(otp_version) do
+      IO.puts(
+        "generate_beam_dockerfile OTP_SOURCE #{otp_source} or OTP_VERSION #{otp_version} not set"
+      )
+
       System.halt(1)
     end
 
     args = [
       arch: get_arch(arch),
       otp_source: otp_source,
-      otp_tag: otp_tag,
+      otp_version: otp_version,
       erts_version: Runtimes.erts_version()
     ]
 
