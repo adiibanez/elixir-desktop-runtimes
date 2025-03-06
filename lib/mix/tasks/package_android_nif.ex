@@ -27,7 +27,11 @@ defmodule Mix.Tasks.Package.Android.Nif do
     #     [git, tag] -> {git, tag}
     #   end
 
-    build(arch, Runtimes.get_nif(nifs))
+    for nif <- Runtimes.default_nifs() do
+      build(arch, Runtimes.get_nif(nif))
+    end
+
+    # build(arch, Runtimes.get_nif(nifs))
   end
 
   defp build(arch, nif) do
