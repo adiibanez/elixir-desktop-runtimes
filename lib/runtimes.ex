@@ -84,7 +84,7 @@ defmodule Runtimes do
   end
 
   def erts_version() do
-    ensure_otp()
+    # ensure_otp()
     content = File.read!("_build/otp_cache/otp/erts/vsn.mk")
     [[_, vsn]] = Regex.scan(~r/VSN *= *([0-9\.]+)/, content)
     vsn
