@@ -69,7 +69,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   end
 
   def openssl_target(arch) do
-    Path.absname("_build/#{arch.name}/openssl")
+    Path.absname("_build/openssl/openssl_#{arch.name}")
   end
 
   def openssl_lib(arch) do
@@ -77,7 +77,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   end
 
   def otp_target(arch) do
-    Path.absname("_build/#{arch.name}/otp")
+    Path.absname("_build/otp/otp_#{arch.name}")
   end
 
   def runtime_target(arch) do
