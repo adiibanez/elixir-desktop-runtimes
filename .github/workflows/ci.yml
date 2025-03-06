@@ -130,6 +130,7 @@ jobs:
         run: |
           MIX_TARGET=prod mix compile
           mix run -e 'Mix.Tasks.Package.Android.Runtime.write_beam_dockerfile("${{matrix.archs.id}}", "/tmp/Dockerfile_android-beam-${{matrix.archs.id}}")'
+          cat "/tmp/Dockerfile_android-beam-${{matrix.archs.id}}"
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
