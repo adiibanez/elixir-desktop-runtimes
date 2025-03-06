@@ -70,11 +70,17 @@ jobs:
     runs-on: "ubuntu-latest"
 
     steps:
+      - name: Checkout opt ${{matrix.erlixir.otp-version}}
+        uses: actions/checkout@v3
+        with: 
+          path: _build/otp_cache/otp
+          repository: ${{ env.OTP_SOURCE }}
+          ref: ${{ env.OTP_TAG }}
+
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
         run: |
-          KERL_CONFIGURE_OPTIONS=${{matrix.erlixir.erl-opts}}
-          #ERL_COMPILER_OPTIONS=${{matrix.erlixir.erl-opts}}
+          export KERL_CONFIGURE_OPTIONS=${{matrix.erlixir.erl-opts}}
 
       - name: erlef/setup-beam Cache
         uses: actions/cache@v3
