@@ -81,6 +81,7 @@ jobs:
         shell: bash
         run: |
           ls -lah _build/otp_cache/otp
+          find _build/otp_cache/ -name vsn.mk
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
