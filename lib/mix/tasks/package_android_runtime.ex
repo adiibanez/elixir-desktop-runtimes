@@ -24,6 +24,8 @@ defmodule Mix.Tasks.Package.Android.Runtime do
       Runtimes.ensure_otp()
 
       # {content, _args} = generate_beam_dockerfile(arch.id)
+      # IO.puts(content, "docker image #{arch.id}")
+
       # image_name = "beam-#{arch.id}"
       # file = "#{image_name}.dockerfile.tmp"
       # File.write!(file, content)
@@ -93,6 +95,12 @@ defmodule Mix.Tasks.Package.Android.Runtime do
   def generate_beam_dockerfile(arch) do
     args = [arch: get_arch(arch), erts_version: Runtimes.erts_version()]
     {beam_dockerfile(args), args}
+  end
+
+  def write_beam_dockerfile(arch, path) do
+    {content, _args} = generate_beam_dockerfile(arch)
+    file = path
+    File.write!(file, content)
   end
 
   def generate_nif_dockerfile(arch, nif) do

@@ -1,8 +1,8 @@
 export OPENSSL_HASH=002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
 export OPENSSL_VERSION=3.4.1 
-export ARCH=arm64
+export ARCH=arm
 # --platform=linux/amd64 \
-echo docker buildx build -t android_beam \
+docker buildx build -t android_beam \
 --build-arg BASE_IMAGE=dockcross/android-$ARCH \
 --build-arg ARCH=$ARCH \
 --build-arg ANDROID_NAME=android \
@@ -14,4 +14,5 @@ echo docker buildx build -t android_beam \
 --output type=docker \
   -f scripts/Dockerfile_android_beam .
 
-#  -f scripts/Dockerfile_android_beam
+docker run -t android_beam env
+docker run -t android_beam cat /root/.profile

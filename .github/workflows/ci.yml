@@ -117,6 +117,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+
+      - name: Generate beam docker file
+        id: generate-dockerfile
+        shell: bash
+        run: |
+          elixir -e 'Mix.Tasks.Package.Android.Runtime.write_beam_dockerfile(${{matrix.archs.id}}, "/tmp/Dockerfile_android-beam-${{matrix.archs.id}}")'
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -126,6 +133,7 @@ jobs:
 
       - name: Linux docker android beam builder image
         uses: whoan/docker-build-with-cache-action@v5
+        if: steps.generate-dockerfile.outcome == 'success'
         id: buildx-beam
         with:
           username: ${{ github.actor }}
@@ -133,7 +141,7 @@ jobs:
           registry: ghcr.io
           image_name: android_beam
           image_tag: "arch_${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}"
-          dockerfile: scripts/Dockerfile_android_beam
+          dockerfile: /tmp/Dockerfile_android-beam-${{matrix.archs.id}}"
           build_extra_args: |
             --platform=linux/amd64
             --build-arg ARCH=${{matrix.archs.id}}
@@ -171,6 +179,7 @@ jobs:
 
       
       - name: Build Android ${{env.ARCH_IDENTIFIER}} runtimes
+        if: steps.buildx-beam.outcome == 'success'
         env: 
           ARCH: ${{matrix.archs.id}}
           BUILDER_IMAGE: ghcr.io/adiibanez/android_beam:arch_${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}"
