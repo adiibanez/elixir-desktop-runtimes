@@ -157,10 +157,10 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         ]
 
         # First round build to generate headers and libs required to build nifs:
+        # git clean -xdf &&
 
         cmd = ~w(
           cd #{otp_target(arch)} &&
-          git clean -xdf &&
           ./otp_build setup
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
@@ -199,7 +199,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       ]
 
       IO.puts("Extra nifs: #{inspect(nifs)}")
-      IO.puts(System.get_env("KERL_CONFIGURE_OPTIONS"), label: "Kerl configure options")
+      IO.puts(System.get_env("KERL_CONFIGURE_OPTIONS", ""), label: "Kerl configure options")
 
       Runtimes.run(
         ~w(

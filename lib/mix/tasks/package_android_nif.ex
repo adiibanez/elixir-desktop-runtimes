@@ -12,19 +12,22 @@ defmodule Mix.Tasks.Package.Android.Nif do
   end
 
   def run(args) do
-    {parsed, _, _} = OptionParser.parse(args, strict: [arch: :string, git: :list])
+    {parsed, _, _} = OptionParser.parse(args, strict: [arch: :string, nifs: :string])
     IO.inspect(parsed, label: "Received args")
+    # System.halt(0)
 
-    System.halt(0)
+    nifs = Runtimes.default_nifs()
 
-    {git, _tag} =
-      case args do
-        [] -> raise "Need git url parameter"
-        [git] -> {git, nil}
-        [git, tag] -> {git, tag}
-      end
+    arch = Keyword.get(parsed, :arch, "arm64")
 
-    build(parsed.arch, Runtimes.get_nif(git))
+    # {git, _tag} =
+    #   case args do
+    #     [] -> raise "Need git url parameter"
+    #     [git] -> {git, nil}
+    #     [git, tag] -> {git, tag}
+    #   end
+
+    build(arch, Runtimes.get_nif(nifs))
   end
 
   defp build(arch, nif) do
