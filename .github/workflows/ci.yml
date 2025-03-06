@@ -69,6 +69,13 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Android ${{ matrix.arch }} runtimes
         run: |
           mix deps.get
@@ -79,6 +86,12 @@ jobs:
         shell: bash
         run: |
           docker images
+          docker pull dockcross/android-${{ matrix.arch }}
+          #ghcr.io/adiibanez/linux_installer_binaries_workflow:${{env.OTP_VERSION }}_wx-${{ env.WXWIDGETS_VERSION }}_elixir-${{ env.ELIXIR_VERSION }} \
+          #docker pull libsecp256k1-${{ matrix.arch }}
+          #exqlite-${{ matrix.arch }}
+          #esqlite-${{ matrix.arch }}
+          #beam-${{ matrix.arch }}  
 
       - name: Archive Android runtimes
         uses: actions/upload-artifact@v4
@@ -186,7 +199,7 @@ jobs:
         id: openssl-cache
         with:
           path: |
-            _build/openssl
+            _build/ci_openssl
           key: macos-openssl-${{env.OPENSSL_VERSION}}
 
       - name: Build iOS runtime
@@ -201,7 +214,7 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
-          ls -lah _build/openssl || true
+          ls -lah _build/ci_openssl || true
           find . -name openssl
 
       - name: Save Openssl Cache
@@ -210,10 +223,7 @@ jobs:
         # && steps.build-ios.outcome == 'success'
         with:
           path: |
-            _build/arm-apple-ios/openssl
-            _build/aarch64-apple-ios/openssl
-            _build/x86_64-apple-iossimulator/openssl
-            _build/aarch64-apple-iossimulator/openssl
+            _build/ci_openssl
           key: macos-openssl-${{env.OPENSSL_VERSION}}
 
       - name: Save OTP Cache
