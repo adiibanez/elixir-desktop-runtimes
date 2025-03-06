@@ -4,6 +4,7 @@ on:
   push:
     branches: 
       - ci_mods
+      - refactoring
     paths:
     # Just run on main branch if "native" path changed.
     #- "native/**"
@@ -226,7 +227,6 @@ jobs:
           body: |
             Android Checksums:
             ${{ steps.android-checksums.outputs.android_checksums }}
-  
   
   build-ios:
     if: false
