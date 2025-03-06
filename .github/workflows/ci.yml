@@ -133,6 +133,8 @@ jobs:
             --build-arg ARCH_ID=${{matrix.archs.id}}
             --build-arg ANDROID_NAME=${{matrix.archs.name}}
             --build-arg ABI=${{matrix.archs.abi}}
+            --build-arg OPENSSL_VERSION=${{env.OPENSSL_VERSION}}
+            --build-arg OPENSSL_HASH=${{env.OPENSSL_HASH}}
             --build-arg KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}"
 
       # - name: Linux docker android nif builder image

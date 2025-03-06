@@ -34,7 +34,6 @@ echo "BUILD_DIR: $BUILD_DIR"
 echo "BASE_DIR: $BASE_DIR"
 echo "ARCH: $ARCH"
 
-
 mkdir -p "$PREFIX/ssl" && \
     mkdir -p "$BUILD_DIR" && \
     cd $BUILD_DIR && \
