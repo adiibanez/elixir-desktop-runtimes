@@ -64,6 +64,7 @@ jobs:
           - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
+      OTP_VERSION: ${{ matrix.erlixir.otp-version }}
       ARCH_IDENTIFIER: ${{matrix.archs.id}}-${{matrix.archs.name}}-${{matrix.archs.abi}}
 
     name: "Build Android runtimes"
