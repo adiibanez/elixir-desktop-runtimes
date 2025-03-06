@@ -42,10 +42,13 @@ config = "--with-ssl=/usr/local/openssl/ --disable-dynamic-ssl-lib --without-jav
 # config = if @arch.id == "x86_64", do: "--disable-jit #{config}", else: config
 config = "--disable-jit #{config}"
 %>
-RUN ./otp_build setup <%= config %> || bash -c 'cat erts/config.log && exit 1'
-RUN ./otp_build boot -a
 
-# Build run #2, now creating the arm binaries, appliying the install flags only here...
-ENV INSTALL_PROGRAM "/usr/bin/install -c -s --strip-program=llvm-strip"
-RUN ./otp_build configure <%= config %> LDFLAGS="-z global"
-RUN ./otp_build release -a
+RUN ls -lah || true 
+RUN ls -lah otp_build || true
+# RUN ./otp_build setup <%= config %> || bash -c 'cat erts/config.log && exit 1'
+# RUN ./otp_build boot -a
+
+# # Build run #2, now creating the arm binaries, appliying the install flags only here...
+# ENV INSTALL_PROGRAM "/usr/bin/install -c -s --strip-program=llvm-strip"
+# RUN ./otp_build configure <%= config %> LDFLAGS="-z global"
+# RUN ./otp_build release -a
