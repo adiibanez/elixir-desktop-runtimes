@@ -15,17 +15,16 @@ defmodule Runtimes do
     IO.puts("RUN: #{args}")
 
     case System.cmd("bash", ["-c", args],
-           stderr_to_stdout: true,
-           into: IO.binstream(:stdio, :line),
-           env: env
-         ) do
-      {ret, 0} ->
-        IO.puts("RUN OK: #{args} #{inspect(ret)}")
-        ret
+        stderr_to_stdout: true,
+        into: IO.binstream(:stdio, :line),
+        env: env
+      ) do
+        {ret, 0} -> 
+          IO.puts("RUN OK: #{args} #{inspect(ret)}")
+          ret
+        error -> IO.puts("RUN NOK: #{inspect(error)}")
+      end
 
-      error ->
-        IO.puts("RUN NOK: #{inspect(error)}")
-    end
   end
 
   def docker_build(image, file) do
@@ -74,18 +73,18 @@ defmodule Runtimes do
   end
 
   def ensure_otp() do
-    if !File.exists?("_build/otp_cache/otp") do
+    if !File.exists?("_build/otp") do
       File.mkdir_p!("_build")
 
       Runtimes.run(
-        "git clone #{Runtimes.otp_source()} _build/otp_cache/otp && cd _build/otp_cache/otp && git checkout #{Runtimes.otp_tag()}"
+        "git clone #{Runtimes.otp_source()} _build/otp && cd _build/otp && git checkout #{Runtimes.otp_tag()}"
       )
     end
   end
 
   def erts_version() do
     ensure_otp()
-    content = File.read!("_build/otp_cache/otp/erts/vsn.mk")
+    content = File.read!("_build/otp/erts/vsn.mk")
     [[_, vsn]] = Regex.scan(~r/VSN *= *([0-9\.]+)/, content)
     vsn
   end

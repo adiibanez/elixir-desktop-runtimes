@@ -69,48 +69,37 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   end
 
   def openssl_target(arch) do
-    path = Path.absname("_build/openssl_cache/#{arch.name}/openssl")
-    IO.puts("OpenSSL target #{path}")
-    path
+    Path.absname("_build/#{arch.name}/openssl")
   end
 
   def openssl_lib(arch) do
-    path = Path.join(openssl_target(arch), "lib/libcrypto.a")
-    IO.puts("OpenSSL target #{path}")
-    path
+    Path.join(openssl_target(arch), "lib/libcrypto.a")
   end
 
   def otp_target(arch) do
-    path = Path.absname("_build/otp_cache/#{arch.name}/otp")
-    IO.puts("OTP target #{path}")
-    path
+    Path.absname("_build/#{arch.name}/otp")
   end
 
   def runtime_target(arch) do
-    path = "_build/runtime_cache/#{arch.name}/liberlang.a"
-    IO.puts("Runtime target #{path}")
-    path
+    "_build/#{arch.name}/liberlang.a"
   end
 
   def build(archid, extra_nifs) do
     arch = get_arch(archid)
-    File.mkdir_p!("_build/runtime_cache/#{arch.name}")
+    File.mkdir_p!("_build/#{arch.name}")
 
     # Building OpenSSL
     if File.exists?(openssl_lib(arch)) do
-      IO.puts("OpenSSL (#{openssl_lib(arch)}) already exists...")
+      IO.puts("OpenSSL (#{arch.id}) already exists...")
     else
       case Runtimes.run("scripts/install_openssl.sh",
-             ARCH: arch.openssl_arch,
-             OPENSSL_PREFIX: openssl_target(arch),
-             MAKEFLAGS: "-j10 -O"
-           ) do
-        :ok ->
-          IO.puts("OpenSSL ok")
-
-        {:error, error} ->
-          IO.puts("OpenSSL error: #{error}")
-          # response -> IO.puts("OpenSSL not sure ... #{inspect(response)}")
+        ARCH: arch.openssl_arch,
+        OPENSSL_PREFIX: openssl_target(arch),
+        MAKEFLAGS: "-j10 -O"
+      ) do
+        {:ok} -> IO.puts("OpenSSL ok")
+        {:error, error } -> IO.puts("OpenSSL error: #{error}")
+        _ -> IO.puts("OpenSSL not sure ...")
       end
     end
 
@@ -120,7 +109,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     else
       if !File.exists?(otp_target(arch)) do
         Runtimes.ensure_otp()
-        Runtimes.run(~w(git clone _build/otp_cache/otp #{otp_target(arch)}))
+        Runtimes.run(~w(git clone _build/otp #{otp_target(arch)}))
       end
 
       env = [
@@ -137,31 +126,21 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         ]
 
         # First round build to generate headers and libs required to build nifs:
-
-        # git clean -xdf &&
-        cmd = ~w(
+        Runtimes.run(
+          ~w(
           cd #{otp_target(arch)} &&
+          git clean -xdf &&
           ./otp_build setup
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
           --enable-static-nifs=#{Enum.join(nifs, ",")} #{System.get_env("KERL_CONFIGURE_OPTIONS", "")}
-        )
-
-        IO.inspect(cmd, label: "First round build of #{otp_target(arch)}")
-
-        Runtimes.run(
-          cmd,
+        ),
           env
         )
 
         Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
         Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
-
-        IO.puts("Generated #{otp_target(arch)}")
-
-        IO.puts("Built openssl")
-        System.halt(1)
       end
 
       # Second round
@@ -182,7 +161,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         "#{otp_target(arch)}/lib/crypto/priv/lib/#{arch.name}/crypto.a"
         | extra_nifs
       ]
-
+      
       IO.puts("Extra nifs: #{inspect(nifs)}")
 
       Runtimes.run(

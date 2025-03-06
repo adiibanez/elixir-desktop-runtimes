@@ -34,6 +34,7 @@ echo "BUILD_DIR: $BUILD_DIR"
 echo "BASE_DIR: $BASE_DIR"
 echo "ARCH: $ARCH"
 
+
 mkdir -p "$PREFIX/ssl" && \
     mkdir -p "$BUILD_DIR" && \
     cd $BUILD_DIR && \
@@ -45,3 +46,4 @@ wget -nc https://www.openssl.org/source/openssl-$VSN.tar.gz && \
     cd openssl-$VSN && \
     ./Configure $ARCH --prefix=$PREFIX "$@" && \
     make clean && make depend && make && make install_sw install_ssldirs
+
