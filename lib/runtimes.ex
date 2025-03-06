@@ -15,16 +15,17 @@ defmodule Runtimes do
     IO.puts("RUN: #{args}")
 
     case System.cmd("bash", ["-c", args],
-        stderr_to_stdout: true,
-        into: IO.binstream(:stdio, :line),
-        env: env
-      ) do
-        {ret, 0} -> 
-          IO.puts("RUN OK: #{args} #{inspect(ret)}")
-          ret
-        error -> IO.puts("RUN NOK: #{inspect(error)}")
-      end
+           stderr_to_stdout: true,
+           into: IO.binstream(:stdio, :line),
+           env: env
+         ) do
+      {ret, 0} ->
+        IO.puts("RUN OK: #{args} #{inspect(ret)}")
+        ret
 
+      error ->
+        IO.puts("RUN NOK: #{inspect(error)}")
+    end
   end
 
   def docker_build(image, file) do

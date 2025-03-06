@@ -117,11 +117,15 @@ jobs:
           - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
+      OPENSSL_HASH: 002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
+      OPENSSL_VERSION: 3.4.1
 
     name: "Build iOS runtime"
     runs-on: "macos-latest"
     steps:
-      - run: brew install git carthage coreutils && brew unlink openssl@1.1 && brew link openssl@3
+      - run: |
+          brew install git carthage coreutils
+          brew unlink openssl@1.1 && brew link openssl@3
       - uses: actions/checkout@v4
 
       - name: Asdf Cache
@@ -137,18 +141,17 @@ jobs:
           git clone https://github.com/asdf-vm/asdf.git ~/.asdf
 
       - name: Configure erl options
-        #if: ${{ matrix.erlixir.erl-opts }} != ''
+        if: ${{ matrix.erlixir.erl-opts }} != ''
         run: |
-          OPENSSL_HASH=002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
-          OPENSSL_VERSION=3.4.1
-          OPENSSL_PREFIX=/Users/runner/.custom-openssl-ios-runtime
-          KERL_CONFIGURE_OPTIONS="--with-ssl=$(brew --prefix openssl@3) ${{matrix.erlixir.erl-opts}}"
-
+          export KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}"
+          # --with-ssl=$(brew --prefix openssl@3) 
+          
       - name: Setup elixir
         id: asdf-setup
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: |
           . $HOME/.asdf/asdf.sh
+          
           asdf plugin add erlang
           asdf plugin add elixir
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
@@ -163,17 +166,51 @@ jobs:
           path: |
             /Users/runner/.asdf
           key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
+      
+      - name: Openssl Cache
+        uses: actions/cache@v3
+        id: openssl-cache
+        with:
+          path: |
+            __build/arm-apple-ios/openssl
+            __build/aarch64-apple-ios/openssl
+            __build/x86_64-apple-iossimulator/openssl
+            __build/aarch64-apple-iossimulator/openssl
+          key: macos-openssl-${{env.OPENSSL_VERSION}}
 
       - name: Build iOS runtime
+        id: build-ios
+        env: 
+          PARALLEL: "true"
         run:  |
           . $HOME/.asdf/asdf.sh
           mix package.ios.runtime
+
+
+      - name: Save Openssl Cache
+        uses: actions/cache/save@v3
+        if: steps.openssl-cache.outputs.cache-hit != 'true'
+        # && steps.build-ios.outcome == 'success'
+        with:
+          path: |
+            __build/arm-apple-ios/openssl
+            __build/aarch64-apple-ios/openssl
+            __build/x86_64-apple-iossimulator/openssl
+            __build/aarch64-apple-iossimulator/openssl
+          key: macos-openssl-${{env.OPENSSL_VERSION}}
+
+      - name: Restructure dir for iOS artifact
+        shell: bash
+        run: |
+          mkdir /tmp/ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework
+          cp _build/liberlang.xcframework /tmp/ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework/
 
       - name: Archive runtimes
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework.zip
-          path: _build/liberlang.xcframework
+          #path: _build/liberlang.xcframework
+          path: /tmp/ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework
 
       - name: Generate iOS Checksums and Release Notes
         id: ios-checksums
@@ -197,7 +234,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: _build/liberlang.xcframework
+          #files: _build/liberlang.xcframework
+          files: ios-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework.zip
           body: |
             iOS Checksums:
             ${{ steps.ios-checksums.outputs.ios_checksums }}
