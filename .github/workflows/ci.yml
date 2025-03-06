@@ -115,7 +115,7 @@ jobs:
         id: otp-cache
         with:
           path: |
-            _build/otp_cache
+            _build/otp_cache/**
           key: android-otp-${{ matrix.archs}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}
           restore-keys: |
             android-otp-${{ matrix.archs}}-${{ matrix.erlixir.otp-version }}-
@@ -128,6 +128,15 @@ jobs:
           path: _build/otp_cache/otp
           repository: erlang/otp
           ref: ${{ env.OTP_TAG }}
+
+      - name: Save OTP Cache
+        uses: actions/cache/save@v3
+        if: steps.otp-cache.outputs.cache-hit != 'true'
+        id: otp-cache-save
+        with:
+          path: |
+            _build/otp_cache/**
+          key: android-otp-${{ matrix.archs}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}      
 
       - name: Check otp 
         shell: bash
@@ -186,7 +195,7 @@ jobs:
         if: steps.buildx-beam.outcome == 'success'
         env: 
           ARCH: ${{matrix.archs.id}}
-          BASE_IMAGE: ghcr.io/adiibanez/android_beam:arch_${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}"
+          BASE_IMAGE: ghcr.io/adiibanez/android_beam:arch_${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}
         run: |
           docker images
           mix deps.get

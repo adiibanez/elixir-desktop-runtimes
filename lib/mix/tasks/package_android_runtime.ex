@@ -93,7 +93,21 @@ defmodule Mix.Tasks.Package.Android.Runtime do
   end
 
   def generate_beam_dockerfile(arch) do
-    args = [arch: get_arch(arch), erts_version: Runtimes.erts_version()]
+    otp_source = System.get_env("OTP_SOURCE")
+    otp_tag = System.get_env("OTP_TAG")
+
+    if is_nil(otp_source) or is_nil(otp_tag) do
+      IO.puts("generate_beam_dockerfile OTP_SOURCE #{otp_source} or OTP_TAG #{otp_tag} not set")
+      System.halt(1)
+    end
+
+    args = [
+      arch: get_arch(arch),
+      otp_source: otp_source,
+      otp_tag: otp_tag,
+      erts_version: Runtimes.erts_version()
+    ]
+
     {beam_dockerfile(args), args}
   end
 
@@ -105,7 +119,15 @@ defmodule Mix.Tasks.Package.Android.Runtime do
 
   def generate_nif_dockerfile(arch, nif) do
     {_parent, args} = generate_beam_dockerfile(arch)
-    parent = "FROM #{System.get_env("BASE_IMAGE")}"
+
+    base_image = System.get_env("BASE_IMAGE")
+
+    if is_nil(base_image) do
+      IO.puts("generate_nif_dockerfile BASE_IMAGE not set")
+      System.halt(1)
+    end
+
+    parent = "FROM #{base_image}"
 
     args =
       args ++

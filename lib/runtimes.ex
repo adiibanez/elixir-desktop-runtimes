@@ -15,7 +15,6 @@ defmodule Runtimes do
     file = "runtimes_run.log"
     File.write(file, args)
     File.write(file, "\n")
-    File.close(file)
     IO.puts("RUN: #{args}")
 
     case System.cmd("bash", ["-c", args],

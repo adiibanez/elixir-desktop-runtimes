@@ -60,24 +60,17 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
 
   def run(["with_diode_nifs"]) do
     IO.puts("with_diode_nifs")
-
-    System.halt(0)
-
     buildall(architectures(), @diode_nifs)
   end
 
   def run([]) do
     IO.puts("with empty []")
-
-    System.halt(0)
     buildall(architectures(), @default_nifs)
   end
 
   def run(args) do
     {parsed, _, _} = OptionParser.parse(args, strict: [arch: :string, nifs: :string])
     IO.inspect(parsed, label: "Received args")
-
-    # System.halt(0)
 
     nifs = Keyword.get(parsed, :nifs, @default_nifs)
 
