@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
   end
 
   def elixir_target(arch) do
-    Path.absname("_build/#{arch.name}/elixir")
+    Path.absname("_build/runtime_cache/#{arch.name}/elixir")
   end
 
   def build(arch, nif) do
@@ -69,7 +69,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     ]
 
     # Start the builds
-    nif_dir = "_build/#{arch.name}/#{nif.basename}"
+    nif_dir = "_build/runtime_cache/#{arch.name}/#{nif.basename}"
 
     if !File.exists?(nif_dir) do
       Runtimes.run(~w(git clone #{nif.repo} #{nif_dir}), env)
@@ -89,7 +89,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
   end
 
   def static_lib_path(arch, nif) do
-    nif_dir = "_build/#{arch.name}/#{nif.basename}"
+    nif_dir = "_build/runtime_cache/#{arch.name}/#{nif.basename}"
 
     # Finding all .a files
     :filelib.fold_files(

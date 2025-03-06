@@ -2,8 +2,12 @@ defmodule Mix.Tasks.Package.Android.Runtime do
   use Mix.Task
   require EEx
 
-  def run(_) do
-    buildall(default_archs())
+  # def run(_) do
+  #   buildall(default_archs())
+  # end
+
+  def run(_args) do
+    build(System.get_env("ARCH"))
   end
 
   defp target(arch) do
@@ -19,11 +23,14 @@ defmodule Mix.Tasks.Package.Android.Runtime do
     else
       Runtimes.ensure_otp()
 
-      {content, _args} = generate_beam_dockerfile(arch.id)
-      image_name = "beam-#{arch.id}"
-      file = "#{image_name}.dockerfile.tmp"
-      File.write!(file, content)
-      Runtimes.docker_build(image_name, file)
+      # {content, _args} = generate_beam_dockerfile(arch.id)
+      # image_name = "beam-#{arch.id}"
+      # file = "#{image_name}.dockerfile.tmp"
+      # File.write!(file, content)
+
+      image_name = System.get_env("BUILDER_IMAGE")
+
+      # Runtimes.docker_build(image_name, file)
       File.mkdir_p!("_build/#{arch.id}")
 
       Runtimes.run(~w(docker run --rm -w
@@ -89,7 +96,8 @@ defmodule Mix.Tasks.Package.Android.Runtime do
   end
 
   def generate_nif_dockerfile(arch, nif) do
-    {parent, args} = generate_beam_dockerfile(arch)
+    {_parent, args} = generate_beam_dockerfile(arch)
+    parent = "FROM #{System.get_env("BASEIMAGE")}"
 
     args =
       args ++

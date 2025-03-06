@@ -69,28 +69,36 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   end
 
   def openssl_target(arch) do
-    Path.absname("_build/ci_openssl/openssl_#{arch.name}")
+    path = Path.absname("_build/openssl_cache/#{arch.name}/openssl")
+    IO.puts("OpenSSL target #{path}")
+    path
   end
 
   def openssl_lib(arch) do
-    Path.join(openssl_target(arch), "lib/libcrypto.a")
+    path = Path.join(openssl_target(arch), "lib/libcrypto.a")
+    IO.puts("OpenSSL target #{path}")
+    path
   end
 
   def otp_target(arch) do
-    Path.absname("_build/otp_ci_build_#{arch.name}")
+    path = Path.absname("_build/otp_cache/#{arch.name}/otp")
+    IO.puts("OTP target #{path}")
+    path
   end
 
   def runtime_target(arch) do
-    "_build/#{arch.name}/liberlang.a"
+    path = "_build/runtime_cache/#{arch.name}/liberlang.a"
+    IO.puts("Runtime target #{path}")
+    path
   end
 
   def build(archid, extra_nifs) do
     arch = get_arch(archid)
-    File.mkdir_p!("_build/#{arch.name}")
+    File.mkdir_p!("_build/runtime_cache/#{arch.name}")
 
     # Building OpenSSL
     if File.exists?(openssl_lib(arch)) do
-      IO.puts("OpenSSL (#{arch.id}) already exists...")
+      IO.puts("OpenSSL (#{openssl_lib(arch)}) already exists...")
     else
       case Runtimes.run("scripts/install_openssl.sh",
              ARCH: arch.openssl_arch,
@@ -109,7 +117,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     else
       if !File.exists?(otp_target(arch)) do
         Runtimes.ensure_otp()
-        Runtimes.run(~w(git clone _build/otp #{otp_target(arch)}))
+        Runtimes.run(~w(git clone _build/otp_cache/otp #{otp_target(arch)}))
       end
 
       env = [
@@ -126,8 +134,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         ]
 
         # First round build to generate headers and libs required to build nifs:
-        Runtimes.run(
-          ~w(
+
+        cmd = ~w(
           cd #{otp_target(arch)} &&
           git clean -xdf &&
           ./otp_build setup
@@ -135,7 +143,12 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
           --disable-dynamic-ssl-lib
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
           --enable-static-nifs=#{Enum.join(nifs, ",")} #{System.get_env("KERL_CONFIGURE_OPTIONS", "")}
-        ),
+        )
+
+        IO.inspect(cmd, label: "First round build of #{otp_target(arch)}")
+
+        Runtimes.run(
+          cmd,
           env
         )
 

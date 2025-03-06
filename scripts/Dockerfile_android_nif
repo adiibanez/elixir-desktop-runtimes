@@ -1,0 +1,35 @@
+ARG PARENT_IMAGE
+FROM ${PARENT_IMAGE}
+
+WORKDIR /work
+RUN apt update && apt install -y erlang
+
+COPY scripts/install_elixir.sh /work/
+RUN ./install_elixir.sh /work/elixir/ && \
+    ln -s /work/elixir/bin/* /usr/local/bin/
+
+WORKDIR /work
+RUN mix local.hex --force && mix local.rebar
+
+ARG ARCH_PC
+ARG ARCH_ANDROID_NAME
+ARG ERTS_VERSION
+ARG REPO
+ARG BASENAME
+ARG TAG
+
+ENV ERLANG_PATH /work/otp/release/${ARCH_PC}-linux-${ARCH_ANDROID_NAME}/erts-${ERTS_VERSION}/include
+ENV ERTS_INCLUDE_DIR /work/otp/release/${ARCH_PC}-linux-${ARCH_ANDROID_NAME}/erts-${ERTS_VERSION}/include
+ENV HOST <%= @arch.cpu %>
+ENV CROSSCOMPILE Android
+ENV CC=clang CXX=clang++
+
+RUN git clone ${REPO}
+WORKDIR /work/${BASENAME}
+#Git checkout part
+RUN if [ -n "${TAG}" ]; then git checkout ${TAG}; fi
+
+# Three variants of building {:mix, :make, :rebar3}
+ENV MIX_ENV prod
+COPY scripts/build_nif.sh scripts/package_nif.sh /work/${BASENAME}/
+RUN ./build_nif.sh

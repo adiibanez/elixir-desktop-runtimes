@@ -1,0 +1,5 @@
+%{
+  "credo": {:hex, :credo, "0.0.1-dev", "1737ee61540b978d5f882c495b2daea42422f201ca839d2695a2960c88d9601e", [:mix], [{:dogma, "~> 0.0.7", [hex: :dogma, repo: "hexpm", optional: false]}, {:poison, "~> 1.2", [hex: :poison, repo: "hexpm", optional: false]}], "hexpm", "7f4ea0c2de0e3657a8749635e09b549858c7dc22bab8084b762a66f151cd0c2e"},
+  "dogma": {:hex, :dogma, "0.0.11", "1396bfe10a962b5c5b0468eba6eb3be85d693d55f2d698fda29660a059eb2180", [:mix], [{:poison, "~> 1.0", [hex: :poison, repo: "hexpm", optional: false]}], "hexpm", "35c7df2641fbfa436f1426550deaa20afe2fc8bf1faf7adcf79e6159c92e9765"},
+  "poison": {:hex, :poison, "1.5.2", "560bdfb7449e3ddd23a096929fb9fc2122f709bcc758b2d5d5a5c7d0ea848910", [:mix], [], "hexpm", "4afc59dcadf71be7edc8b934b39f554ec7b31e2b1b1a4767383a663f86958ce3"},
+}
