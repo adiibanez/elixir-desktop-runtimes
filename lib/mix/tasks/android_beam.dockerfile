@@ -19,8 +19,11 @@ RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-<%= @a
 RUN ARCH="android-<%= @arch.id %> -D__ANDROID_API__=<%= @arch.abi %>" ./install_openssl.sh
 
 # Fetching OTP
-RUN git clone --depth 1 <%= @otp_source %> _build/otp_cache/otp --branch <%= @otp_tag %>
-#COPY _build/otp_cache/otp otp
+#RUN git clone --depth 1 <%= @otp_source %> _build/otp_cache/otp --branch <%= @otp_tag %>
+COPY _build/otp_cache/otp_src_<%= @otp_tag %>.tar.gz ./
+RUN tar -xzf otp_src_<%= @otp_tag %>.tar.gz \
+    && mv otp_src_<%= @otp_tag %> otp \
+    && rm otp_src_<%= @otp_tag %>.tar.gz
 
 ENV LIBS /usr/local/openssl/lib/libcrypto.a
 
@@ -45,10 +48,10 @@ config = "--disable-jit #{config}"
 
 RUN ls -lah || true 
 RUN ls -lah otp_build || true
-# RUN ./otp_build setup <%= config %> || bash -c 'cat erts/config.log && exit 1'
-# RUN ./otp_build boot -a
+RUN ./otp_build setup <%= config %> || bash -c 'cat erts/config.log && exit 1'
+RUN ./otp_build boot -a
 
-# # Build run #2, now creating the arm binaries, appliying the install flags only here...
-# ENV INSTALL_PROGRAM "/usr/bin/install -c -s --strip-program=llvm-strip"
-# RUN ./otp_build configure <%= config %> LDFLAGS="-z global"
-# RUN ./otp_build release -a
+# Build run #2, now creating the arm binaries, appliying the install flags only here...
+ENV INSTALL_PROGRAM "/usr/bin/install -c -s --strip-program=llvm-strip"
+RUN ./otp_build configure <%= config %> LDFLAGS="-z global"
+RUN ./otp_build release -a
