@@ -166,7 +166,7 @@ jobs:
       - name: Linux docker android beam builder image
         uses: whoan/docker-build-with-cache-action@v5
         if: steps.generate-dockerfile.outcome == 'success'
-        continue-on-error: true
+        # continue-on-error: true
         id: buildx-beam
         with:
           username: ${{ github.actor }}
@@ -206,7 +206,7 @@ jobs:
         shell: bash
         run: |
           find . -name runtimes_run.log
-          cat `find . -name runtimes_run.log` || true
+          cat `find . -name runtimes_run.log`
 
       - name: Archive Android runtimes
         uses: actions/upload-artifact@v4
@@ -395,7 +395,7 @@ jobs:
         shell: bash
         run: |
           find . -name runtimes_run.log
-          cat `find . -name runtimes_run.log` || true
+          cat `find . -name runtimes_run.log`
 
       - name: Info Openssl
         shell: bash
