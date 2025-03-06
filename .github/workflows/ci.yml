@@ -101,7 +101,7 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: /home/runner/work/_temp/.setup-beam/
-          key: android-setup-beam-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}
+          key: android-setup-beam-${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}
 
       - name: Debug erlef/setup-beam install locations
         shell: bash
@@ -139,7 +139,7 @@ jobs:
             --build-arg ARCH=${{matrix.archs.id}}
             --build-arg ANDROID_NAME=${{matrix.archs.name}}
             --build-arg ABI=${{matrix.archs.abi}}
-            --build-arg OPENSSL_VERSION=${{env.OPENSSL_VERSION}}
+            --build-arg OPENSSL_VERSION=${{env.OPENSSL_VERSION}}v # add v suffix for download from source tar.gz
             --build-arg OPENSSL_HASH=${{env.OPENSSL_HASH}}
             --build-arg KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}"
 
@@ -183,7 +183,7 @@ jobs:
         shell: bash
         run: |
           docker images
-          docker pull dockcross/android-${{env.ARCH_IDENTIFIER}}
+          # docker pull dockcross/android-${{env.ARCH_IDENTIFIER}}
 
       - name: Archive Android runtimes
         uses: actions/upload-artifact@v4
