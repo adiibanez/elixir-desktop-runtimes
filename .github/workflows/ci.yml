@@ -35,13 +35,13 @@ jobs:
       fail-fast: false
       matrix:
         archs:
-          - { id: "arm",
-            abi: 23,
-            cpu: "arm",
-            pc: "arm-unknown",
-            name: "androideabi",
-            type: "armeabi-v7a"
-          }
+          # - { id: "arm",
+          #   abi: 23,
+          #   cpu: "arm",
+          #   pc: "arm-unknown",
+          #   name: "androideabi",
+          #   type: "armeabi-v7a"
+          # }
           - {
             id: "arm64",
             abi: 23,
@@ -50,15 +50,14 @@ jobs:
             name: "android",
             type: "arm64-v8a"
           }
-          - {
-            id: "x86_64",
-            abi: 23,
-            cpu: "x86_64",
-            pc: "x86_64-pc",
-            name: "android",
-            type: "x86_64"
-          }
-        #arch: ["arm", "arm64", "x86_64"]
+          # - {
+          #   id: "x86_64",
+          #   abi: 23,
+          #   cpu: "x86_64",
+          #   pc: "x86_64-pc",
+          #   name: "android",
+          #   type: "x86_64"
+          # }
         erlixir:
           #- { otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"}
           - { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
@@ -77,6 +76,11 @@ jobs:
           path: _build/otp_cache/otp
           repository: erlang/otp
           ref: ${{ env.OTP_TAG }}
+
+      - name: Check otp 
+        shell: bash
+        run: |
+          ls -lah _build/otp_cache/otp
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
