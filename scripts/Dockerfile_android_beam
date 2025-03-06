@@ -27,7 +27,9 @@ RUN echo "ARCH=${ARCH}" && \
     echo "ANDROID_NDK_HOME=${ANDROID_NDK_HOME}" && \
     echo "NDK_ABI_PLAT=${NDK_ABI_PLAT}" && \
     echo "PATH=${PATH}" && \
-    echo "MAKEFLAGS=${MAKEFLAGS}"
+    echo "MAKEFLAGS=${MAKEFLAGS}" && \
+    echo "OPENSSL_VERSION=${OPENSSL_VERSION}" && \
+    echo "OPENSSL_HASH=${OPENSSL_HASH}"
 
 # Setting up openssl
 COPY scripts/install_openssl.sh /work/
@@ -64,10 +66,3 @@ RUN ./otp_build boot -a
 ENV INSTALL_PROGRAM "/usr/bin/install -c -s --strip-program=llvm-strip"
 RUN ./otp_build configure $config LDFLAGS="-z global"
 RUN ./otp_build release -a
-
-
-# docker build --build-arg ARCH="armv7-a" \
-#     --build-arg ANDROID_NAME="linux" \
-#     --build-arg ABI="21" \
-#     --build-arg KERL_CONFIGURE_OPTIONS="-some-option -another-option" \
-#     -t my-android-elixir-image .

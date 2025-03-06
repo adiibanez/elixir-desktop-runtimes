@@ -19,9 +19,9 @@ on:
       # In PRs we only run if this file changes.
       - ".github/workflows/**"
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref }}
+#   cancel-in-progress: true
 
 env:
   OTP_SOURCE: https://github.com/erlang/otp
