@@ -14,6 +14,17 @@ ENV PATH $NDK_ROOT/bin:$PATH
 ENV FC= CPP= LD= CXX=clang++ CC=clang AR=ar
 ENV MAKEFLAGS "-j10 -O"
 
+# Debug echo statements
+RUN echo "ARCH_ID=${ARCH_ID}" && \
+    echo "ANDROID_NAME=${ANDROID_NAME}" && \
+    echo "ABI=${ABI}" && \
+    echo "KERL_CONFIGURE_OPTIONS=${KERL_CONFIGURE_OPTIONS}" && \
+    echo "NDK_ROOT=${NDK_ROOT}" && \
+    echo "ANDROID_NDK_HOME=${ANDROID_NDK_HOME}" && \
+    echo "NDK_ABI_PLAT=${NDK_ABI_PLAT}" && \
+    echo "PATH=${PATH}" && \
+    echo "MAKEFLAGS=${MAKEFLAGS}"
+
 # Setting up openssl
 COPY scripts/install_openssl.sh /work/
 COPY patch /work/patch
