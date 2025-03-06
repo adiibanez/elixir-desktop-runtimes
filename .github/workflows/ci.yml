@@ -247,7 +247,7 @@ jobs:
             ${{ steps.android-checksums.outputs.android_checksums }}
   
   build-ios:
-    if: false
+    # if: false
     strategy:
       fail-fast: false
       matrix:
