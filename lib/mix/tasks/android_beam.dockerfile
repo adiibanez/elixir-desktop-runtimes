@@ -19,7 +19,7 @@ RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-<%= @a
 RUN ARCH="android-<%= @arch.id %> -D__ANDROID_API__=<%= @arch.abi %>" ./install_openssl.sh
 
 # Fetching OTP
-COPY _build/otp otp
+COPY _build/otp_cache/otp otp
 
 ENV LIBS /usr/local/openssl/lib/libcrypto.a
 
