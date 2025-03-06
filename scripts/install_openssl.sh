@@ -45,4 +45,3 @@ wget -nc https://www.openssl.org/source/openssl-$VSN.tar.gz && \
     cd openssl-$VSN && \
     ./Configure $ARCH --prefix=$PREFIX "$@" && \
     make clean && make depend && make && make install_sw install_ssldirs
-

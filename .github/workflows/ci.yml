@@ -136,7 +136,7 @@ jobs:
           dockerfile: scripts/Dockerfile_android_beam
           build_extra_args: |
             --platform=linux/amd64
-            --build-arg ARCH_ID=${{matrix.archs.id}}
+            --build-arg ARCH=${{matrix.archs.id}}
             --build-arg ANDROID_NAME=${{matrix.archs.name}}
             --build-arg ABI=${{matrix.archs.abi}}
             --build-arg OPENSSL_VERSION=${{env.OPENSSL_VERSION}}

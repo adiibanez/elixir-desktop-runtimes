@@ -1,12 +1,12 @@
 # ARG instructions
-ARG ARCH_ID
+ARG ARCH
 ARG ANDROID_NAME
 ARG ABI
 ARG KERL_CONFIGURE_OPTIONS
 ARG OPENSSL_VERSION
 ARG OPENSSL_HASH
 
-FROM dockcross/android-${ARCH_ID}
+FROM dockcross/android-${ARCH}
 
 # ENV instructions
 ENV NDK_ROOT $CROSS_ROOT
@@ -15,9 +15,11 @@ ENV NDK_ABI_PLAT ${ANDROID_NAME}${ABI}
 ENV PATH $NDK_ROOT/bin:$PATH
 ENV FC= CPP= LD= CXX=clang++ CC=clang AR=ar
 ENV MAKEFLAGS "-j10 -O"
+ENV OPENSSL_VERSION = $OPENSSL_VERSION
+ENV OPENSSL_HASH = $OPENSSL_HASH
 
 # Debug echo statements
-RUN echo "ARCH_ID=${ARCH_ID}" && \
+RUN echo "ARCH=${ARCH}" && \
     echo "ANDROID_NAME=${ANDROID_NAME}" && \
     echo "ABI=${ABI}" && \
     echo "KERL_CONFIGURE_OPTIONS=${KERL_CONFIGURE_OPTIONS}" && \
@@ -32,10 +34,10 @@ COPY scripts/install_openssl.sh /work/
 COPY patch /work/patch
 
 # OpenSSL fails to detect this:
-RUN cp ${NDK_ROOT}/bin/llvm-ar ${NDK_ROOT}/bin/${ARCH_ID}-linux-${ANDROID_NAME}-ar
-RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/${ARCH_ID}-linux-${ANDROID_NAME}-ranlib
+RUN cp ${NDK_ROOT}/bin/llvm-ar ${NDK_ROOT}/bin/${ARCH}-linux-${ANDROID_NAME}-ar
+RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/${ARCH}-linux-${ANDROID_NAME}-ranlib
 
-RUN ARCH="android-${ARCH_ID} -D__ANDROID_API__=${ABI}" ./install_openssl.sh
+RUN ARCH="android-${ARCH} -D__ANDROID_API__=${ABI}" ./install_openssl.sh
 
 # Fetching OTP
 COPY _build/otp otp
@@ -54,7 +56,7 @@ WORKDIR /work/otp
 # dbg_wx_filedialog_win.erl:22: behaviour wx_object undefined
 
 # Build run #1, building the x86 based cross compiler which will generate the .beam files
-ARG config="--with-ssl=/usr/local/openssl/ --disable-dynamic-ssl-lib --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-${ARCH_ID}-android.conf --disable-jit ${KERL_CONFIGURE_OPTIONS}"
+ARG config="--with-ssl=/usr/local/openssl/ --disable-dynamic-ssl-lib --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-${ARCH}-android.conf --disable-jit ${KERL_CONFIGURE_OPTIONS}"
 RUN ./otp_build setup $config || bash -c 'cat erts/config.log && exit 1'
 RUN ./otp_build boot -a
 
@@ -64,7 +66,7 @@ RUN ./otp_build configure $config LDFLAGS="-z global"
 RUN ./otp_build release -a
 
 
-# docker build --build-arg ARCH_ID="armv7-a" \
+# docker build --build-arg ARCH="armv7-a" \
 #     --build-arg ANDROID_NAME="linux" \
 #     --build-arg ABI="21" \
 #     --build-arg KERL_CONFIGURE_OPTIONS="-some-option -another-option" \
