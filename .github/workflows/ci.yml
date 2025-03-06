@@ -95,9 +95,10 @@ jobs:
           image_tag: "arch_${{ matrix.arch}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}"
           dockerfile: scripts/Dockerfile_android_beam
           build_extra_args: |
-            --build-arg ARCH_ID=${{matrix.arch}} \
-            --build-arg ANDROID_NAME="linux" \
-            --build-arg ABI="21" \
+            --platform=linux/amd64
+            --build-arg ARCH_ID=${{matrix.arch}}
+            --build-arg ANDROID_NAME="linux"
+            --build-arg ABI="21"
             --build-arg KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}"
 
       # - name: Linux docker android nif builder image
