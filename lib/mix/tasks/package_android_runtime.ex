@@ -105,7 +105,7 @@ defmodule Mix.Tasks.Package.Android.Runtime do
 
   def generate_nif_dockerfile(arch, nif) do
     {_parent, args} = generate_beam_dockerfile(arch)
-    parent = "FROM #{System.get_env("BASEIMAGE")}"
+    parent = "FROM #{System.get_env("BASE_IMAGE")}"
 
     args =
       args ++

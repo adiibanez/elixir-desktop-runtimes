@@ -124,7 +124,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-
       - name: Generate beam docker file
         id: generate-dockerfile
         shell: bash
@@ -201,7 +200,7 @@ jobs:
         if: steps.buildx-beam.outcome == 'success'
         env: 
           ARCH: ${{matrix.archs.id}}
-          BUILDER_IMAGE: ghcr.io/adiibanez/android_beam:arch_${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}"
+          BASE_IMAGE: ghcr.io/adiibanez/android_beam:arch_${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}"
         run: |
           docker images
           mix deps.get

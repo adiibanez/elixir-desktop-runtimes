@@ -1,4 +1,8 @@
-iex -S mix run -e 'Mix.Tasks.Package.Android.Runtime.write_beam_dockerfile("arm", "/tmp/Dockerfile_android-beam-arm")'
+mix run -e "Mix.Tasks.Package.Android.Runtime.write_beam_dockerfile(\"arm\", \"`pwd`/Dockerfile_android-beam-arm\")"
+
+ls -lah Dockerfile_android-beam-arm
+cat Dockerfile_android-beam-arm
+# exit 0
 
 export OPENSSL_HASH=002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
 export OPENSSL_VERSION=3.4.1 
@@ -14,7 +18,7 @@ docker buildx build -t android_beam \
 --build-arg KERL_CONFIGURE_OPTIONS= \
 --build-arg OTP_PATH=_build/otp_cache/otp \
 --output type=docker \
-  -f /tmp/Dockerfile_android-beam-arm .
+  -f Dockerfile_android-beam-arm .
 
 docker run -t android_beam env
 docker run -t android_beam cat /root/.profile
