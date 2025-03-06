@@ -193,6 +193,9 @@ jobs:
           path: |
             _build/otp
           key: macos-otp-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}
+          restore-keys: |
+            macos-otp-${{ matrix.erlixir.otp-version }}-
+            macos-otp-
       
       - name: Openssl Cache
         uses: actions/cache@v3
@@ -201,6 +204,8 @@ jobs:
           path: |
             _build/ci_openssl
           key: macos-openssl-${{env.OPENSSL_VERSION}}
+          restore-keys: 
+            macos-openssl-
 
       - name: Build iOS runtime
         id: build-ios
@@ -231,10 +236,7 @@ jobs:
         id: otp-cache-save
         with:
           path: |
-            _build/arm-apple-ios/otp
-            _build/aarch64-apple-ios/otp
-            _build/x86_64-apple-iossimulator/otp
-            _build/aarch64-apple-iossimulator/otp
+            _build/otp
           key: macos-otp-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}
 
       - name: Restructure dir for iOS artifact
