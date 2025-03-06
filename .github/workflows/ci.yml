@@ -190,22 +190,23 @@ jobs:
         # --build-arg=ELIXIR_VERSION=${{ env.ELIXIR_VERSION }}
         # --build-arg=ELIXIR_VARIANT=${{ env.ELIXIR_VARIANT }}
 
-      
+      - name: Docker images
+        shell: bash
+        run: |
+          docker images
+
       - name: Build Android ${{env.ARCH_IDENTIFIER}} runtimes
         if: steps.buildx-beam.outcome == 'success'
         env: 
           ARCH: ${{matrix.archs.id}}
           BUILDER_IMAGE: ghcr.io/adiibanez/android_beam:arch_${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}"
         run: |
+
+          docker images
+
           mix deps.get
           mix package.android.runtime
           mix package.android.nif # runs multiple iterations based on default_nifs
-
-      - name: Docker images
-        shell: bash
-        run: |
-          docker images
-          # docker pull dockcross/android-${{env.ARCH_IDENTIFIER}}
 
       - name: Archive Android runtimes
         uses: actions/upload-artifact@v4
