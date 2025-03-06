@@ -377,7 +377,7 @@ jobs:
         id: openssl-cache
         with:
           path: |
-            _build/openssl_cache/**
+            _build/openssl_cache/
           key: macos-openssl-${{ matrix.archs}}-${{env.OPENSSL_VERSION}}
           restore-keys: 
             macos-openssl-
@@ -410,7 +410,7 @@ jobs:
         # && steps.build-ios.outcome == 'success'
         with:
           path: |
-            _build/openssl_cache/**
+            _build/openssl_cache/
           key: macos-openssl-${{ matrix.archs}}-${{env.OPENSSL_VERSION}}
 
       - name: Save OTP Cache
