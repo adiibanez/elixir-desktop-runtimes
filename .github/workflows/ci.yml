@@ -348,13 +348,19 @@ jobs:
           asdf plugin add erlang
           asdf plugin add elixir
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
+          
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
+          
           asdf install erlang
+          asdf global erlang ${{matrix.erlixir.otp-version}}
           asdf install elixir
+          asdf global elixir ${{matrix.erlixir.elixir-version}}
+          
           mix do local.hex, local.phx
           asdf reshim elixir
           asdf current
-          mix --version
+          mix --version || true
+          whereis mix
 
       - name: Save asdf Cache
         if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
