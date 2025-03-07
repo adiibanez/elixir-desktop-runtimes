@@ -329,6 +329,7 @@ jobs:
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: |
           #echo 'export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"' >> $HOME/.zshrc
+          export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
           #git clone https://github.com/asdf-vm/asdf.git ~/.asdf
           # source $HOME/.zshrc || true
 
@@ -401,6 +402,7 @@ jobs:
         # continue-on-error: false
         env: 
           PARALLEL: "true"
+          PATH: "$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
         run:  |
           if [ -f "$HOME/.asdf/asdf.sh" ]; then
             . $HOME/.asdf/asdf.sh
