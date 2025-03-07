@@ -351,6 +351,8 @@ jobs:
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
           asdf install erlang
           asdf install elixir
+          mix do local.hex, local.phx
+          asdf reshim elixir
           asdf current
           mix --version
 
@@ -407,8 +409,6 @@ jobs:
           # PATH: "/usr/bin:/usr/sbin/:/usr/local/bin:$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
         run:  |
           asdf current
-          asdf install
-          
           mix package.ios.runtime --arch ${{matrix.archs}}
 
       - name: Runtime logs
