@@ -298,9 +298,9 @@ jobs:
         #   }
 
         erlixir:
-          #- { otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"} # configured in package_ios_runtime.ex too configuration
+          - { otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"} # configured in package_ios_runtime.ex too configuration
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
-          - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
+          #- { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
       #OPENSSL_HASH: 002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
@@ -312,8 +312,9 @@ jobs:
       - run: |
           brew install git carthage coreutils
           brew unlink openssl@1.1 && brew link openssl@3
-          brew install asdf
+          # brew install asdf
       - uses: actions/checkout@v4
+      - uses: asdf-vm/actions/install@v3
 
       - name: Asdf Cache
         uses: actions/cache@v3
@@ -325,8 +326,9 @@ jobs:
       - name: Setup asdf
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: |
-          echo 'export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"' >> $HOME/.zshrc
+          #echo 'export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"' >> $HOME/.zshrc
           #git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+          # source $HOME/.zshrc || true
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
@@ -338,7 +340,7 @@ jobs:
         id: asdf-setup
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: |
-          #. $HOME/.asdf/asdf.sh
+          # . $HOME/.asdf/asdf.sh || true
           asdf plugin add erlang
           asdf plugin add elixir
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
@@ -396,7 +398,7 @@ jobs:
         env: 
           PARALLEL: "true"
         run:  |
-          #. $HOME/.asdf/asdf.sh
+          # . $HOME/.asdf/asdf.sh
           mix package.ios.runtime --arch ${{matrix.archs}}
 
       - name: Runtime logs
