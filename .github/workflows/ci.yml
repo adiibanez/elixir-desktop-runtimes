@@ -69,7 +69,7 @@ jobs:
       OTP_VERSION: ${{ matrix.erlixir.otp-version }}
       ARCH_IDENTIFIER: ${{matrix.archs.id}}-${{matrix.archs.name}}-${{matrix.archs.abi}}
 
-    name: "Build Android runtimes"
+    name: "Android erlang runtimes"
     runs-on: "ubuntu-latest"
 
     steps:
@@ -308,13 +308,16 @@ jobs:
       #OPENSSL_HASH: 002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
       #OPENSSL_VERSION: 3.4.1
 
-    name: "Build iOS runtime"
+    name: "iOS erlang runtime"
     runs-on: "macos-latest"
     steps:
-      - run: |
+      - name: Prepare brew tools
+        shell: zsh
+        run: |
           brew install git carthage coreutils
           brew unlink openssl@1.1 && brew link openssl@3
           brew install asdf
+          brew info asdf
       - uses: actions/checkout@v4
       #- uses: asdf-vm/actions/setup@v3
 
@@ -329,7 +332,7 @@ jobs:
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: |
           #echo 'export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"' >> $HOME/.zshrc
-          export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
+          #export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
           #git clone https://github.com/asdf-vm/asdf.git ~/.asdf
           # source $HOME/.zshrc || true
 
@@ -342,9 +345,9 @@ jobs:
         id: asdf-setup
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: |
-          if [ -f "$HOME/.asdf/asdf.sh" ]; then
-            . $HOME/.asdf/asdf.sh
-          fi
+          # if [ -f "$HOME/.asdf/asdf.sh" ]; then
+          #   . $HOME/.asdf/asdf.sh
+          # fi
            
           asdf plugin add erlang
           asdf plugin add elixir
@@ -352,6 +355,8 @@ jobs:
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
           asdf install erlang
           asdf install elixir
+          asdf current
+          mix --version
 
       - name: Save asdf Cache
         if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
@@ -380,12 +385,12 @@ jobs:
           repository: erlang/otp
           ref: ${{ env.OTP_TAG }}
 
-      - name: Check otp 
-        shell: bash
-        run: |
-          ls -lah _build/otp_cache/otp
-          find _build/otp_cache/ -name vsn.mk
-          pwd
+      # - name: Check otp 
+      #   shell: bash
+      #   run: |
+      #     ls -lah _build/otp_cache/otp
+      #     # find _build/otp_cache/ -name vsn.mk
+      #     pwd
       
       - name: Openssl Cache
         uses: actions/cache@v3
@@ -399,19 +404,20 @@ jobs:
 
       - name: Build iOS runtime
         id: build-ios
+        shell: zsh
         # continue-on-error: false
         env: 
           PARALLEL: "true"
-          PATH: "$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
+          # PATH: "/usr/bin:/usr/sbin/:/usr/local/bin:$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
         run:  |
-          if [ -f "$HOME/.asdf/asdf.sh" ]; then
-            . $HOME/.asdf/asdf.sh
-          fi
+          # if [ -f `$HOME/.asdf/asdf.sh` ]; then
+          #   . $HOME/.asdf/asdf.sh
+          # fi
           
           mix package.ios.runtime --arch ${{matrix.archs}}
 
       - name: Runtime logs
-        shell: bash
+        shell: zsh
         run: |
           find . -name runtimes_run.log
           cat `find . -name runtimes_run.log`
@@ -419,7 +425,7 @@ jobs:
           ls -lah `find . -name aarch64-apple-darwin23.6.0`/Makefile || true
 
       - name: Info Openssl
-        shell: bash
+        shell: zsh
         #continue-on-error: true
         run: |
           ls -lah _build/openssl_cache || true
@@ -444,7 +450,7 @@ jobs:
           key: macos-otp-${{ matrix.archs}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}
 
       - name: Restructure dir for iOS artifact
-        shell: bash
+        shell: zsh
         if: steps.build-ios.outcome == 'success'
         run: |
           mkdir ${{github.workspace}}/_build/ios-${{matrix.archs}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}-runtime.xcframework
@@ -465,6 +471,7 @@ jobs:
       - name: Generate iOS Checksums and Release Notes
         id: ios-checksums
         if: steps.build-ios.outcome == 'success'
+        shell: zsh
         run: |
           cd _build
           # For GNU systems.
