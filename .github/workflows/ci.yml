@@ -304,6 +304,7 @@ jobs:
           - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
+      RUSTLER_BTLEPLUG_BUILD: 1
       #OPENSSL_HASH: 002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
       #OPENSSL_VERSION: 3.4.1
 
@@ -340,7 +341,10 @@ jobs:
         id: asdf-setup
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: |
-          # . $HOME/.asdf/asdf.sh || true
+          if [ -f "$HOME/.asdf/asdf.sh" ]; then
+            . $HOME/.asdf/asdf.sh
+          fi
+           
           asdf plugin add erlang
           asdf plugin add elixir
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
@@ -398,7 +402,10 @@ jobs:
         env: 
           PARALLEL: "true"
         run:  |
-          # . $HOME/.asdf/asdf.sh
+          if [ -f "$HOME/.asdf/asdf.sh" ]; then
+            . $HOME/.asdf/asdf.sh
+          fi
+          
           mix package.ios.runtime --arch ${{matrix.archs}}
 
       - name: Runtime logs
