@@ -413,6 +413,9 @@ jobs:
           # if [ -f `$HOME/.asdf/asdf.sh` ]; then
           #   . $HOME/.asdf/asdf.sh
           # fi
+
+          asdf current
+          asdf install
           
           mix package.ios.runtime --arch ${{matrix.archs}}
 
