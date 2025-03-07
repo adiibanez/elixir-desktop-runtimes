@@ -322,10 +322,11 @@ jobs:
           path: /Users/runner/.asdf
           key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
 
-      # - name: Setup asdf
-      #   if: steps.asdf-cache.outputs.cache-hit != 'true'
-      #   run: |
-      #     git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+      - name: Setup asdf
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        run: |
+          echo 'export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"' >> $HOME/.zshrc
+          #git clone https://github.com/asdf-vm/asdf.git ~/.asdf
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
