@@ -3,14 +3,47 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   use Mix.Task
   require EEx
 
+  # "https://github.com/elixir-desktop/exqlite",
   @default_nifs [
-    "https://github.com/elixir-desktop/exqlite"
+    "https://github.com/elixir-desktop/exqlite",
+    "https://github.com/diodechain/libsecp256k1.git",
+    "https://github.com/adiibanez/rustler_btleplug"
   ]
 
   @diode_nifs [
     "https://github.com/diodechain/esqlite.git",
     "https://github.com/diodechain/libsecp256k1.git"
   ]
+
+  @notsure_modules """
+  --disable-distributed
+  --disable-hipe
+  --disable-compiler
+  --without-odbc: As mentioned earlier, excludes ODBC database connectivity.
+  --without-mysql: Excludes MySQL database connectivity.
+  --without-postgres: Excludes PostgreSQL database connectivity.
+  --without-smp: Disables symmetric multiprocessing (SMP) support. This might reduce the size of the Erlang runtime, but it can also limit performance on multi-core devices. Test carefully before disabling SMP.
+  --without-threads: Disables Erlang threads. If your application doesn't use Erlang threads, you can disable this.
+  --disable-compiler: Disables the Erlang compiler. If your application doesn't need to compile code at runtime, you can disable the compiler.
+  --disable-kernel-poll: Disables kernel poll for I/O. Likely not needed on iOS.
+  --disable-native-libs: Disables dynamic linking, to only run code as build, but requires special handling and may break lots of code.
+  """
+
+  @additional_configuration """
+  --disable-distributed
+  --disable-debug
+  --disable-hipe
+  --without-javac
+  --without-jinterface
+  --without-odbc
+  --without-postgres
+  --without-mysql
+  --without-wx
+  --disable-sctp
+  --disable-megaco
+  --disable-corba
+   --disable-kernel-poll
+  """
 
   def architectures() do
     # Not sure if we still need arm-32 at all https://blakespot.com/ios_device_specifications_grid.html
@@ -158,12 +191,12 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
 
         cmd = ~w(
           cd #{otp_target(arch)} &&
-          ./otp_build setup
-          --with-ssl=#{openssl_target(arch)}
-          --disable-dynamic-ssl-lib
-          --without-megaco
-          --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
+          ./otp_build setup \
+          --with-ssl=#{openssl_target(arch)} \
+          --disable-dynamic-ssl-lib \
+          --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf \
           --enable-static-nifs=#{Enum.join(nifs, ",")} #{System.get_env("KERL_CONFIGURE_OPTIONS", "")}
+          #{@additional_configuration}
         )
 
         IO.inspect(cmd, label: "First round build of #{otp_target(arch)}")
@@ -208,7 +241,9 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
-          --enable-static-nifs=#{Enum.join(nifs, ",")} #{System.get_env("KERL_CONFIGURE_OPTIONS", "")}
+          --enable-static-nifs=#{Enum.join(nifs, ",")}
+          #{System.get_env("KERL_CONFIGURE_OPTIONS", "")}
+          #{@additional_configuration}
         ),
         env
       )
