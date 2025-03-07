@@ -344,11 +344,7 @@ jobs:
       - name: Setup elixir
         id: asdf-setup
         if: steps.asdf-cache.outputs.cache-hit != 'true'
-        run: |
-          # if [ -f "$HOME/.asdf/asdf.sh" ]; then
-          #   . $HOME/.asdf/asdf.sh
-          # fi
-           
+        run: | 
           asdf plugin add erlang
           asdf plugin add elixir
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
@@ -410,10 +406,6 @@ jobs:
           PARALLEL: "true"
           # PATH: "/usr/bin:/usr/sbin/:/usr/local/bin:$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
         run:  |
-          # if [ -f `$HOME/.asdf/asdf.sh` ]; then
-          #   . $HOME/.asdf/asdf.sh
-          # fi
-
           asdf current
           asdf install
           
