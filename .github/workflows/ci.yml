@@ -403,6 +403,8 @@ jobs:
         run: |
           find . -name runtimes_run.log
           cat `find . -name runtimes_run.log`
+          find . -name aarch64-apple-darwin23.6.0
+          ls -lah `find . -name aarch64-apple-darwin23.6.0`/Makefile || true
 
       - name: Info Openssl
         shell: bash
@@ -418,7 +420,7 @@ jobs:
         with:
           path: |
             _build/openssl_cache/
-          key: macos-openssl-${{ matrix.archs}}-${{env.OPENSSL_VERSION}}
+          key: macos-openssl-${{ matrix.archs }}-${{env.OPENSSL_VERSION}}
 
       - name: Save OTP Cache
         uses: actions/cache/save@v3
