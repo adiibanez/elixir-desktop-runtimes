@@ -1,4 +1,3 @@
-build_nif.sh
 #!/bin/bash
 
 # ensure there is rebar3 in path

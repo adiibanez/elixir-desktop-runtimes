@@ -27,7 +27,8 @@ on:
 env:
   OTP_SOURCE: https://github.com/erlang/otp
   OPENSSL_HASH: 002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
-  OPENSSL_VERSION: 3.4.1v
+  OPENSSL_VERSION: 3.4.1
+  OPENSSL_PREFIX: ${{github.workspace}}/_build/openssl_cache
 
 jobs:
   build-android:
@@ -253,8 +254,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-
-        archs: ["ios", "ios-arm64", "iossimulator-x86_64", "iossimulator-arm64"]
+        #archs: ["ios-arm64", "iossimulator-x86_64", "iossimulator-arm64"]
+        archs: ["ios-arm64"]
         # archs:
         #   - {
         #     id: "ios",
@@ -311,7 +312,7 @@ jobs:
       - run: |
           brew install git carthage coreutils
           brew unlink openssl@1.1 && brew link openssl@3
-          brew info asdf
+          brew install asdf
       - uses: actions/checkout@v4
 
       - name: Asdf Cache
@@ -321,10 +322,10 @@ jobs:
           path: /Users/runner/.asdf
           key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
 
-      - name: Setup asdf
-        if: steps.asdf-cache.outputs.cache-hit != 'true'
-        run: |
-          git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+      # - name: Setup asdf
+      #   if: steps.asdf-cache.outputs.cache-hit != 'true'
+      #   run: |
+      #     git clone https://github.com/asdf-vm/asdf.git ~/.asdf
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
@@ -336,8 +337,7 @@ jobs:
         id: asdf-setup
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: |
-          . $HOME/.asdf/asdf.sh
-          
+          #. $HOME/.asdf/asdf.sh
           asdf plugin add erlang
           asdf plugin add elixir
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
@@ -391,11 +391,11 @@ jobs:
 
       - name: Build iOS runtime
         id: build-ios
-        continue-on-error: true
+        # continue-on-error: false
         env: 
           PARALLEL: "true"
         run:  |
-          . $HOME/.asdf/asdf.sh
+          #. $HOME/.asdf/asdf.sh
           mix package.ios.runtime --arch ${{matrix.archs}}
 
       - name: Runtime logs
@@ -408,7 +408,7 @@ jobs:
 
       - name: Info Openssl
         shell: bash
-        continue-on-error: true
+        #continue-on-error: true
         run: |
           ls -lah _build/openssl_cache || true
           find . -name openssl

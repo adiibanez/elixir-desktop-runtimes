@@ -15,20 +15,22 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   def architectures() do
     # Not sure if we still need arm-32 at all https://blakespot.com/ios_device_specifications_grid.html
     %{
-      "ios" => %{
-        arch: "armv7",
-        id: "ios",
-        sdk: "iphoneos",
-        openssl_arch: "ios-xcrun",
-        xcomp: "arm-ios",
-        name: "arm-apple-ios",
-        cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
-      },
+      # "ios" => %{
+      #   arch: "armv7",
+      #   id: "ios",
+      #   sdk: "iphoneos",
+      #   #openssl_arch: "ios-xcrun",
+      #   darwin64-arm64
+      #   xcomp: "arm-ios",
+      #   name: "arm-apple-ios",
+      #   cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
+      # },
       "ios-arm64" => %{
         arch: "arm64",
         id: "ios64",
         sdk: "iphoneos",
-        openssl_arch: "ios64-xcrun",
+        # openssl_arch: "ios64-xcrun",
+        openssl_arch: "darwin64-arm64",
         xcomp: "arm64-ios",
         name: "aarch64-apple-ios",
         cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
@@ -37,7 +39,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         arch: "x86_64",
         id: "iossimulator",
         sdk: "iphonesimulator",
-        openssl_arch: "iossimulator-x86_64-xcrun",
+        # openssl_arch: "iossimulator-x86_64-xcrun",
+        openssl_arch: "darwin64-x86_64",
         xcomp: "x86_64-iossimulator",
         name: "x86_64-apple-iossimulator",
         cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
@@ -46,7 +49,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         arch: "arm64",
         id: "iossimulator",
         sdk: "iphonesimulator",
-        openssl_arch: "iossimulator-arm64-xcrun",
+        # openssl_arch: "iossimulator-arm64-xcrun",
+        openssl_arch: "darwin64-arm64",
         xcomp: "arm64-iossimulator",
         name: "aarch64-apple-iossimulator",
         cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
@@ -157,6 +161,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
           ./otp_build setup
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
+          --without-megaco
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
           --enable-static-nifs=#{Enum.join(nifs, ",")} #{System.get_env("KERL_CONFIGURE_OPTIONS", "")}
         )

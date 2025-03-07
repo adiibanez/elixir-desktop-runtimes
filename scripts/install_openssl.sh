@@ -14,6 +14,8 @@ else
 export PREFIX=$OPENSSL_PREFIX
 fi 
 
+echo "OPENSSL PREFIX: $PREFIX"
+
 if [ -z "$ARCH" ]; then
 export BUILD_DIR=_build
 #export BASE_DIR=..
@@ -34,14 +36,28 @@ echo "BUILD_DIR: $BUILD_DIR"
 echo "BASE_DIR: $BASE_DIR"
 echo "ARCH: $ARCH"
 
-mkdir -p "$PREFIX/ssl" && \
-    mkdir -p "$BUILD_DIR" && \
-    cd $BUILD_DIR && \
-      
-wget -nc https://www.openssl.org/source/openssl-$VSN.tar.gz && \
-    [ "$VSN_HASH" = "$(sha256sum openssl-$VSN.tar.gz | cut -d ' ' -f1)" ] && \
-    tar xzf openssl-$VSN.tar.gz && \
-    cp $BASE_DIR/patch/openssl-ios.conf openssl-$VSN/Configurations/15-ios.conf && \
-    cd openssl-$VSN && \
-    ./Configure $ARCH --prefix=$PREFIX "$@" && \
-    make clean && make depend && make && make install_sw install_ssldirs
+# mkdir -p "$PREFIX/ssl"
+mkdir -p "$BUILD_DIR"
+cd $BUILD_DIR
+
+
+FILE="openssl-$VSN.tar.gz"
+if [ -f "$FILE" ]; then
+    echo "$FILE exists."
+else 
+    wget -nc https://www.openssl.org/source/openssl-$VSN.tar.gz && \
+        tar xzf openssl-$VSN.tar.gz
+    # [ "$VSN_HASH" = "$(sha256sum openssl-$VSN.tar.gz | cut -d ' ' -f1)" ] && \
+fi
+
+cp $BASE_DIR/patch/openssl-ios.conf openssl-$VSN/Configurations/15-ios.conf && \
+cd openssl-$VSN
+
+echo `pwd`
+ls -lah 
+
+echo ./Configure $ARCH --prefix=$PREFIX "$@"
+./Configure $ARCH --prefix=$PREFIX "$@"
+make clean && make depend && make && make install_sw install_ssldirs
+
+echo "OPENSSL INSTALLED $PREFIX"
