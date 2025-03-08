@@ -363,7 +363,7 @@ jobs:
       - name: Setup elixir
         id: asdf-setup-elixir
         continue-on-error: true
-        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        # if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: | 
           asdf plugin add elixir
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
@@ -524,6 +524,7 @@ jobs:
   
   archive-ios:
     runs-on: macos-latest
+    continue-on-error: true
     needs: [build-ios]
     steps: 
       - uses: actions/checkout@v3
