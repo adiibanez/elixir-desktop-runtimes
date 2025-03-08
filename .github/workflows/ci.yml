@@ -368,7 +368,7 @@ jobs:
           asdf plugin add elixir
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
           
-          asdf uninstall elixir
+          asdf uninstall elixir ${{matrix.erlixir.elixir-version}}
           asdf install elixir
 
           asdf reshim elixir
