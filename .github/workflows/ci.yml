@@ -315,9 +315,10 @@ jobs:
         shell: bash
         run: |
           brew install git carthage coreutils
-          brew unlink openssl@1.1 && brew link openssl@3
-          brew install asdf
-          brew info asdf
+          brew info openssl
+          # brew unlink openssl@1.1 && brew link openssl@3
+          # brew install asdf
+          # brew info asdf
       - uses: actions/checkout@v4
       #- uses: asdf-vm/actions/setup@v3
 
@@ -352,13 +353,13 @@ jobs:
           asdf plugin add erlang
           asdf install erlang
 
-      - name: Save asdf Cache
-        if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            /Users/runner/.asdf
-          key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
+      # - name: Save asdf Cache
+      #   if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
+      #   uses: actions/cache/save@v3
+      #   with:
+      #     path: |
+      #       /Users/runner/.asdf
+      #     key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
           
       - name: Setup elixir
         id: asdf-setup-elixir
@@ -383,13 +384,13 @@ jobs:
           mix do local.hex, local.phx || true
           mix --version || true
           
-      - name: Save asdf Cache
-        if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            /Users/runner/.asdf
-          key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
+      # - name: Save asdf Cache
+      #   if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
+      #   uses: actions/cache/save@v3
+      #   with:
+      #     path: |
+      #       /Users/runner/.asdf
+      #     key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
 
       - name: OTP Cache
         uses: actions/cache@v3
@@ -521,6 +522,7 @@ jobs:
       # #       ${{ steps.ios-checksums.outputs.ios_checksums }}
   
   archive-ios:
+    if: false
     runs-on: macos-latest
     continue-on-error: true
     needs: [build-ios]
