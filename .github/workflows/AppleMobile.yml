@@ -92,6 +92,9 @@ jobs:
 
     name: "iOS erlang runtime"
     runs-on: "macos-latest"
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
     steps:
       - name: Prepare brew tools
         shell: bash
@@ -176,7 +179,7 @@ jobs:
           echo ELIXIR $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }}
           rm -rf $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }} || true
 
-          gh cache delete macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
+          gh cache delete "macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}" | true
 
           echo "ASDF cache busted."
 
