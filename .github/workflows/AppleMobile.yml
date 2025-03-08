@@ -123,7 +123,9 @@ jobs:
         uses: actions/cache@v3
         id: asdf-cache
         with:
-          path: /Users/runner/.asdf
+          path: |
+             $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }}
+             $HOME/.asdf/installs/erlang/${{ matrix.erlixir.otp-version }}
           key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
           restore-keys: |
             macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
