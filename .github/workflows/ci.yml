@@ -299,9 +299,9 @@ jobs:
         #   }
 
         erlixir:
-          #- { otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"} # configured in package_ios_runtime.ex too configuration
+          - { otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"} # configured in package_ios_runtime.ex too configuration
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
-          - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
+          #- { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
       RUSTLER_BTLEPLUG_BUILD: 1
@@ -349,6 +349,8 @@ jobs:
         run: |
           asdf plugin add erlang
           asdf plugin add elixir
+
+          rm -rf $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }}
           asdf install
 
       - name: Test elixir
