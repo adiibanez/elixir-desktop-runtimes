@@ -314,11 +314,10 @@ jobs:
       - name: Prepare brew tools
         shell: bash
         run: |
-          brew install git carthage coreutils
-          brew info openssl
+          #brew install git carthage coreutils
+          brew install coreutils asdf
+          brew info openssl asdf
           # brew unlink openssl@1.1 && brew link openssl@3
-          # brew install asdf
-          # brew info asdf
       - uses: actions/checkout@v4
       #- uses: asdf-vm/actions/setup@v3
 
