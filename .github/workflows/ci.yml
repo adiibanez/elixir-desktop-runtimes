@@ -327,6 +327,10 @@ jobs:
         with:
           path: /Users/runner/.asdf
           key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
+          restore-keys: |
+            macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
+            macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-
+            macos-asdf-${{ matrix.erlixir.otp-version }}-
 
       - name: Setup asdf
         if: steps.asdf-cache.outputs.cache-hit != 'true'
@@ -340,18 +344,31 @@ jobs:
         if: ${{ matrix.erlixir.erl-opts }} != ''
         run: |
           export KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}"
+
+      - name: Setup erlang
+        id: asdf-setup
+        run: |
+          echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
+          asdf plugin add erlang
+          asdf install erlang
+
+      - name: Save asdf Cache
+        if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            /Users/runner/.asdf
+          key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
           
       - name: Setup elixir
-        id: asdf-setup
+        id: asdf-setup-elixir
         continue-on-error: true
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: | 
-          asdf plugin add erlang
           asdf plugin add elixir
-          echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
           
-          asdf install erlang
+          
           # asdf set erlang ${{matrix.erlixir.otp-version}}
           asdf install elixir
           # asdf set elixir ${{matrix.erlixir.elixir-version}}
@@ -368,7 +385,6 @@ jobs:
           mix do local.hex, local.phx || true
           mix --version || true
           
-
       - name: Save asdf Cache
         if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
         uses: actions/cache/save@v3
