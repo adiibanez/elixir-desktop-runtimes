@@ -329,6 +329,7 @@ jobs:
       - name: Setup asdf .tool-versions
         id: asdf-setup
         run: |
+          echo "" > .tool-versions
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
 
