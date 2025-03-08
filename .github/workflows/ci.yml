@@ -71,6 +71,7 @@ jobs:
 
       - name: Build Android ${{ matrix.arch }} runtimes
         run: |
+          mix local.hex --force
           mix deps.get
           ARCH=${{ matrix.arch }} mix package.android.runtime
           ARCH=${{ matrix.arch }} mix package.android.nif
@@ -155,6 +156,7 @@ jobs:
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
           asdf install erlang
           asdf install elixir
+          mix local.hex --force
 
       - name: Save asdf Cache
         if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
