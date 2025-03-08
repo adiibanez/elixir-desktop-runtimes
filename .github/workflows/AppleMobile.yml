@@ -29,6 +29,7 @@ env:
   OPENSSL_HASH: 002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
   OPENSSL_VERSION: 3.4.1
   OPENSSL_PREFIX: ${{github.workspace}}/_build/openssl_cache
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
 
 jobs:
   build-ios:
@@ -118,6 +119,7 @@ jobs:
           echo "" > .tool-versions
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
+          echo PATH=~/.asdf/shims:$PATH >> "$GITHUB_ENV"
 
       - name: Asdf Cache
         uses: actions/cache@v3
