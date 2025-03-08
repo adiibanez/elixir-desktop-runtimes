@@ -93,12 +93,12 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       IO.puts("OpenSSL (#{arch.id}) already exists...")
     else
       case Runtimes.run("scripts/install_openssl.sh",
-        ARCH: arch.openssl_arch,
-        OPENSSL_PREFIX: openssl_target(arch),
-        MAKEFLAGS: "-j10 -O"
-      ) do
+             ARCH: arch.openssl_arch,
+             OPENSSL_PREFIX: openssl_target(arch),
+             MAKEFLAGS: "-j10 -O"
+           ) do
         {:ok} -> IO.puts("OpenSSL ok")
-        {:error, error } -> IO.puts("OpenSSL error: #{error}")
+        {:error, error} -> IO.puts("OpenSSL error: #{error}")
         _ -> IO.puts("OpenSSL not sure ...")
       end
     end
@@ -161,7 +161,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         "#{otp_target(arch)}/lib/crypto/priv/lib/#{arch.name}/crypto.a"
         | extra_nifs
       ]
-      
+
       IO.puts("Extra nifs: #{inspect(nifs)}")
 
       Runtimes.run(
