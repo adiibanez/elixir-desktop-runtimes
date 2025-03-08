@@ -346,6 +346,8 @@ jobs:
 
       - name: Check ASDF commands and bust cache if needed
         id: check-asdf
+        env: 
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           # Check if erl, elixir, and mix are in PATH and functional
