@@ -332,13 +332,13 @@ jobs:
             macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-
             macos-asdf-${{ matrix.erlixir.otp-version }}-
 
-      - name: Setup asdf
-        if: steps.asdf-cache.outputs.cache-hit != 'true'
-        run: |
-          #echo 'export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"' >> $HOME/.zshrc
-          #export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
-          #git clone https://github.com/asdf-vm/asdf.git ~/.asdf
-          # source $HOME/.zshrc || true
+      # - name: Setup asdf
+      #   if: steps.asdf-cache.outputs.cache-hit != 'true'
+      #   run: |
+      #     #echo 'export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"' >> $HOME/.zshrc
+      #     #export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
+      #     #git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+      #     # source $HOME/.zshrc || true
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
@@ -368,10 +368,8 @@ jobs:
           asdf plugin add elixir
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
           
-          
-          # asdf set erlang ${{matrix.erlixir.otp-version}}
+          asdf uninstall elixir
           asdf install elixir
-          # asdf set elixir ${{matrix.erlixir.elixir-version}}
 
           asdf reshim elixir
           asdf current
