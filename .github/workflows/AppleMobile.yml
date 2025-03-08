@@ -162,6 +162,13 @@ jobs:
           steps.check-asdf.outputs.mix_functional == 'false'
         shell: bash
         run: |
+          echo erl_found ${{ steps.check-asdf.outputs.erl_found }}
+          echo elixir_found ${{ steps.check-asdf.outputs.elixir_found }}
+          echo mix_found ${{ steps.check-asdf.outputs.mix_found }}
+          echo erl_functional ${{ steps.check-asdf.outputs.erl_functional }}
+          echo elixir_functional ${{ steps.check-asdf.outputs.elixir_functional }}
+          echo mix_functional ${{ steps.check-asdf.outputs.mix_functional }}
+
           echo "Busting ASDF cache..."
           # rm -rf ~/.asdf/cache
           echo ERLANG $HOME/.asdf/installs/erlang/${{ matrix.erlixir.otp-version }}
