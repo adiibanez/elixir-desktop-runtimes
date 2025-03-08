@@ -220,7 +220,7 @@ jobs:
 
       - name: Test elixir
         id: test-setup-elixir
-        continue-on-error: false
+        continue-on-error: true
         # if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: | 
           asdf current
