@@ -343,6 +343,7 @@ jobs:
           
       - name: Setup elixir
         id: asdf-setup
+        continue-on-error: true
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: | 
           asdf plugin add erlang
@@ -387,13 +388,13 @@ jobs:
             macos-otp-${{ matrix.archs}}-${{ matrix.erlixir.otp-version }}-
             macos-otp-
 
-      - name: Checkout opt ${{matrix.erlixir.otp-version}}
-        uses: actions/checkout@v3
-        if: steps.otp-cache.outputs.cache-hit != 'true'
-        with: 
-          path: _build/otp_cache/otp
-          repository: erlang/otp
-          ref: ${{ env.OTP_TAG }}
+      # - name: Checkout opt ${{matrix.erlixir.otp-version}}
+      #   uses: actions/checkout@v3
+      #   if: steps.otp-cache.outputs.cache-hit != 'true'
+      #   with: 
+      #     path: _build/otp_cache/otp
+      #     repository: erlang/otp
+      #     ref: ${{ env.OTP_TAG }}
 
       # - name: Check otp 
       #   shell: bash
