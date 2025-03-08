@@ -92,10 +92,11 @@ jobs:
 
     name: "iOS erlang runtime"
     runs-on: "macos-latest"
-    - uses: maxim-lobanov/setup-xcode@v1
+    steps:
+      - uses: maxim-lobanov/setup-xcode@v1
       with:
         xcode-version: latest-stable
-    steps:
+    
       - name: Prepare brew tools
         shell: bash
         run: |
