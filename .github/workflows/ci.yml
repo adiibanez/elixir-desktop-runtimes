@@ -344,6 +344,70 @@ jobs:
             macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-
             macos-asdf-${{ matrix.erlixir.otp-version }}-
 
+      - name: Check ASDF commands and bust cache if needed
+        id: check-asdf
+        shell: bash
+        run: |
+          # Check if erl, elixir, and mix are in PATH and functional
+          if ! which erl; then
+            echo "erl_found=false" >> $GITHUB_OUTPUT
+          else
+            echo "erl_found=true" >> $GITHUB_OUTPUT
+          fi
+          if ! which elixir; then
+            echo "elixir_found=false" >> $GITHUB_OUTPUT
+          else
+            echo "elixir_found=true" >> $GITHUB_OUTPUT
+          fi
+          if ! which mix; then
+            echo "mix_found=false" >> $GITHUB_OUTPUT
+          else
+            echo "mix_found=true" >> $GITHUB_OUTPUT
+          fi
+
+          # Basic functionality check (e.g., check version) - rudimentary, can be improved
+          erl -version &> /dev/null || echo "erl_functional=false" >> $GITHUB_OUTPUT;
+          elixir --version &> /dev/null || echo "elixir_functional=false" >> $GITHUB_OUTPUT;
+          mix --version &> /dev/null || echo "mix_functional=false" >> $GITHUB_OUTPUT;
+
+      - name: Bust ASDF Cache (if needed)
+        if: |
+          steps.check-asdf.outputs.erl_found == 'false' ||
+          steps.check-asdf.outputs.elixir_found == 'false' ||
+          steps.check-asdf.outputs.mix_found == 'false' ||
+          steps.check-asdf.outputs.erl_functional == 'false' ||
+          steps.check-asdf.outputs.elixir_functional == 'false' ||
+          steps.check-asdf.outputs.mix_functional == 'false'
+        shell: bash
+        run: |
+          echo "Busting ASDF cache..."
+          # rm -rf ~/.asdf/cache
+          echo ERLANG $HOME/.asdf/installs/erlang/${{ matrix.erlixir.otp-version }}
+          rm -rf $HOME/.asdf/installs/erlang/${{ matrix.erlixir.otp-version }} || true
+          echo ELIXIR $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }}
+          rm -rf $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }} || true
+
+          gh cache delete macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
+
+          echo "ASDF cache busted."
+
+      # - name: Test Asdf install
+      #   shell: bash
+      #   run: |
+      #     asdf plugin list 
+      #     gh cache list
+
+      #     echo ERLANG $HOME/.asdf/installs/erlang/${{ matrix.erlixir.otp-version }}
+      #     ls -lah $HOME/.asdf/installs/erlang/${{ matrix.erlixir.otp-version }} || true
+      #     echo ELIXIR $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }}
+      #     ls -lah $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }} || true
+
+      #     exit 1
+
+      #     rm -rf $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }} || true
+      #     asdf install
+
+
       - name: Asdf install
         shell: bash
         run: |
