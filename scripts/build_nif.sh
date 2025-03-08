@@ -2,6 +2,7 @@
 
 # ensure there is rebar3 in path
 export PATH=$PATH:~/.mix
+export ERL_INCLUDE_PATH=`erl -eval 'io:format("~s", [lists:concat([code:root_dir(), "/erts-", erlang:system_info(version), "/include"])])' -s init stop -noshell`
 
 # mix has priority over `make` for projects like exqlite
 if [ -f "mix.exs" ]; then

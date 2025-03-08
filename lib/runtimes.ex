@@ -44,19 +44,11 @@ defmodule Runtimes do
     {_, 0} = ret
   end
 
-  def default_nifs() do
-    [
-      "https://github.com/diodechain/esqlite.git",
-      "https://github.com/elixir-desktop/exqlite",
-      "https://github.com/diodechain/libsecp256k1.git"
-    ]
-  end
-
   def get_nif(url) when is_binary(url) do
     get_nif({url, []})
   end
 
-  def get_nif({url, opts}) do
+  def get_nif({url, opts} = term) when is_tuple(term) do
     name = Keyword.get(opts, :name, Path.basename(url, ".git"))
     tag = Keyword.get(opts, :tag, nil)
 

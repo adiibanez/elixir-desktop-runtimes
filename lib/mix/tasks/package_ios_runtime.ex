@@ -4,10 +4,13 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   require EEx
 
   # "https://github.com/elixir-desktop/exqlite",
+  # "https://github.com/diodechain/libsecp256k1.git",
   @default_nifs [
-    "https://github.com/elixir-desktop/exqlite",
-    "https://github.com/diodechain/libsecp256k1.git",
-    "https://github.com/adiibanez/rustler_btleplug"
+    "https://github.com/elixir-desktop/exqlite.git",
+    # "https://github.com/adiibanez/rustler_btleplug.git"
+    {"https://github.com/adiibanez/rustler_btleplug.git",
+     name: "rustler_btleplug", tag: "v0.0.15-alpha"}
+    # [repo: "https://github.com/adiibanez/rustler_btleplug", tag: "v0.0.15-alpha"]
   ]
 
   @diode_nifs [

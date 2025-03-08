@@ -8,8 +8,12 @@ defmodule Mix.Tasks.Package.Ios.Nif do
   defdelegate get_nif(nif), to: Runtimes
   defdelegate otp_target(arch), to: Runtime
 
-  def run([nif]) do
-    buildall(Map.keys(architectures()), nif)
+  # def run([nif]) do
+  #   buildall(Map.keys(architectures()), nif)
+  # end
+
+  def run([arch, nif]) do
+    build(arch, nif)
   end
 
   def elixir_target(arch) do
@@ -91,6 +95,8 @@ defmodule Mix.Tasks.Package.Ios.Nif do
   def static_lib_path(arch, nif) do
     nif_dir = "_build/runtime_cache/#{arch.name}/#{nif.basename}"
 
+    IO.puts("NIF dir: #{inspect(nif_dir)}")
+
     # Finding all .a files
     :filelib.fold_files(
       String.to_charlist(nif_dir),
@@ -99,8 +105,9 @@ defmodule Mix.Tasks.Package.Ios.Nif do
       fn name, acc -> [List.to_string(name) | acc] end,
       []
     )
-    |> Enum.filter(fn path -> String.contains?(path, "priv") end)
     |> List.first()
+
+    # before List.first() |> Enum.filter(fn path -> String.contains?(path, "priv") end)
   end
 
   defp buildall(targets, nif) do
