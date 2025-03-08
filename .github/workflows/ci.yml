@@ -355,15 +355,18 @@ jobs:
           asdf install elixir
           # asdf set elixir ${{matrix.erlixir.elixir-version}}
 
+          asdf reshim elixir
+          asdf current
+
+          type -a mix
+          type -a elixir
 
           whereis mix
           mix --version
           
-          mix do local.hex, local.phx
-          asdf reshim elixir
-          asdf current
+          mix do local.hex, local.phx || true
           mix --version || true
-          whereis mix
+          
 
       - name: Save asdf Cache
         if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
