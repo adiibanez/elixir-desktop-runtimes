@@ -134,6 +134,7 @@ jobs:
 
       - name: Check ASDF commands and bust cache if needed
         id: check-asdf
+        continue-on-error: true
         shell: bash
         run: |
           # Check if erl, elixir, and mix are in PATH and functional
