@@ -305,6 +305,7 @@ jobs:
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
       RUSTLER_BTLEPLUG_BUILD: 1
+      GH_TOKEN: ${{ github.token }}
       #OPENSSL_HASH: 002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3
       #OPENSSL_VERSION: 3.4.1
 
@@ -346,8 +347,6 @@ jobs:
 
       - name: Check ASDF commands and bust cache if needed
         id: check-asdf
-        env: 
-          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           # Check if erl, elixir, and mix are in PATH and functional
