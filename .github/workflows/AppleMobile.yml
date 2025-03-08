@@ -157,6 +157,7 @@ jobs:
           mix --version &> /dev/null || echo "mix_functional=false" >> $GITHUB_OUTPUT;
 
       - name: Bust ASDF Cache (if needed)
+        continue-on-error: true
         if: |
           steps.check-asdf.outputs.erl_found == 'false' ||
           steps.check-asdf.outputs.elixir_found == 'false' ||
@@ -207,7 +208,7 @@ jobs:
           asdf plugin add erlang
           asdf plugin add elixir
 
-          rm -rf $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }}
+          # rm -rf $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }}
           asdf install
 
       - name: Test elixir
