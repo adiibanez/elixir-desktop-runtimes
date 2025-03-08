@@ -223,8 +223,11 @@ jobs:
           type -a mix
           type -a elixir
 
+          erl -version
+          elixir -version
+
           whereis mix
-          mix --version || true
+          # mix --version || true
           
       - name: OTP Cache
         uses: actions/cache@v3
