@@ -157,6 +157,11 @@ jobs:
           erl -version &> /dev/null || echo "erl_functional=false" >> $GITHUB_OUTPUT;
           elixir --version &> /dev/null || echo "elixir_functional=false" >> $GITHUB_OUTPUT;
           mix --version &> /dev/null || echo "mix_functional=false" >> $GITHUB_OUTPUT;
+          
+          erl -version
+          elixir --version
+
+          echo $GITHUB_OUTPUT
 
       - name: Bust ASDF Cache (if needed)
         continue-on-error: true
@@ -183,7 +188,7 @@ jobs:
           echo ELIXIR $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }}
           rm -rf $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }} || true
 
-          gh cache delete "macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}" | true
+          # gh cache delete "macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}" | true
 
           echo "ASDF cache busted."
 
