@@ -333,22 +333,22 @@ jobs:
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
 
-      - name: Setup asdf
-        id: setup-asdf
-        uses: ai/asdf-cache-action@v1
-        # with: 
-        #   dependencies-cache: production
+      # - name: Setup asdf
+      #   id: setup-asdf
+      #   uses: ai/asdf-cache-action@v1
+      #   # with: 
+      #   #   dependencies-cache: production
 
-      # - name: Asdf Cache
-      #   uses: actions/cache@v3
-      #   id: asdf-cache
-      #   with:
-      #     path: /Users/runner/.asdf
-      #     key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
-      #     restore-keys: |
-      #       macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
-      #       macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-
-      #       macos-asdf-${{ matrix.erlixir.otp-version }}-
+      - name: Asdf Cache
+        uses: actions/cache@v3
+        id: asdf-cache
+        with:
+          path: /Users/runner/.asdf
+          key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
+          restore-keys: |
+            macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
+            macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-
+            macos-asdf-${{ matrix.erlixir.otp-version }}-
 
       # - name: Setup asdf
       #   if: steps.asdf-cache.outputs.cache-hit != 'true'
@@ -377,6 +377,14 @@ jobs:
       #     path: |
       #       /Users/runner/.asdf
       #     key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
+
+
+      - name: Asdf install
+        shell: bash
+        run: |
+          asdf plugin add erlang
+          asdf plugin add elixir
+          asdf install
 
 
       - name: Test elixir
