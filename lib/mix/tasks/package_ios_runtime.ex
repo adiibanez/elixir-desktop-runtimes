@@ -10,6 +10,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     # "https://github.com/adiibanez/rustler_btleplug.git"
     {"https://github.com/adiibanez/rustler_btleplug.git",
      name: "rustler_btleplug", tag: "v0.0.15-alpha"}
+    # "https://github.com/tessi/wasmex.git"
     # [repo: "https://github.com/adiibanez/rustler_btleplug", tag: "v0.0.15-alpha"]
   ]
 
