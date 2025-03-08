@@ -316,21 +316,38 @@ jobs:
         run: |
           #brew install git carthage coreutils
           brew install coreutils asdf
-          brew info openssl asdf
+          brew info openssl
           # brew unlink openssl@1.1 && brew link openssl@3
       - uses: actions/checkout@v4
       #- uses: asdf-vm/actions/setup@v3
 
-      - name: Asdf Cache
-        uses: actions/cache@v3
-        id: asdf-cache
-        with:
-          path: /Users/runner/.asdf
-          key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
-          restore-keys: |
-            macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
-            macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-
-            macos-asdf-${{ matrix.erlixir.otp-version }}-
+      - name: Configure erl options
+        if: ${{ matrix.erlixir.erl-opts }} != ''
+        run: |
+          export KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}"
+
+      - name: Setup asdf .tool-versions
+        id: asdf-setup
+        run: |
+          echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
+          echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
+
+      - name: Setup asdf
+        id: setup-asdf
+        uses: ai/asdf-cache-action@v1
+        # with: 
+        #   dependencies-cache: production
+
+      # - name: Asdf Cache
+      #   uses: actions/cache@v3
+      #   id: asdf-cache
+      #   with:
+      #     path: /Users/runner/.asdf
+      #     key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
+      #     restore-keys: |
+      #       macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
+      #       macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-
+      #       macos-asdf-${{ matrix.erlixir.otp-version }}-
 
       # - name: Setup asdf
       #   if: steps.asdf-cache.outputs.cache-hit != 'true'
@@ -345,12 +362,12 @@ jobs:
         run: |
           export KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}"
 
-      - name: Setup erlang
-        id: asdf-setup
-        run: |
-          echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
-          asdf plugin add erlang
-          asdf install erlang
+      # - name: Setup erlang
+      #   id: asdf-setup
+      #   run: |
+      #     echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
+      #     asdf plugin add erlang
+      #     asdf install erlang
 
       # - name: Save asdf Cache
       #   if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
@@ -359,19 +376,13 @@ jobs:
       #     path: |
       #       /Users/runner/.asdf
       #     key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
-          
-      - name: Setup elixir
-        id: asdf-setup-elixir
+
+
+      - name: Test elixir
+        id: test-setup-elixir
         continue-on-error: false
         # if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: | 
-          asdf plugin add elixir
-          echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
-          
-          asdf uninstall elixir ${{matrix.erlixir.elixir-version}}
-          asdf install elixir
-
-          asdf reshim elixir
           asdf current
 
           type -a mix
@@ -381,6 +392,28 @@ jobs:
           mix --version || true
           
           #mix do local.hex, local.phx || true
+          
+      # - name: Setup elixir
+      #   id: asdf-setup-elixir
+      #   continue-on-error: false
+      #   # if: steps.asdf-cache.outputs.cache-hit != 'true'
+      #   run: | 
+      #     asdf plugin add elixir
+      #     echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
+          
+      #     asdf uninstall elixir ${{matrix.erlixir.elixir-version}}
+      #     asdf install elixir
+
+      #     asdf reshim elixir
+      #     asdf current
+
+      #     type -a mix
+      #     type -a elixir
+
+      #     whereis mix
+      #     mix --version || true
+          
+      #     #mix do local.hex, local.phx || true
           
           
       # - name: Save asdf Cache
