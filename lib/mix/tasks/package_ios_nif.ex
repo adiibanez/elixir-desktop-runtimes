@@ -99,7 +99,6 @@ defmodule Mix.Tasks.Package.Ios.Nif do
       fn name, acc -> [List.to_string(name) | acc] end,
       []
     )
-    |> Enum.filter(fn path -> String.contains?(path, "priv") end)
     |> List.first()
   end
 
