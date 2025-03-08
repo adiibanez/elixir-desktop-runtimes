@@ -362,7 +362,7 @@ jobs:
           
       - name: Setup elixir
         id: asdf-setup-elixir
-        continue-on-error: true
+        continue-on-error: false
         # if: steps.asdf-cache.outputs.cache-hit != 'true'
         run: | 
           asdf plugin add elixir
@@ -378,10 +378,10 @@ jobs:
           type -a elixir
 
           whereis mix
-          mix --version
+          mix --version || true
           
-          mix do local.hex, local.phx || true
-          mix --version || true
+          #mix do local.hex, local.phx || true
+          
           
       # - name: Save asdf Cache
       #   if: steps.asdf-cache.outputs.cache-hit != 'true' && steps.asdf-setup.outcome == 'success'
