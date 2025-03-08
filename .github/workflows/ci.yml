@@ -352,9 +352,9 @@ jobs:
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
           
           asdf install erlang
-          asdf set erlang ${{matrix.erlixir.otp-version}}
+          # asdf set erlang ${{matrix.erlixir.otp-version}}
           asdf install elixir
-          asdf set elixir ${{matrix.erlixir.elixir-version}}
+          # asdf set elixir ${{matrix.erlixir.elixir-version}}
           
           mix do local.hex, local.phx
           asdf reshim elixir
