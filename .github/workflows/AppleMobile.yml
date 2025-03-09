@@ -191,6 +191,7 @@ jobs:
           # PATH: "/usr/bin:/usr/sbin/:/usr/local/bin:$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
         run:  |
           mix package.ios.runtime --arch ${{matrix.archs}}
+          find _build -name liberlang.xframework
 
       - name: Runtime logs
         shell: bash
