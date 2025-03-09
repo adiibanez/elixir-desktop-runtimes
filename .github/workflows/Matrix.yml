@@ -301,11 +301,11 @@ jobs:
           mix release
           cd ..
 
-          git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
-          cd libsecp256k1
-          mix deps.get
-          mix release
-          cd ..
+          # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
+          # cd libsecp256k1
+          # mix deps.get
+          # mix release
+          # cd ..
 
           git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
           cd rustler_btleplug
