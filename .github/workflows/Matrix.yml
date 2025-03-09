@@ -2,9 +2,8 @@ name: Build Apple targets liberlang.xframework
 on:
   push:
     branches:
-      - tuderlidru
-      #- main
-      #- refactoring
+      - main
+      - refactoring
   pull_request:
 
 env: 
