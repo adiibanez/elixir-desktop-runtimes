@@ -55,11 +55,11 @@ jobs:
         erlixir:
           - {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038",} # configured in package_ios_runtime.ex too configuration
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
-          # - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
+          - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
         os: [macos-latest]
         platform:
           - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios",}
-          # - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
@@ -258,35 +258,35 @@ jobs:
           mix release
           cd ..
 
-#         # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
-#         # cd libsecp256k1
-#         # mix deps.get
-#         # mix release
-#         # cd ..
+          # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
+          # cd libsecp256k1
+          # mix deps.get
+          # mix release
+          # cd ..
 
-#         git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
-#         cd rustler_btleplug
-#         mix deps.get
-#         mix release
-#         cd ..
+          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
+          cd rustler_btleplug
+          mix deps.get
+          mix release
+          cd ..
 
-#         git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
-#         cd wasmex
-#         mix deps.get
-#         mix release
-#         cd ..
+          # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
+          # cd wasmex
+          # mix deps.get
+          # mix release
+          # cd ..
 
-#         # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
-#         # cd explorer
-#         # mix deps.get
-#         # mix release
-#         # cd ..
+          # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
+          # cd explorer
+          # mix deps.get
+          # mix release
+          # cd ..
 
-#         cd ${{ github.workspace }}
+          cd ${{ github.workspace }}
 
-#         # dummy file
-#         touch _build/nifs/test.txt
-#         find _build/nifs -name "*.a"
+          # dummy file
+          touch _build/nifs/test.txt
+          find _build/nifs -name "*.a"
 
 #     - name: Upload Nifs for ${{ matrix.platform.name }} ${{ matrix.erlixir.opt-version}}
 #       uses: actions/upload-artifact@v4
