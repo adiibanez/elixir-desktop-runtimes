@@ -12,9 +12,11 @@ defmodule Runtimes do
         end
       end)
 
-    file = "runtimes_run.log"
-    File.write(file, args)
-    File.write(file, "\n")
+    # {:delayed_write, 100, 20}
+    {:ok, file} = File.open("runtimes_run.log", [:append])
+    IO.write(file, inspect(args))
+    IO.write(file, "\n")
+    File.close(file)
     IO.puts("RUN: #{args}")
 
     case System.cmd("bash", ["-c", args],
