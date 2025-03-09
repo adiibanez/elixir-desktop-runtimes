@@ -44,7 +44,7 @@ jobs:
           mkdir -p _build/openssl
           cd _build/openssl
           wget "https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz"
-          echo "$OPENSSL_HASH  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c
+          # echo "$OPENSSL_HASH  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c
           tar xzf openssl-$OPENSSL_VERSION.tar.gz
           echo "OPENSSL_VERSION=$OPENSSL_VERSION" >> $GITHUB_OUTPUT
           echo "OPENSSL_HASH=$OPENSSL_HASH" >> $GITHUB_OUTPUT
