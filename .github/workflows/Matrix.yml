@@ -1,4 +1,4 @@
-name: Precomp NIFs
+name: Build Apple targets liberlang.xframework
 
 on:
   push:
@@ -11,6 +11,9 @@ jobs:
   build_setup:
     name: Setup Dependencies
     runs-on: macos-latest
+
+    env: 
+      FRAMEWORK_NAME: "liberlang"
 
     outputs:
       otp_build_path: ${{ steps.otp-setup.outputs.otp_build_path }}
@@ -164,8 +167,7 @@ jobs:
       - name: Create Combined xcframework
         shell: bash
         run: |
-          FRAMEWORK_NAME="liberlang"
-          OUTPUT_XCFRAMEWORK="${FRAMEWORK_NAME}.xcframework"
+          OUTPUT_XCFRAMEWORK="$FRAMEWORK_NAME.xcframework"
 
           IOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS/liberlang.xcframework"
           SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS Simulator/liberlang.xcframework"
