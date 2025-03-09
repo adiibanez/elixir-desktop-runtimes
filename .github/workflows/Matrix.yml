@@ -46,7 +46,7 @@ jobs:
           echo "OPENSSL_HASH=$OPENSSL_HASH" >> "$GITHUB_OUTPUT"
           echo "OPENSSL_PATH=$PWD/openssl-$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
   build_platform_matrix:
-    name: Build - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }} ELX${{ matrix.erlixir.elixir-version }}
+    name: Build - ${{ matrix.platform.name }} OTP-${{ matrix.erlixir.otp-version }} ELX-${{ matrix.erlixir.elixir-version }}
     runs-on: macos-latest
     needs: build_setup
     strategy:
@@ -56,12 +56,12 @@ jobs:
           # - {otp-version: 28.0-rc1, elixir-version: 1.18.3-otp-27, use-git: true }
           - {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"} # configured in package_ios_runtime.ex too configuration
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
-          - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
+          # - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
         os: [macos-latest]
         platform:
           # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
           - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios",}
-          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          # - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
@@ -235,19 +235,19 @@ jobs:
           find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
           LIBS=`find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " %s", $1} END { print "" }'`
           echo $LIBS
-          libtool -static -o ${{ github.workspace }}/_build/liberlang_OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}.a $LIBS
+          libtool -static -o ${{ github.workspace }}/_build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a $LIBS
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
         with:
-          name: libs-liberlang-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-          path: _build/liberlang_OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}.a
+          name: libs-liberlang-${{ matrix.platform.id }}-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+          path: _build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a
       
       - name: Set up Rust Toolchain (Nightly)
         uses: dtolnay/rust-toolchain@nightly
         with:
           targets: ${{ matrix.platform.rust_target }}
 
-      - name: Build NIFs for ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+      - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         shell: bash
         env: 
           RUSTLER_BTLEPLUG_BUILD: 1
@@ -272,11 +272,11 @@ jobs:
           # mix release
           # cd ..
 
-          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
-          cd rustler_btleplug
-          mix deps.get
-          mix release
-          cd ..
+          # git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
+          # cd rustler_btleplug
+          # mix deps.get
+          # mix release
+          # cd ..
 
           # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
           # cd wasmex
@@ -296,27 +296,27 @@ jobs:
           touch _build/nifs/test.txt
           find _build/nifs -name "*.a"
 
-      - name: Upload Nifs for ${{ matrix.platform.name }} ${{ matrix.erlixir.opt-version}}
+      - name: Upload Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}} ELX-${{matrix.erlixir.elixir-version}}
         uses: actions/upload-artifact@v4
         with:
-          name: libs-nifs-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+          name: libs-nifs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
           path: |
             _build/nifs/**/**.a
             **/test.txt
 
-      - name: Download liberlang  ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+      - name: Download liberlang  ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         uses: actions/download-artifact@v4
         with:
-          name: libs-liberlang-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+          name: libs-liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
           path: arfifacts/liberlang
 
-      - name: Download Nifs for ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+      - name: Download Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         uses: actions/download-artifact@v4
         with:
-          name: libs-nifs-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+          name: libs-nifs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
           path: artifacts/nifs/
 
-      - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+      - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         shell: bash
         id: build-xcframework-slice
         run: |
@@ -324,14 +324,15 @@ jobs:
           find artifacts -name "*.a"
 
           echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
-          mkdir liberlang_xcframework_slice-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-          touch liberlang_xcframework_slice-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework
-          echo "xcframework_slice_path=liberlang_xcframework_slice/liberlang.xcframework" >> "$GITHUB_OUTPUT" # Corrected output setting
+          mkdir liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+          touch liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}/liberlang.xcframework
+          echo "xcframework_slice_path=liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}/liberlang.xcframework" >> "$GITHUB_OUTPUT"
+
       - name: Upload liberlang.xcframework Slice Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
         id: upload-xcframework-slice
         with:
-          name: liberlang-xcframework-slice-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+          name: liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
           path: ${{ steps.build-xcframework-slice.outputs.xcframework_slice_path }}
   combine_xcframework:
     name: Combine XC Framework
@@ -341,10 +342,10 @@ jobs:
       fail-fast: false
       matrix:
         erlixir:
-          - {otp-version: 28.0-rc1, elixir-version: 1.18.3-otp-27, git: true }
+          # - {otp-version: 28.0-rc1, elixir-version: 1.18.3-otp-27, git: true }
           - {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"} # configured in package_ios_runtime.ex too configuration
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
-          - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
+          # - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
         os: [macos-latest]
     steps:
       - name: Checkout code
@@ -352,26 +353,33 @@ jobs:
       - name: Download liberlang.xcframework Slice Artifacts
         uses: actions/download-artifact@v4
         with:
-          path: liberlang-xcframework-slices
+          path: xcframework-slices
+          pattern: liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-*
+          merge-multiple: true
 
       - name: Setup Combined xcframework env
         shell: bash
         run: |
           echo "FRAMEWORK_NAME=liberlang" >> $GITHUB_ENV
           echo "OUTPUT_XCFRAMEWORK=${FRAMEWORK_NAME}.xcframework" >> $GITHUB_ENV
-          echo "IOS_FRAMEWORK=framework-slices/liberlang-xcframework-slice-ios-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "SIMULATOR_FRAMEWORK=framework-slices/liberlang-xcframework-slice-ios_sim-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "WATCHOS_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-watchos-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "WATCHOS_SIMULATOR_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-watchos_sim-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "TVOS_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-tvos-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "TVOS_SIMULATOR_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-tvos_sim-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "VISIONOS_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-visionos-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "VISIONOS_SIMULATOR_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-visionos_sim-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "IOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-ios-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-ios_sim-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "WATCHOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-watchos-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "WATCHOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-watchos_sim-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "TVOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-tvos-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "TVOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-tvos_sim-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "VISIONOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-visionos-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "VISIONOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-visionos_sim-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
 
       - name: Create Combined xcframework
         shell: bash
         run: |
-          xcodebuild -create-xcframework \
+
+          ls -lah xcframework-slices
+          find xcframework-slices -type d
+          find xcframework-slices -type f -name "*.a"
+
+          echo xcodebuild -create-xcframework \
             -framework "$IOS_FRAMEWORK" \
             -framework "$SIMULATOR_FRAMEWORK" \
             -framework "$WATCHOS_FRAMEWORK" \
@@ -383,12 +391,12 @@ jobs:
             -output "$OUTPUT_XCFRAMEWORK"
 
       - name: Check Architecture
-        run: lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}"
+        run: lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}" || 1
           
       - name: Upload Combined xcframework Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lipo-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+          name: lipo-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
           path: liberlang.xcframework
   # test_matrix:
   #   name: Test Matrix - ${{ matrix.platform.name }}
