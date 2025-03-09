@@ -183,10 +183,10 @@ jobs:
           echo OPENSSL_PREFIX=$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }} >> $GITHUB_ENV
           echo OTP_PREFIX=$(pwd)/_build/otp >> $GITHUB_ENV
           echo LIBS="$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" >> $GITHUB_ENV
-          echo INSTALL_PROGRAM="/usr/bin/install -c" >> $GITHUB_ENV
+          # echo INSTALL_PROGRAM="/usr/bin/install -c" >> $GITHUB_ENV
           echo MAKEFLAGS="-j10 -O" >> $GITHUB_ENV
           echo RELEASE_LIBBEAM="yes" >> $GITHUB_ENV
-          echo RELEASE_ROOT=$(pwd)/_build/otp >> $GITHUB_ENV
+          # echo RELEASE_ROOT=$(pwd)/_build/otp >> $GITHUB_ENV
           # echo STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a" >> $GITHUB_ENV
           # echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) $CC" >> $GITHUB_ENV
           # echo CFLAGS="-isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $CFLAGS" >> $GITHUB_ENV
@@ -230,39 +230,41 @@ jobs:
           --disable-dynamic-ssl-lib \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           --enable-static-nifs="$STATIC_NIFS"
+
+          # make && make install 
           
           ./otp_build boot -a
           ./otp_build release -a
+
+          ls -lah $OTP_PREFIX
           
           #./scripts/build-otp.sh # Assuming you have a script to build OTP, adapt as needed
 
           cd ${{ github.workspace }}
 
-          mkdir -p _build/otp
-          touch _build/otp/testfile.txt
+          cp -r otp_src_${{matrix.erlixir.otp-version}} _build/otp
 
-          echo "OTP_BUILD_PATH=$PWD/_build/otp" >> "$GITHUB_OUTPUT"
-          echo "::set-output name=otp_build_path::$PWD/_build/otp" # Set output variable
+          #mkdir -p _build/otp
+          #touch _build/otp/testfile.txt
 
-      - name: Install OTP
-        continue-on-error: false
-        shell: bash
-        run: |
-          cd otp_src_${{matrix.erlixir.otp-version}}
-          # ls -alh 
+          #echo "OTP_BUILD_PATH=$PWD/_build/otp" >> "$GITHUB_OUTPUT"
+          #echo "name=otp_build_path::$PWD/_build/otp" >> $GITHUB_OUTPUT
+
+      # - name: Install OTP
+      #   continue-on-error: false
+      #   shell: bash
+      #   run: |
+      #     cd otp_src_${{matrix.erlixir.otp-version}}
+      #     # ls -alh 
           
-          #make release
+      #     #make release
 
-      - name: Check liberlang.a
+      - name: Check OTP libs
         continue-on-error: true
         shell: bash
         run: |
-          find . -name liberlang.a
-          lipo -info `find . -name liberlang.a`
-
-          find $OTP_PREFIX -name "*.a"
-
-          ls -lah $OTP_PREFIX
+          cd _build/otp
+          find . -name "*.a"
 
       # - name: Download OTP Build Artifact (Round 1)
       #   uses: actions/download-artifact@v4
