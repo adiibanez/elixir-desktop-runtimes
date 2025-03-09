@@ -110,22 +110,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: otp-build-round1
-          path: _build/otp # Or the path where you want to download it
+          path: _build/otp
 
-      - name: Set up Rust Toolchain (Nightly)
-        uses: dtolnay/rust-toolchain@nightly
-        with:
-          targets: ${{ matrix.platform.rust_target }} # Define rust_target in matrix if needed
+    #   - name: Set up Rust Toolchain (Nightly)
+    #     uses: dtolnay/rust-toolchain@nightly
+    #     with:
+    #       targets: ${{ matrix.platform.rust_target }}
 
       - name: Build NIFs for ${{ matrix.platform.name }}
         shell: bash
         run: |
-          # ... (Your NIF build commands, using matrix.platform.target, matrix.platform.sdk, etc.) ...
           echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
           # Example: cargo build --target ${{ matrix.platform.rust_target }}
 
       - name: Collect NIF Artifacts for ${{ matrix.platform.name }}
-        # ... (Code to collect NIF .a files and upload as artifact) ...
         run: |
           echo "Collecting NIF Artifacts for ${{ matrix.platform.name }}"
           mkdir artifacts
@@ -134,9 +132,8 @@ jobs:
 
       - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }}
         shell: bash
-        id: build-xcframework-slice # Corrected id for build step
+        id: build-xcframework-slice
         run: |
-          # ... (Code to configure and build OTP for xcframework slice) ...
           echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
           mkdir liberlang_xcframework_slice
           touch liberlang_xcframework_slice/liberlang.xcframework # Example: create dummy xcframework slice
@@ -145,10 +142,10 @@ jobs:
 
       - name: Upload liberlang.xcframework Slice Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
-        id: upload-xcframework-slice # Added id for upload step
+        id: upload-xcframework-slice
         with:
           name: liberlang-xcframework-slice-${{ matrix.platform.name }}
-          path: ${{ steps.build-xcframework-slice.outputs.xcframework_slice_path }} # Corrected id reference
+          path: ${{ steps.build-xcframework-slice.outputs.xcframework_slice_path }}
 
   combine_xcframework:
     name: Combine XC Framework
@@ -176,11 +173,9 @@ jobs:
           WATCHOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-watchOS Simulator/liberlang.xcframework"
           TVOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS/liberlang.xcframework"
           TVOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS Simulator/liberlang.xcframework"
-          VISIONOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS/liberlang.xcframework" # ADDED visionOS
-          VISIONOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS Simulator/liberlang.xcframework" # ADDED visionOS Simulator
+          VISIONOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS/liberlang.xcframework" 
+          VISIONOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS Simulator/liberlang.xcframework"
 
-
-          # Create xcframework
           echo xcodebuild -create-xcframework \
             -framework "$IOS_FRAMEWORK" \
             -framework "$SIMULATOR_FRAMEWORK" \
@@ -189,11 +184,10 @@ jobs:
             -framework "$WATCHOS_SIMULATOR_FRAMEWORK" \
             -framework "$TVOS_FRAMEWORK" \
             -framework "$TVOS_SIMULATOR_FRAMEWORK" \
-            -framework "$VISIONOS_FRAMEWORK" \ # ADDED visionOS
-            -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \ # ADDED visionOS Simulator
+            -framework "$VISIONOS_FRAMEWORK" \
+            -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \ 
             -output "$OUTPUT_XCFRAMEWORK"
 
-          # Verify xcframework (optional)
           echo lipo -info "$OUTPUT_XCFRAMEWORK/$FRAMEWORK_NAME"
 
       - name: Upload Combined xcframework Artifact
