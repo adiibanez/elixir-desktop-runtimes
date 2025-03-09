@@ -355,13 +355,11 @@ jobs:
         with:
           path: xcframework-slices
           pattern: liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-*
-          merge-multiple: true
+          # merge-multiple: true
 
       - name: Setup Combined xcframework env
         shell: bash
         run: |
-          echo "FRAMEWORK_NAME=liberlang" >> $GITHUB_ENV
-          echo "OUTPUT_XCFRAMEWORK=${FRAMEWORK_NAME}.xcframework" >> $GITHUB_ENV
           echo "IOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-ios-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
           echo "SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-ios_sim-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
           echo "WATCHOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-watchos-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
@@ -374,6 +372,9 @@ jobs:
       - name: Create Combined xcframework
         shell: bash
         run: |
+
+          FRAMEWORK_NAME=liberlang
+          OUTPUT_XCFRAMEWORK=${FRAMEWORK_NAME}.xcframework
 
           ls -lah xcframework-slices
           find xcframework-slices -type d
