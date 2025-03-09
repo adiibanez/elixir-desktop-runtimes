@@ -104,8 +104,9 @@ jobs:
         with:
           path: |
             _build/openssl-${{ env.OPENSSL_VERSION }}
-          key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.arch }}
+          key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.arch }}-${{ hashFiles('./scripts/install_openssl_new.sh') }}
           restore-keys: |
+            openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.arch }}-
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-
 
@@ -200,13 +201,21 @@ jobs:
           MAKEFLAGS="-j10 -O"
           RELEASE_LIBBEAM="yes"
 
-          STATIC_NIFS="$(pwd)/_build/otp-${{matrix.erlixir.otp-version}}/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp-${{matrix.erlixir.otp-version}}/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
+          STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
 
           echo $STATIC_NIFS
 
           echo `lipo -info $LIBS` || 1
 
           # exit 0
+
+          echo cd otp_src_${{matrix.erlixir.otp-version}}
+          ./otp_build configure \
+          --prefix="$OTP_PREFIX" \
+          --with-ssl="$OPENSSL_PREFIX" \
+          --disable-dynamic-ssl-lib \
+          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
+          --enable-static-nifs="$STATIC_NIFS" > /tmp/otp_cmd.sh
 
           cd otp_src_${{matrix.erlixir.otp-version}}
           ./otp_build configure \
