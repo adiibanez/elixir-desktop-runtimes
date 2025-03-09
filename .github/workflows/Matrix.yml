@@ -142,12 +142,12 @@ jobs:
             macos-otp-
       - name: Clone OTP git
         shell: bash
-        if: steps.otp-cache.outputs.cache-hit != 'true' && ${{ matrix.erlixir.use-git == true }}
+        if: ${{ matrix.erlixir.use-git == true }} && steps.otp-cache.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 https://github.com/erlang/otp --branch OTP-${{matrix.erlixir.otp-version}} otp_src_${{matrix.erlixir.otp-version}}
       - name: Download OTP tar.gz
         shell: bash
-        if: steps.otp-cache.outputs.cache-hit != 'true' && ${{ matrix.erlixir.use-git != true }}
+        if: ${{ matrix.erlixir.use-git != true }} && steps.otp-cache.outputs.cache-hit != 'true'
         run: |
           curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
           tar -xzf otp_src_${{matrix.erlixir.otp-version}}.tar.gz
