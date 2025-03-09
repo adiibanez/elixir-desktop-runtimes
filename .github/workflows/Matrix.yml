@@ -53,7 +53,7 @@ jobs:
       fail-fast: false
       matrix:
         erlixir:
-          - {otp-version: 28.0-rc1, elixir-version: 1.18.3-otp-27, use-git: true }
+          - {otp-version: 28.0-rc1, elixir-version: 1.18.3-otp-27, use-git: 1 }
           - {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"} # configured in package_ios_runtime.ex too configuration
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
           - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
@@ -142,12 +142,12 @@ jobs:
             macos-otp-
       - name: Clone OTP git
         shell: bash
-        if: ${{ matrix.erlixir.use-git == true }} && steps.otp-cache.outputs.cache-hit != 'true'
+        if: ${{ matrix.erlixir.use-git == 1 }} && steps.otp-cache.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 https://github.com/erlang/otp --branch OTP-${{matrix.erlixir.otp-version}} otp_src_${{matrix.erlixir.otp-version}}
       - name: Download OTP tar.gz
         shell: bash
-        if: ${{ matrix.erlixir.use-git != true }} && steps.otp-cache.outputs.cache-hit != 'true'
+        if: ${{ matrix.erlixir.use-git != 1 }} && steps.otp-cache.outputs.cache-hit != 'true'
         run: |
           curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
           tar -xzf otp_src_${{matrix.erlixir.otp-version}}.tar.gz
