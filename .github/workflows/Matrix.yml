@@ -260,11 +260,11 @@ jobs:
           mkdir -p _build/nifs/
           cd _build/nifs/
 
-          git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
-          cd exqlite
-          mix deps.get
-          mix release
-          cd ..
+          # git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
+          # cd exqlite
+          # mix deps.get
+          # mix release
+          # cd ..
 
           # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
           # cd libsecp256k1
@@ -272,11 +272,11 @@ jobs:
           # mix release
           # cd ..
 
-          # git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
-          # cd rustler_btleplug
-          # mix deps.get
-          # mix release
-          # cd ..
+          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
+          cd rustler_btleplug
+          mix deps.get
+          mix release
+          cd ..
 
           # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
           # cd wasmex
