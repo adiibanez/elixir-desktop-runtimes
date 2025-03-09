@@ -194,7 +194,7 @@ jobs:
 
       - name: Build OTP Round 1 (xcomp)
         id: otp-setup
-        # if: steps.otp-cache.outputs.cache-hit != 'true'
+        if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           ls -lah _build/openssl-$OPENSSL_VERSION
@@ -243,15 +243,15 @@ jobs:
 
           echo "OTP_BUILD_PATH=$PWD/_build/otp" >> "$GITHUB_OUTPUT"
           echo "::set-output name=otp_build_path::$PWD/_build/otp" # Set output variable
-      - name: Download OTP Build Artifact (Round 1)
-        uses: actions/download-artifact@v4
-        with:
-          name: otp-build-round1
-          path: _build/otp
-          #   - name: Set up Rust Toolchain (Nightly)
-          #     uses: dtolnay/rust-toolchain@nightly
-          #     with:
-          #       targets: ${{ matrix.platform.rust_target }}
+      # - name: Download OTP Build Artifact (Round 1)
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: otp-build-round1
+      #     path: _build/otp
+      #   - name: Set up Rust Toolchain (Nightly)
+      #     uses: dtolnay/rust-toolchain@nightly
+      #     with:
+      #       targets: ${{ matrix.platform.rust_target }}
   #     - name: Build NIFs for ${{ matrix.platform.name }}
   #       shell: bash
   #       run: |
