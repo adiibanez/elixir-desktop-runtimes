@@ -136,7 +136,7 @@ jobs:
 
 
       - name: Upload liberlang.xcframework Slice Artifact for ${{ matrix.platform.name }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: liberlang-xcframework-slice-${{ matrix.platform.name }}
           path: ${{ steps.build-crate-ios.outputs.xcframework_slice_path }} #Example path
@@ -194,7 +194,7 @@ jobs:
           echo lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}"
 
       - name: Upload Combined xcframework Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Combined-liberlang-xcframework
           path: liberlang.xcframework
@@ -218,7 +218,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Combined xcframework Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: Combined-liberlang-xcframework
           path: Combined-xcframework # Download to Combined-xcframework folder
