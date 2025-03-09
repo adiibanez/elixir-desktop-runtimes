@@ -104,9 +104,11 @@ jobs:
         with:
           path: |
             _build/openssl-${{ env.OPENSSL_VERSION }}
-          key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.arch }}-${{ hashFiles('./scripts/install_openssl_new.sh') }}
+          key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.arch }}
+          # -${{ hashFiles('./scripts/install_openssl_new.sh') }}
+          # #openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.arch }}-
           restore-keys: |
-            openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.arch }}-
+            
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-
 
@@ -121,7 +123,7 @@ jobs:
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
         run: |
-          echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}" >> "$GITHUB_ENV"
+          # echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}" >> "$GITHUB_ENV"
           # used for hashing cache key
           echo "${{matrix.erlixir.erl-opts}}" > .kerl_configuration_options
 
@@ -173,35 +175,37 @@ jobs:
           curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
           tar -xzf otp_src_${{matrix.erlixir.otp-version}}.tar.gz
 
+      - name: Setup OTP env
+        shell: bash
+        run: |
+          echo export KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --without-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" >> $GITHUB_ENV
+          echo export ERL_FLAGS="-smp disable" >> $GITHUB_ENV
+          echo ARCH=${{ matrix.platform.openssl_arch }} >> $GITHUB_ENV
+          echo OPENSSL_PREFIX=$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }} >> $GITHUB_ENV
+          echo OTP_PREFIX=$(pwd)/_build/otp >> $GITHUB_ENV
+          echo LIBS="$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" >> $GITHUB_ENV
+          echo INSTALL_PROGRAM="/usr/bin/install -c" >> $GITHUB_ENV
+          echo MAKEFLAGS="-j10 -O" >> $GITHUB_ENV
+          echo RELEASE_LIBBEAM="yes" >> $GITHUB_ENV
+          # echo STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a" >> $GITHUB_ENV
+          # echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) $CC" >> $GITHUB_ENV
+          # echo CFLAGS="-isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $CFLAGS" >> $GITHUB_ENV
+          # echo LDFLAGS="-syslibroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $LDFLAGS" >> $GITHUB_ENV
+
       - name: Build OTP Round 1 (xcomp)
         id: otp-setup
         # if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
-
           ls -lah _build/openssl-$OPENSSL_VERSION
-
-          export KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --without-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll"
-          export ERL_FLAGS="-smp disable" # Disable SMP for xcomp build
-          export ARCH="arm64" # Example ARCH, adjust if needed for xcomp
-
-          ARCH=${{ matrix.platform.openssl_arch }} 
-          OPENSSL_PREFIX=$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }}
-          OTP_PREFIX=$(pwd)/_build/otp
-
           ls -lah $OPENSSL_PREFIX
 
           find . -name libcrypto.a
 
+          echo $CC
+
           echo "$OPENSSL_PREFIX/lib/libcrypto.a"
           ls -lah "$OPENSSL_PREFIX/lib/libcrypto.a"
-
-          LIBS="$OPENSSL_PREFIX/lib/libcrypto.a"
-          INSTALL_PROGRAM="/usr/bin/install -c"
-          MAKEFLAGS="-j10 -O"
-          RELEASE_LIBBEAM="yes"
-
-          STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
 
           echo $STATIC_NIFS
 
@@ -209,13 +213,15 @@ jobs:
 
           # exit 0
 
+          echo `env` > /tmp/otp_cmd.sh
+
           echo cd otp_src_${{matrix.erlixir.otp-version}} \
           ./otp_build configure \
           --prefix="$OTP_PREFIX" \
           --with-ssl="$OPENSSL_PREFIX" \
           --disable-dynamic-ssl-lib \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
-          --enable-static-nifs="$STATIC_NIFS" > /tmp/otp_cmd.sh
+          --enable-static-nifs="$STATIC_NIFS" >> /tmp/otp_cmd.sh
 
           cd otp_src_${{matrix.erlixir.otp-version}}
           ./otp_build configure \
@@ -225,8 +231,8 @@ jobs:
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           --enable-static-nifs="$STATIC_NIFS"
           
-          ./otp_build boot -a
-          ./otp_build release -a
+          ./otp_build boot --with-ssl="$OPENSSL_PREFIX" -a
+          ./otp_build release --with-ssl="$OPENSSL_PREFIX" -a
           
           #./scripts/build-otp.sh # Assuming you have a script to build OTP, adapt as needed
 
