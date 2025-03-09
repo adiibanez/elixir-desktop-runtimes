@@ -292,14 +292,23 @@ jobs:
         run: |
           echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
 
-          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug/ --branch v0.0.15-alpha _build/nifs/rustler_btleplug/
+          mkdir -p _build/nifs/
+          cd _build/nifs/
 
-          cd _build/nifs/rustler_btleplug/
+          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug/ --branch v0.0.15-alpha
+          cd rustler_btleplug
+          mix deps.get
+          mix release
+
+          cd ..
+          git clone --depth 1 https://github.com/adiibanez/wasmex/ --branch main
+          cd wasmex
           mix deps.get
           mix release
 
           cd ${{ github.workspace }}
 
+          # dummy file
           touch _build/nifs/test.txt
           find _build/nifs -name "*.a"
 
@@ -308,20 +317,20 @@ jobs:
         with:
           name: libs-nifs-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
           path: |
-            _build/nifs/**.a
+            _build/nifs/**/**.a
             **/test.txt
 
       - name: Download liberlang  ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
         uses: actions/download-artifact@v4
         with:
           name: libs-liberlang-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-          path: arfifacts/
+          path: arfifacts/liberlang
 
       - name: Download Nifs for ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
         uses: actions/download-artifact@v4
         with:
           name: libs-nifs-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-          path: artifacts/nifs/**.a
+          path: artifacts/nifs/
 
       - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
         shell: bash
