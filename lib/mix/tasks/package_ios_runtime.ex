@@ -67,8 +67,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         arch: "arm64",
         id: "ios64",
         sdk: "iphoneos",
-        # openssl_arch: "ios64-xcrun",
-        openssl_arch: "darwin64-arm64",
+        openssl_arch: "ios64-xcrun",
+        # openssl_arch: "darwin64-arm64",
         xcomp: "arm64-ios",
         name: "aarch64-apple-ios",
         cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
@@ -77,8 +77,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         arch: "x86_64",
         id: "iossimulator",
         sdk: "iphonesimulator",
-        # openssl_arch: "iossimulator-x86_64-xcrun",
-        openssl_arch: "darwin64-x86_64",
+        openssl_arch: "iossimulator-x86_64-xcrun",
+        # openssl_arch: "darwin64-x86_64",
         xcomp: "x86_64-iossimulator",
         name: "x86_64-apple-iossimulator",
         cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
@@ -87,8 +87,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         arch: "arm64",
         id: "iossimulator",
         sdk: "iphonesimulator",
-        # openssl_arch: "iossimulator-arm64-xcrun",
-        openssl_arch: "darwin64-arm64",
+        openssl_arch: "iossimulator-arm64-xcrun",
+        # openssl_arch: "darwin64-arm64",
         xcomp: "arm64-iossimulator",
         name: "aarch64-apple-iossimulator",
         cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
@@ -151,6 +151,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   end
 
   def build(archid, extra_nifs) when is_list(extra_nifs) do
+    IO.inspect(archid, label: "build archid")
     arch = get_arch(archid)
     File.mkdir_p!("_build/runtime_cache/#{arch.name}")
 
@@ -317,8 +318,10 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         end
       end)
     else
-      for target <- targets do
-        build(target, nifs)
+      for {id, _target} <- targets do
+        IO.inspect(id, label: "Buildall loop")
+
+        build(id, nifs)
       end
     end
 
