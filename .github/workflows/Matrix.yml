@@ -78,15 +78,15 @@ jobs:
           - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
         os: [macos-latest]
         platform:
-          - {name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          - {name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
-          - {name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          - {name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          - {name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          - {name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          - {name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          - {name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          # - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -163,9 +163,9 @@ jobs:
             otp_src_${{matrix.erlixir.otp-version}}
             _build/otp
             _build/otp_builder
-          key: macos-otp-${{ matrix.platform.name }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}
+          key: macos-otp-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}
           restore-keys: |
-            macos-otp-${{ matrix.platform.name }}-${{ matrix.erlixir.otp-version }}-
+            macos-otp-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-
             macos-otp-
       
       - name: Download OTP 
@@ -269,7 +269,7 @@ jobs:
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
         with:
-          name: libs-liberlang-${{ matrix.platform.name }}-${{ matrix.erlixir.opt-version}}
+          name: libs-liberlang-${{ matrix.platform.id }}-${{ matrix.erlixir.opt-version}}
           path: _build/liberlang.a
 
       # - name: Download OTP Build Artifact (Round 1)
@@ -304,7 +304,7 @@ jobs:
       - name: Upload Nifs for ${{ matrix.platform.name }} ${{ matrix.erlixir.opt-version}}
         uses: actions/upload-artifact@v4
         with:
-          name: libs-nifs-${{ matrix.platform.name }}-${{ matrix.erlixir.opt-version}}
+          name: libs-nifs-${{ matrix.platform.id }}-${{ matrix.erlixir.opt-version}}
           path: |
             _build/nifs/**.a
             **/test.txt
@@ -312,20 +312,20 @@ jobs:
       - name: Download liberlang  ${{ matrix.platform.name }} ${{ matrix.erlixir.opt-version}}
         uses: actions/download-artifact@v4
         with:
-          name: libs-liberlang-${{ matrix.platform.name }}-${{ matrix.erlixir.opt-version}}
+          name: libs-liberlang-${{ matrix.platform.id }}-${{ matrix.erlixir.opt-version}}
           path: arfifacts/
 
       - name: Download Nifs for ${{ matrix.platform.name }} ${{ matrix.erlixir.opt-version}}
         uses: actions/download-artifact@v4
         with:
-          name: libs-nifs-${{ matrix.platform.name }}-${{ matrix.erlixir.opt-version}}
+          name: libs-nifs-${{ matrix.platform.id }}-${{ matrix.erlixir.opt-version}}
           path: artifacts/nifs/**.a
 
       # - name: Collect NIF Artifacts for ${{ matrix.platform.name }} ${{ matrix.erlixir.opt-version}}
       #   run: |
       #     echo "Collecting NIF Artifacts for ${{ matrix.platform.name }}"
       #     mkdir artifacts
-      #     touch artifacts/nif-lib-${{ matrix.platform.name }}.a # Example: create dummy artifact
+      #     touch artifacts/nif-lib-${{ matrix.platform.id }}.a # Example: create dummy artifact
       #     echo "nif_artifact_path=artifacts/nif-lib-${{ matrix.platform.name }}.a" >> "$GITHUB_OUTPUT" # Corrected output setting
 
       - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }}
@@ -343,7 +343,7 @@ jobs:
         uses: actions/upload-artifact@v4
         id: upload-xcframework-slice
         with:
-          name: liberlang-xcframework-slice-${{ matrix.platform.name }}
+          name: liberlang-xcframework-slice-${{ matrix.platform.id }}
           path: ${{ steps.build-xcframework-slice.outputs.xcframework_slice_path }}
   combine_xcframework:
     name: Combine XC Framework
