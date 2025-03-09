@@ -53,7 +53,8 @@ jobs:
       fail-fast: false
       matrix:
         erlixir:
-          - {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038",} # configured in package_ios_runtime.ex too configuration
+          - {otp-version: 28.0-rc1, elixir-version: 1.18.3-otp-27, git: true }
+          - {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"} # configured in package_ios_runtime.ex too configuration
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
           - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
         os: [macos-latest]
@@ -139,9 +140,14 @@ jobs:
           restore-keys: |
             macos-otp-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-
             macos-otp-
-      - name: Download OTP
+      - name: Clone OTP git
         shell: bash
-        if: steps.otp-cache.outputs.cache-hit != 'true'
+        if: steps.otp-cache.outputs.cache-hit != 'true' && ${{ matrix.erlixir.git }}
+        run: |
+          git clone --depth 1 https://github.com/erlang/otp --branch OTP-https://github.com/erlang/otp otp_src_${{matrix.erlixir.otp-version}}
+      - name: Download OTP tar.gz
+        shell: bash
+        if: steps.otp-cache.outputs.cache-hit != 'true' && ${{ !matrix.erlixir.git }}
         run: |
           curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
           tar -xzf otp_src_${{matrix.erlixir.otp-version}}.tar.gz
@@ -228,12 +234,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: libs-liberlang-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-          path: _build/liberlang*.a
-      # - name: Download OTP Build Artifact (Round 1)
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: otp-build-round1
-      #     path: _build/otp
+          path: _build/liberlang_OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}.a
+      
       - name: Set up Rust Toolchain (Nightly)
         uses: dtolnay/rust-toolchain@nightly
         with:
@@ -316,8 +318,8 @@ jobs:
           find artifacts -name "*.a"
 
           echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
-          mkdir liberlang_xcframework_slice
-          touch liberlang_xcframework_slice/liberlang.xcframework # Example: create dummy xcframework slice
+          mkdir liberlang_xcframework_slice-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+          touch liberlang_xcframework_slice-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework
           echo "xcframework_slice_path=liberlang_xcframework_slice/liberlang.xcframework" >> "$GITHUB_OUTPUT" # Corrected output setting
       - name: Upload liberlang.xcframework Slice Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
@@ -329,6 +331,15 @@ jobs:
     name: Combine XC Framework
     runs-on: macos-latest
     needs: build_platform_matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        erlixir:
+          - {otp-version: 28.0-rc1, elixir-version: 1.18.3-otp-27, git: true }
+          - {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"} # configured in package_ios_runtime.ex too configuration
+          #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
+          - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
+        os: [macos-latest]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -336,13 +347,42 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: liberlang-xcframework-slices
+
+      - name: Setup Combined xcframework env
+        shell: bash
+        run: |
+          echo "FRAMEWORK_NAME=liberlang" >> $GITHUB_ENV
+          echo "OUTPUT_XCFRAMEWORK=${FRAMEWORK_NAME}.xcframework" >> $GITHUB_ENV
+          echo "IOS_FRAMEWORK=framework-slices/liberlang-xcframework-slice-ios-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "SIMULATOR_FRAMEWORK=framework-slices/liberlang-xcframework-slice-ios_sim-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "WATCHOS_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-watchos-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "WATCHOS_SIMULATOR_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-watchos_sim-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "TVOS_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-tvos-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "TVOS_SIMULATOR_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-tvos_sim-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "VISIONOS_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-visionos-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "VISIONOS_SIMULATOR_FRAMEWORK=liberlang-xcframework-slices/liberlang-xcframework-slice-visionos_sim-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+
       - name: Create Combined xcframework
         shell: bash
-        run: "FRAMEWORK_NAME=\"liberlang\"\nOUTPUT_XCFRAMEWORK=\"${FRAMEWORK_NAME}.xcframework\" \n\nIOS_FRAMEWORK=\"framework-slices/liberlang-xcframework-slice-iOS/liberlang.xcframework\"\nSIMULATOR_FRAMEWORK=\"framework-slices/liberlang-xcframework-slice-iOS Simulator/liberlang.xcframework\"\nMACOS_FRAMEWORK=\"framework-slices/liberlang-xcframework-slice-macOS/liberlang.xcframework\"\nWATCHOS_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-watchOS/liberlang.xcframework\"\nWATCHOS_SIMULATOR_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-watchOS Simulator/liberlang.xcframework\"\nTVOS_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS/liberlang.xcframework\"\nTVOS_SIMULATOR_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS Simulator/liberlang.xcframework\"\nVISIONOS_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS/liberlang.xcframework\"\nVISIONOS_SIMULATOR_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS Simulator/liberlang.xcframework\"\n\n# Create xcframework\necho xcodebuild -create-xcframework \\\n  -framework \"$IOS_FRAMEWORK\" \\\n  -framework \"$SIMULATOR_FRAMEWORK\" \\\n  -framework \"$MACOS_FRAMEWORK\" \\\n  -framework \"$WATCHOS_FRAMEWORK\" \\\n  -framework \"$WATCHOS_SIMULATOR_FRAMEWORK\" \\\n  -framework \"$TVOS_FRAMEWORK\" \\\n  -framework \"$TVOS_SIMULATOR_FRAMEWORK\" \\\n  -framework \"$VISIONOS_FRAMEWORK\" \\\n  -framework \"$VISIONOS_SIMULATOR_FRAMEWORK\" \\\n  -output \"$OUTPUT_XCFRAMEWORK\"\n\necho lipo -info \"$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}\"\nmkdir liberlang.xcframework\ntouch liberlang.xcframework/test.txt\n"
+        run: |
+          xcodebuild -create-xcframework \
+            -framework "$IOS_FRAMEWORK" \
+            -framework "$SIMULATOR_FRAMEWORK" \
+            -framework "$WATCHOS_FRAMEWORK" \
+            -framework "$WATCHOS_SIMULATOR_FRAMEWORK" \
+            -framework "$TVOS_FRAMEWORK" \
+            -framework "$TVOS_SIMULATOR_FRAMEWORK" \
+            -framework "$VISIONOS_FRAMEWORK" \
+            -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \
+            -output "$OUTPUT_XCFRAMEWORK"
+
+      - name: Check Architecture
+        run: lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}"
+          
       - name: Upload Combined xcframework Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lipo
+          name: lipo-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
           path: liberlang.xcframework
   # test_matrix:
   #   name: Test Matrix - ${{ matrix.platform.name }}
