@@ -35,6 +35,7 @@ jobs:
             asdf-cache-${{ runner.os }}-
 
       - name: Install Dependencies (Mix deps)
+        if: false
         run: echo mix deps.get && mix deps.compile
 
       - name: Download and Extract OpenSSL
