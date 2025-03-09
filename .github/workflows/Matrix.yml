@@ -209,7 +209,7 @@ jobs:
 
           # exit 0
 
-          echo cd otp_src_${{matrix.erlixir.otp-version}}
+          echo cd otp_src_${{matrix.erlixir.otp-version}} \
           ./otp_build configure \
           --prefix="$OTP_PREFIX" \
           --with-ssl="$OPENSSL_PREFIX" \
