@@ -139,7 +139,6 @@ jobs:
           touch liberlang_xcframework_slice/liberlang.xcframework # Example: create dummy xcframework slice
           echo "xcframework_slice_path=liberlang_xcframework_slice/liberlang.xcframework" >> "$GITHUB_OUTPUT" # Corrected output setting
 
-
       - name: Upload liberlang.xcframework Slice Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
         id: upload-xcframework-slice
@@ -164,7 +163,6 @@ jobs:
       - name: Create Combined xcframework
         shell: bash
         run: |
-          OUTPUT_XCFRAMEWORK="$FRAMEWORK_NAME.xcframework"
 
           IOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS/liberlang.xcframework"
           SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS Simulator/liberlang.xcframework"
@@ -186,7 +184,7 @@ jobs:
             -framework "$TVOS_SIMULATOR_FRAMEWORK" \
             -framework "$VISIONOS_FRAMEWORK" \
             -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \ 
-            -output "$OUTPUT_XCFRAMEWORK"
+            -output "$(FRAMEWORK_NAME).xcframework"
 
           echo lipo -info "$OUTPUT_XCFRAMEWORK/$FRAMEWORK_NAME"
 
