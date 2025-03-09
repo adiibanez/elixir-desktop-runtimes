@@ -214,6 +214,7 @@ jobs:
 
           # exit 0
 
+          mkdir -p _build/otp
 
           cp -r otp_src_${{matrix.erlixir.otp-version}} _build/otp_builder
 
@@ -221,7 +222,6 @@ jobs:
 
           echo cd _build/otp_builder \
           ./otp_build configure \
-          --prefix="$OTP_PREFIX" \
           --with-ssl="$OPENSSL_PREFIX" \
           --disable-dynamic-ssl-lib \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
@@ -229,14 +229,11 @@ jobs:
 
           cd _build/otp_builder
           ./otp_build configure \
-          --prefix="$OTP_PREFIX" \
           --with-ssl="$OPENSSL_PREFIX" \
           --disable-dynamic-ssl-lib \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           --enable-static-nifs="$STATIC_NIFS"
 
-          mkdir -p _build/otp
-          
           ./otp_build boot -a
           ./otp_build release -a
 
