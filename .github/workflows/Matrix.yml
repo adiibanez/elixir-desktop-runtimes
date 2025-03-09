@@ -58,15 +58,15 @@ jobs:
           - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
         os: [macos-latest]
         platform:
+          # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
           - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios",}
           - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
-          # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -288,86 +288,86 @@ jobs:
           touch _build/nifs/test.txt
           find _build/nifs -name "*.a"
 
-#     - name: Upload Nifs for ${{ matrix.platform.name }} ${{ matrix.erlixir.opt-version}}
-#       uses: actions/upload-artifact@v4
-#       with:
-#         name: libs-nifs-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-#         path: |
-#           _build/nifs/**/**.a
-#           **/test.txt
+      - name: Upload Nifs for ${{ matrix.platform.name }} ${{ matrix.erlixir.opt-version}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: libs-nifs-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+          path: |
+            _build/nifs/**/**.a
+            **/test.txt
 
-#     - name: Download liberlang  ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-#       uses: actions/download-artifact@v4
-#       with:
-#         name: libs-liberlang-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-#         path: arfifacts/liberlang
+      - name: Download liberlang  ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+        uses: actions/download-artifact@v4
+        with:
+          name: libs-liberlang-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+          path: arfifacts/liberlang
 
-#     - name: Download Nifs for ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-#       uses: actions/download-artifact@v4
-#       with:
-#         name: libs-nifs-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-#         path: artifacts/nifs/
+      - name: Download Nifs for ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+        uses: actions/download-artifact@v4
+        with:
+          name: libs-nifs-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+          path: artifacts/nifs/
 
-#     - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-#       shell: bash
-#       id: build-xcframework-slice
-#       run: |
-#         ls -lah artifacts/
-#         find artifacts -name "*.a"
+      - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }} OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+        shell: bash
+        id: build-xcframework-slice
+        run: |
+          ls -lah artifacts/
+          find artifacts -name "*.a"
 
-#         echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
-#         mkdir liberlang_xcframework_slice
-#         touch liberlang_xcframework_slice/liberlang.xcframework # Example: create dummy xcframework slice
-#         echo "xcframework_slice_path=liberlang_xcframework_slice/liberlang.xcframework" >> "$GITHUB_OUTPUT" # Corrected output setting
-#     - name: Upload liberlang.xcframework Slice Artifact for ${{ matrix.platform.name }}
-#       uses: actions/upload-artifact@v4
-#       id: upload-xcframework-slice
-#       with:
-#         name: liberlang-xcframework-slice-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
-#         path: ${{ steps.build-xcframework-slice.outputs.xcframework_slice_path }}
-# combine_xcframework:
-#   name: Combine XC Framework
-#   runs-on: macos-latest
-#   needs: build_platform_matrix
-#   steps:
-#     - name: Checkout code
-#       uses: actions/checkout@v4
-#     - name: Download liberlang.xcframework Slice Artifacts
-#       uses: actions/download-artifact@v4
-#       with:
-#         path: liberlang-xcframework-slices
-#     - name: Create Combined xcframework
-#       shell: bash
-#       run: "FRAMEWORK_NAME=\"liberlang\"\nOUTPUT_XCFRAMEWORK=\"${FRAMEWORK_NAME}.xcframework\" \n\nIOS_FRAMEWORK=\"framework-slices/liberlang-xcframework-slice-iOS/liberlang.xcframework\"\nSIMULATOR_FRAMEWORK=\"framework-slices/liberlang-xcframework-slice-iOS Simulator/liberlang.xcframework\"\nMACOS_FRAMEWORK=\"framework-slices/liberlang-xcframework-slice-macOS/liberlang.xcframework\"\nWATCHOS_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-watchOS/liberlang.xcframework\"\nWATCHOS_SIMULATOR_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-watchOS Simulator/liberlang.xcframework\"\nTVOS_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS/liberlang.xcframework\"\nTVOS_SIMULATOR_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS Simulator/liberlang.xcframework\"\nVISIONOS_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS/liberlang.xcframework\"\nVISIONOS_SIMULATOR_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS Simulator/liberlang.xcframework\"\n\n# Create xcframework\necho xcodebuild -create-xcframework \\\n  -framework \"$IOS_FRAMEWORK\" \\\n  -framework \"$SIMULATOR_FRAMEWORK\" \\\n  -framework \"$MACOS_FRAMEWORK\" \\\n  -framework \"$WATCHOS_FRAMEWORK\" \\\n  -framework \"$WATCHOS_SIMULATOR_FRAMEWORK\" \\\n  -framework \"$TVOS_FRAMEWORK\" \\\n  -framework \"$TVOS_SIMULATOR_FRAMEWORK\" \\\n  -framework \"$VISIONOS_FRAMEWORK\" \\\n  -framework \"$VISIONOS_SIMULATOR_FRAMEWORK\" \\\n  -output \"$OUTPUT_XCFRAMEWORK\"\n\necho lipo -info \"$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}\"\nmkdir liberlang.xcframework\ntouch liberlang.xcframework/test.txt\n"
-#     - name: Upload Combined xcframework Artifact
-#       uses: actions/upload-artifact@v4
-#       with:
-#         name: lipo
-#         path: liberlang.xcframework
-# # test_matrix:
-# #   name: Test Matrix - ${{ matrix.platform.name }}
-# #   runs-on: macos-latest
-# #   needs: combine_xcframework
-# #   strategy:
-# #     matrix:
-# #       os: [macos-latest]
-# #       platform:
-# #         - {name: "iOS Tests", sdk: iphoneos, arch: arm64}
-# #         - {name: "macOS Tests", sdk: macosx, arch: x86_64}
-# #         - {name: "watchOS Tests", sdk: watchos, arch: arm64}
-# #         - {name: "tvOS Tests", sdk: appletvos, arch: arm64}
-# #         - {name: "visionOS Tests", sdk: visionos, arch: arm64}
-# #   steps:
-# #     - name: Checkout code
-# #       uses: actions/checkout@v4
-# #     - name: Download Combined xcframework Artifact
-# #       uses: actions/download-artifact@v4
-# #       with:
-# #         name: lipo
-# #         path: Combined-xcframework # Download to Combined-xcframework folder
-# #     - name: Run Tests for ${{ matrix.platform.name }}
-# #       shell: bash
-# #       run: |-
-# #         echo "Running tests for ${{ matrix.platform.name }}"
-# #         # ... (Your test execution commands for each platform) ...
-# #         # Example: xcodebuild test -project ... -scheme ... -destination ...
+          echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
+          mkdir liberlang_xcframework_slice
+          touch liberlang_xcframework_slice/liberlang.xcframework # Example: create dummy xcframework slice
+          echo "xcframework_slice_path=liberlang_xcframework_slice/liberlang.xcframework" >> "$GITHUB_OUTPUT" # Corrected output setting
+      - name: Upload liberlang.xcframework Slice Artifact for ${{ matrix.platform.name }}
+        uses: actions/upload-artifact@v4
+        id: upload-xcframework-slice
+        with:
+          name: liberlang-xcframework-slice-${{ matrix.platform.id }}-OTP${{matrix.erlixir.otp-version}}-ELX${{matrix.erlixir.elixir-version}}
+          path: ${{ steps.build-xcframework-slice.outputs.xcframework_slice_path }}
+  combine_xcframework:
+    name: Combine XC Framework
+    runs-on: macos-latest
+    needs: build_platform_matrix
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download liberlang.xcframework Slice Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: liberlang-xcframework-slices
+      - name: Create Combined xcframework
+        shell: bash
+        run: "FRAMEWORK_NAME=\"liberlang\"\nOUTPUT_XCFRAMEWORK=\"${FRAMEWORK_NAME}.xcframework\" \n\nIOS_FRAMEWORK=\"framework-slices/liberlang-xcframework-slice-iOS/liberlang.xcframework\"\nSIMULATOR_FRAMEWORK=\"framework-slices/liberlang-xcframework-slice-iOS Simulator/liberlang.xcframework\"\nMACOS_FRAMEWORK=\"framework-slices/liberlang-xcframework-slice-macOS/liberlang.xcframework\"\nWATCHOS_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-watchOS/liberlang.xcframework\"\nWATCHOS_SIMULATOR_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-watchOS Simulator/liberlang.xcframework\"\nTVOS_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS/liberlang.xcframework\"\nTVOS_SIMULATOR_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS Simulator/liberlang.xcframework\"\nVISIONOS_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS/liberlang.xcframework\"\nVISIONOS_SIMULATOR_FRAMEWORK=\"liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS Simulator/liberlang.xcframework\"\n\n# Create xcframework\necho xcodebuild -create-xcframework \\\n  -framework \"$IOS_FRAMEWORK\" \\\n  -framework \"$SIMULATOR_FRAMEWORK\" \\\n  -framework \"$MACOS_FRAMEWORK\" \\\n  -framework \"$WATCHOS_FRAMEWORK\" \\\n  -framework \"$WATCHOS_SIMULATOR_FRAMEWORK\" \\\n  -framework \"$TVOS_FRAMEWORK\" \\\n  -framework \"$TVOS_SIMULATOR_FRAMEWORK\" \\\n  -framework \"$VISIONOS_FRAMEWORK\" \\\n  -framework \"$VISIONOS_SIMULATOR_FRAMEWORK\" \\\n  -output \"$OUTPUT_XCFRAMEWORK\"\n\necho lipo -info \"$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}\"\nmkdir liberlang.xcframework\ntouch liberlang.xcframework/test.txt\n"
+      - name: Upload Combined xcframework Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lipo
+          path: liberlang.xcframework
+  # test_matrix:
+  #   name: Test Matrix - ${{ matrix.platform.name }}
+  #   runs-on: macos-latest
+  #   needs: combine_xcframework
+  #   strategy:
+  #     matrix:
+  #       os: [macos-latest]
+  #       platform:
+  #         - {name: "iOS Tests", sdk: iphoneos, arch: arm64}
+  #         - {name: "macOS Tests", sdk: macosx, arch: x86_64}
+  #         - {name: "watchOS Tests", sdk: watchos, arch: arm64}
+  #         - {name: "tvOS Tests", sdk: appletvos, arch: arm64}
+  #         - {name: "visionOS Tests", sdk: visionos, arch: arm64}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #     - name: Download Combined xcframework Artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: lipo
+  #         path: Combined-xcframework # Download to Combined-xcframework folder
+  #     - name: Run Tests for ${{ matrix.platform.name }}
+  #       shell: bash
+  #       run: |-
+  #         echo "Running tests for ${{ matrix.platform.name }}"
+  #         # ... (Your test execution commands for each platform) ...
+  #         # Example: xcodebuild test -project ... -scheme ... -destination ...
