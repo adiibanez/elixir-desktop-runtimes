@@ -268,7 +268,6 @@ jobs:
 
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
-        id: upload-liberlang
         with:
           name: libs-liberlang-${{ matrix.platform.name }}-${{ matrix.erlixir.opt-version}}
           path: _build/liberlang.a
@@ -297,25 +296,27 @@ jobs:
           mix deps.get
           mix release
 
-          find . -name "*.a"
+          cd ${{ github.workspace }}
+
+          touch _build/nifs/test.txt
+          find _build/nifs -name "*.a"
 
       - name: Upload Nifs for ${{ matrix.platform.name }} ${{ matrix.erlixir.opt-version}}
         uses: actions/upload-artifact@v4
-        id: upload-nif-libs
         with:
           name: libs-nifs-${{ matrix.platform.name }}-${{ matrix.erlixir.opt-version}}
-          path: _build/nifs/**.a
+          path: |
+            _build/nifs/**.a
+            **/test.txt
 
       - name: Download liberlang  ${{ matrix.platform.name }} ${{ matrix.erlixir.opt-version}}
         uses: actions/download-artifact@v4
-        id: download-liberlang-libs
         with:
           name: libs-liberlang-${{ matrix.platform.name }}-${{ matrix.erlixir.opt-version}}
           path: arfifacts/
 
       - name: Download Nifs for ${{ matrix.platform.name }} ${{ matrix.erlixir.opt-version}}
         uses: actions/download-artifact@v4
-        id: download-nif-libs
         with:
           name: libs-nifs-${{ matrix.platform.name }}-${{ matrix.erlixir.opt-version}}
           path: artifacts/nifs/**.a
