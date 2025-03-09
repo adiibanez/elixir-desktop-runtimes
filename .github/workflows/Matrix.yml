@@ -239,7 +239,7 @@ jobs:
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
         with:
-          name: libs-liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+          name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-liberlang
           path: _build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a
       
       - name: Set up Rust Toolchain (Nightly)
@@ -299,29 +299,33 @@ jobs:
       - name: Upload Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}} ELX-${{matrix.erlixir.elixir-version}}
         uses: actions/upload-artifact@v4
         with:
-          name: libs-nifs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+          name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-nifs
           path: |
             _build/nifs/**/**.a
             **/test.txt
 
-      - name: Download liberlang  ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-        uses: actions/download-artifact@v4
-        with:
-          name: libs-liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
-          path: arfifacts/liberlang
+      # - name: Download liberlang  ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-liberlang
+      #     path: libs
 
-      - name: Download Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+      - name: Download Libs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         uses: actions/download-artifact@v4
         with:
-          name: libs-nifs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
-          path: artifacts/nifs/
+          pattern: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-*
+          path: libs
+          merge-multiple: true
 
       - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         shell: bash
         id: build-xcframework-slice
         run: |
-          ls -lah artifacts/
-          find artifacts -name "*.a"
+          ls -lah libs/
+          du -sh libs/
+          find libs -name "*.a"
+
+          find libs *
 
           echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
           mkdir liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
@@ -380,7 +384,7 @@ jobs:
           find xcframework-slices -type d
           find xcframework-slices -type f -name "*.a"
 
-          echo xcodebuild -create-xcframework \
+          xcodebuild -create-xcframework \
             -framework "$IOS_FRAMEWORK" \
             -framework "$SIMULATOR_FRAMEWORK" \
             -framework "$WATCHOS_FRAMEWORK" \
