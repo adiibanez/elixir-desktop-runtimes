@@ -1,18 +1,18 @@
-name: Build and Package Apple Platform Runtimes
+name: Precomp NIFs
 
 on:
   push:
-    # branches:
-    #   - main
+    branches:
+      - main
   pull_request:
 
 jobs:
   build_setup:
     name: Setup Dependencies
-    runs-on: macos-latest # Or ubuntu-latest if possible for shared steps
+    runs-on: macos-latest
 
     outputs:
-      otp_build_path: ${{ steps.otp-setup.outputs.otp_build_path }} # Example output path
+      otp_build_path: ${{ steps.otp-setup.outputs.otp_build_path }}
 
     steps:
       - name: Checkout code
@@ -21,8 +21,8 @@ jobs:
     #   - name: Set up ASDF Erlang/Elixir
     #     uses: erlef/setup-beam@v1
     #     with:
-    #       otp-version: "27.2" # Or your desired OTP version
-    #       elixir-version: "1.16.3" # Or your desired Elixir version
+    #       otp-version: "27.2"
+    #       elixir-version: "1.16.3"
 
       - name: Cache ASDF and Toolchains
         uses: actions/cache@v4
@@ -33,22 +33,22 @@ jobs:
           restore-keys: |
             asdf-cache-${{ runner.os }}-
 
-    #   - name: Install Dependencies (Mix deps)
-    #     run: mix deps.get && mix deps.compile
+      - name: Install Dependencies (Mix deps)
+        run: echo mix deps.get && mix deps.compile
 
       - name: Download and Extract OpenSSL
         id: openssl-download
         run: |
-          OPENSSL_VERSION="3.4.1" # Or your desired version
-          OPENSSL_HASH="your_openssl_hash" # Replace with actual SHA256 hash
+          OPENSSL_VERSION="3.4.1"
+          OPENSSL_HASH="002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
           mkdir -p _build/openssl
           cd _build/openssl
           wget "https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz"
           # echo "$OPENSSL_HASH  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c
           tar xzf openssl-$OPENSSL_VERSION.tar.gz
-          echo "OPENSSL_VERSION=$OPENSSL_VERSION" >> $GITHUB_OUTPUT
-          echo "OPENSSL_HASH=$OPENSSL_HASH" >> $GITHUB_OUTPUT
-          echo "OPENSSL_PATH=$PWD/openssl-$OPENSSL_VERSION" >> $GITHUB_OUTPUT
+          echo "OPENSSL_VERSION=$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
+          echo "OPENSSL_HASH=$OPENSSL_HASH" >> "$GITHUB_OUTPUT"
+          echo "OPENSSL_PATH=$PWD/openssl-$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Build OTP Round 1 (xcomp)
         id: otp-setup
@@ -62,12 +62,12 @@ jobs:
           export OPENSSL_VERSION="${{ steps.openssl-download.outputs.OPENSSL_VERSION }}"
           export OPENSSL_HASH="${{ steps.openssl-download.outputs.OPENSSL_HASH }}"
 
-          mkdir -p _build/otp/
+          #./scripts/build-otp.sh # Assuming you have a script to build OTP, adapt as needed
+
+          mkdir _build/otp
           touch _build/otp/testfile.txt
 
-
-          # ./scripts/build-otp.sh # Assuming you have a script to build OTP, adapt as needed
-          echo "OTP_BUILD_PATH=$PWD/_build/otp" >> $GITHUB_OUTPUT # Example output path
+          echo "OTP_BUILD_PATH=$PWD/_build/otp" >> "$GITHUB_OUTPUT"
           echo "::set-output name=otp_build_path::$PWD/_build/otp" # Set output variable
 
 
@@ -79,13 +79,14 @@ jobs:
 
 
   build_platform_matrix:
-    name: Build Platform Slices - ${{ matrix.platform }}
-    runs-on: ${{ matrix.os }} # Use matrix.os for platform-specific runners
+    name: Build Platform Slices - ${{ matrix.platform.name }}
+    runs-on: macos-latest
     needs: build_setup
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-latest] #For Apple platforms, needs macOS runner
-        platform: # Define your Apple platforms matrix
+        os: [macos-latest]
+        platform:
           - { name: "iOS", sdk: iphoneos, arch: arm64 }
           - { name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64 }
           - { name: "macOS", sdk: macosx, arch: x86_64 }
@@ -95,6 +96,7 @@ jobs:
           - { name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64 }
           - { name: "visionOS", sdk: visionos, arch: arm64 }
           - { name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64 }
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -123,23 +125,25 @@ jobs:
           echo "Collecting NIF Artifacts for ${{ matrix.platform.name }}"
           mkdir artifacts
           touch artifacts/nif-lib-${{ matrix.platform.name }}.a # Example: create dummy artifact
-          echo "::set-output name=nif_artifact_path::artifacts/nif-lib-${{ matrix.platform.name }}.a" # Example output path
+          echo "nif_artifact_path=artifacts/nif-lib-${{ matrix.platform.name }}.a" >> "$GITHUB_OUTPUT" # Corrected output setting
 
       - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }}
         shell: bash
+        id: build-xcframework-slice # Corrected id for build step
         run: |
           # ... (Code to configure and build OTP for xcframework slice) ...
           echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
           mkdir liberlang_xcframework_slice
           touch liberlang_xcframework_slice/liberlang.xcframework # Example: create dummy xcframework slice
-          echo "::set-output name=xcframework_slice_path::liberlang_xcframework_slice/liberlang.xcframework" # Example output path
+          echo "xcframework_slice_path=liberlang_xcframework_slice/liberlang.xcframework" >> "$GITHUB_OUTPUT" # Corrected output setting
 
 
       - name: Upload liberlang.xcframework Slice Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
+        id: upload-xcframework-slice # Added id for upload step
         with:
           name: liberlang-xcframework-slice-${{ matrix.platform.name }}
-          path: ${{ steps.build-crate-ios.outputs.xcframework_slice_path }} #Example path
+          path: ${{ steps.build-xcframework-slice.outputs.xcframework_slice_path }} # Corrected id reference
 
   combine_xcframework:
     name: Combine XC Framework
@@ -153,20 +157,14 @@ jobs:
       - name: Download liberlang.xcframework Slice Artifacts
         uses: actions/download-artifact@v4
         with: 
-            path: liberlang-xcframework-slices #Create folder and download all slices there
-
-      - name: Check downloads
-        run: |
-          ls outputs
-          cat outputs/*.txt
+            path: liberlang-xcframework-slices
 
       - name: Create Combined xcframework
         shell: bash
         run: |
-          FRAMEWORK_NAME="liberlang" # Replace with your framework name
+          FRAMEWORK_NAME="liberlang"
           OUTPUT_XCFRAMEWORK="${FRAMEWORK_NAME}.xcframework"
 
-          #Paths for each slice, adjust based on download location and matrix
           IOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS/liberlang.xcframework"
           SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS Simulator/liberlang.xcframework"
           MACOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-macOS/liberlang.xcframework"
@@ -176,6 +174,7 @@ jobs:
           TVOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS Simulator/liberlang.xcframework"
           VISIONOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS/liberlang.xcframework" # ADDED visionOS
           VISIONOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS Simulator/liberlang.xcframework" # ADDED visionOS Simulator
+
 
           # Create xcframework
           echo xcodebuild -create-xcframework \
@@ -201,11 +200,11 @@ jobs:
 
   test_matrix:
     name: Test Matrix - ${{ matrix.platform }}
-    runs-on: ${{ matrix.os }} # Use matrix.os for platform-specific runners
-    needs: combine_xcframework # Depends on combine_xcframework to have the final artifact
+    runs-on: macos-latest
+    needs: combine_xcframework
     strategy:
       matrix:
-        os: [macos-latest] # Or different OS if you have tests for other platforms
+        os: [macos-latest]
         platform:
           - { name: "iOS Tests", sdk: iphoneos, arch: arm64 }
           - { name: "macOS Tests", sdk: macosx, arch: x86_64 }
