@@ -48,9 +48,9 @@ jobs:
           OPENSSL_HASH="002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
           mkdir -p _build/openssl
           cd _build/openssl
-          wget "https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz"
+          # wget "https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz"
           # echo "$OPENSSL_HASH  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c
-          tar xzf openssl-$OPENSSL_VERSION.tar.gz
+          # tar xzf openssl-$OPENSSL_VERSION.tar.gz
           echo "OPENSSL_VERSION=$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
           echo "OPENSSL_HASH=$OPENSSL_HASH" >> "$GITHUB_OUTPUT"
           echo "OPENSSL_PATH=$PWD/openssl-$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
@@ -146,6 +146,7 @@ jobs:
           name: liberlang-xcframework-slice-${{ matrix.platform.name }}
           path: ${{ steps.build-xcframework-slice.outputs.xcframework_slice_path }}
 
+  
   combine_xcframework:
     name: Combine XC Framework
     runs-on: macos-latest
@@ -162,21 +163,21 @@ jobs:
 
       - name: Create Combined xcframework
         shell: bash
-        run: |
-
+        run: | 
           FRAMEWORK_NAME="liberlang"
-          OUTPUT_XCFRAMEWORK="$(FRAMEWORK_NAME).xcframework"
+          OUTPUT_XCFRAMEWORK="${FRAMEWORK_NAME}.xcframework" 
 
-          IOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS/liberlang.xcframework"
-          SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS Simulator/liberlang.xcframework"
-          MACOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-macOS/liberlang.xcframework"
+          IOS_FRAMEWORK="framework-slices/liberlang-xcframework-slice-iOS/liberlang.xcframework"
+          SIMULATOR_FRAMEWORK="framework-slices/liberlang-xcframework-slice-iOS Simulator/liberlang.xcframework"
+          MACOS_FRAMEWORK="framework-slices/liberlang-xcframework-slice-macOS/liberlang.xcframework"
           WATCHOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-watchOS/liberlang.xcframework"
           WATCHOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-watchOS Simulator/liberlang.xcframework"
           TVOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS/liberlang.xcframework"
           TVOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS Simulator/liberlang.xcframework"
-          VISIONOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS/liberlang.xcframework" 
+          VISIONOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS/liberlang.xcframework"
           VISIONOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS Simulator/liberlang.xcframework"
 
+          # Create xcframework
           echo xcodebuild -create-xcframework \
             -framework "$IOS_FRAMEWORK" \
             -framework "$SIMULATOR_FRAMEWORK" \
@@ -186,15 +187,17 @@ jobs:
             -framework "$TVOS_FRAMEWORK" \
             -framework "$TVOS_SIMULATOR_FRAMEWORK" \
             -framework "$VISIONOS_FRAMEWORK" \
-            -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \ 
-            -output "$(FRAMEWORK_NAME).xcframework"
+            -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \
+            -output "$OUTPUT_XCFRAMEWORK"
 
-          echo lipo -info "$(OUTPUT_XCFRAMEWORK)/$(FRAMEWORK_NAME)"
+          echo lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}"
+          mkdir liberlang.xcframework
+          touch liberlang.xcframework/test.txt
 
       - name: Upload Combined xcframework Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Combined-liberlang-xcframework
+          name: lipo
           path: liberlang.xcframework
 
   test_matrix:
@@ -218,7 +221,7 @@ jobs:
       - name: Download Combined xcframework Artifact
         uses: actions/download-artifact@v4
         with:
-          name: Combined-liberlang-xcframework
+          name: lipo
           path: Combined-xcframework # Download to Combined-xcframework folder
 
       - name: Run Tests for ${{ matrix.platform.name }}
