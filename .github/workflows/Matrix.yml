@@ -231,8 +231,8 @@ jobs:
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           --enable-static-nifs="$STATIC_NIFS"
           
-          ./otp_build boot --with-ssl="$OPENSSL_PREFIX" -a
-          ./otp_build release --with-ssl="$OPENSSL_PREFIX" -a
+          ./otp_build boot -a
+          ./otp_build release -a
           
           #./scripts/build-otp.sh # Assuming you have a script to build OTP, adapt as needed
 
