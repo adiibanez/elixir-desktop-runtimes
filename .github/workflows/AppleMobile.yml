@@ -37,8 +37,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #archs: ["ios-arm64", "iossimulator-x86_64", "iossimulator-arm64"]
-        archs: ["ios-arm64"]
+        archs: ["ios-arm64", "iossimulator-x86_64", "iossimulator-arm64"]
+        #archs: ["ios-arm64"]
         # archs:
         #   - {
         #     id: "ios",
