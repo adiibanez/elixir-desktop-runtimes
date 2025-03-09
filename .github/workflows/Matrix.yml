@@ -1,0 +1,231 @@
+name: Build and Package Apple Platform Runtimes
+
+on:
+  push:
+    # branches:
+    #   - main
+  pull_request:
+
+jobs:
+  build_setup:
+    name: Setup Dependencies
+    runs-on: macos-latest # Or ubuntu-latest if possible for shared steps
+
+    outputs:
+      otp_build_path: ${{ steps.otp-setup.outputs.otp_build_path }} # Example output path
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up ASDF Erlang/Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27.2" # Or your desired OTP version
+          elixir-version: "1.16.3" # Or your desired Elixir version
+
+      - name: Cache ASDF and Toolchains
+        uses: actions/cache@v4
+        id: asdf-cache
+        with:
+          path: ~/.asdf
+          key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+          restore-keys: |
+            asdf-cache-${{ runner.os }}-
+
+      - name: Install Dependencies (Mix deps)
+        run: mix deps.get && mix deps.compile
+
+      - name: Download and Extract OpenSSL
+        id: openssl-download
+        run: |
+          OPENSSL_VERSION="3.4.1" # Or your desired version
+          OPENSSL_HASH="your_openssl_hash" # Replace with actual SHA256 hash
+          mkdir -p _build/openssl
+          cd _build/openssl
+          wget "https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz"
+          echo "$OPENSSL_HASH  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c
+          tar xzf openssl-$OPENSSL_VERSION.tar.gz
+          echo "OPENSSL_VERSION=$OPENSSL_VERSION" >> $GITHUB_OUTPUT
+          echo "OPENSSL_HASH=$OPENSSL_HASH" >> $GITHUB_OUTPUT
+          echo "OPENSSL_PATH=$PWD/openssl-$OPENSSL_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build OTP Round 1 (xcomp)
+        id: otp-setup
+        shell: bash
+        run: |
+          export KERL_CONFIGURE_OPTIONS="--disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-distributed --disable-hipe --disable-compiler --disable-kernel-poll"
+          export ERL_FLAGS="-smp disable" # Disable SMP for xcomp build
+          export ARCH="arm64" # Example ARCH, adjust if needed for xcomp
+          export ANDROID_NAME="android" # Example ANDROID_NAME
+          export ABI="23" # Example ABI
+          export OPENSSL_VERSION="${{ steps.openssl-download.outputs.OPENSSL_VERSION }}"
+          export OPENSSL_HASH="${{ steps.openssl-download.outputs.OPENSSL_HASH }}"
+
+          mkdir -p _build/otp/
+          touch _build/otp/testfile.txt
+
+
+          # ./scripts/build-otp.sh # Assuming you have a script to build OTP, adapt as needed
+          echo "OTP_BUILD_PATH=$PWD/_build/otp" >> $GITHUB_OUTPUT # Example output path
+          echo "::set-output name=otp_build_path::$PWD/_build/otp" # Set output variable
+
+
+      - name: Upload OTP Build Artifact (Round 1)
+        uses: actions/upload-artifact@v3
+        with:
+          name: otp-build-round1
+          path: _build/otp # Or the actual path to your built OTP
+
+
+  build_platform_matrix:
+    name: Build Platform Slices - ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }} # Use matrix.os for platform-specific runners
+    needs: build_setup
+    strategy:
+      matrix:
+        os: [macos-latest] #For Apple platforms, needs macOS runner
+        platform: # Define your Apple platforms matrix
+          - { name: "iOS", sdk: iphoneos, arch: arm64 }
+          - { name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64 }
+          - { name: "macOS", sdk: macosx, arch: x86_64 }
+          - { name: "watchOS", sdk: watchos, arch: arm64 }
+          - { name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64 }
+          - { name: "tvOS", sdk: appletvos, arch: arm64 }
+          - { name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64 }
+          - { name: "visionOS", sdk: visionos, arch: arm64 }
+          - { name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64 }
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download OTP Build Artifact (Round 1)
+        uses: actions/download-artifact@v3
+        with:
+          name: otp-build-round1
+          path: _build/otp # Or the path where you want to download it
+
+      - name: Set up Rust Toolchain (Nightly)
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: ${{ matrix.platform.rust_target }} # Define rust_target in matrix if needed
+
+      - name: Build NIFs for ${{ matrix.platform.name }}
+        shell: bash
+        run: |
+          # ... (Your NIF build commands, using matrix.platform.target, matrix.platform.sdk, etc.) ...
+          echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
+          # Example: cargo build --target ${{ matrix.platform.rust_target }}
+
+      - name: Collect NIF Artifacts for ${{ matrix.platform.name }}
+        # ... (Code to collect NIF .a files and upload as artifact) ...
+        run: |
+          echo "Collecting NIF Artifacts for ${{ matrix.platform.name }}"
+          mkdir artifacts
+          touch artifacts/nif-lib-${{ matrix.platform.name }}.a # Example: create dummy artifact
+          echo "::set-output name=nif_artifact_path::artifacts/nif-lib-${{ matrix.platform.name }}.a" # Example output path
+
+      - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }}
+        shell: bash
+        run: |
+          # ... (Code to configure and build OTP for xcframework slice) ...
+          echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
+          mkdir liberlang_xcframework_slice
+          touch liberlang_xcframework_slice/liberlang.xcframework # Example: create dummy xcframework slice
+          echo "::set-output name=xcframework_slice_path::liberlang_xcframework_slice/liberlang.xcframework" # Example output path
+
+
+      - name: Upload liberlang.xcframework Slice Artifact for ${{ matrix.platform.name }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: liberlang-xcframework-slice-${{ matrix.platform.name }}
+          path: ${{ steps.build-crate-ios.outputs.xcframework_slice_path }} #Example path
+
+  combine_xcframework:
+    name: Combine XC Framework
+    runs-on: macos-latest
+    needs: build_platform_matrix
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download liberlang.xcframework Slice Artifacts
+        uses: actions/download-artifact@v3
+        with: 
+            path: liberlang-xcframework-slices #Create folder and download all slices there
+
+      - name: Check downloads
+        run: |
+          ls outputs
+          cat outputs/*.txt
+
+      - name: Create Combined xcframework
+        shell: bash
+        run: |
+          FRAMEWORK_NAME="liberlang" # Replace with your framework name
+          OUTPUT_XCFRAMEWORK="${FRAMEWORK_NAME}.xcframework"
+
+          #Paths for each slice, adjust based on download location and matrix
+          IOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS/liberlang.xcframework"
+          SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS Simulator/liberlang.xcframework"
+          MACOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-macOS/liberlang.xcframework"
+          WATCHOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-watchOS/liberlang.xcframework"
+          WATCHOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-watchOS Simulator/liberlang.xcframework"
+          TVOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS/liberlang.xcframework"
+          TVOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-tvOS Simulator/liberlang.xcframework"
+          VISIONOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS/liberlang.xcframework" # ADDED visionOS
+          VISIONOS_SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-visionOS Simulator/liberlang.xcframework" # ADDED visionOS Simulator
+
+          # Create xcframework
+          echo xcodebuild -create-xcframework \
+            -framework "$IOS_FRAMEWORK" \
+            -framework "$SIMULATOR_FRAMEWORK" \
+            -framework "$MACOS_FRAMEWORK" \
+            -framework "$WATCHOS_FRAMEWORK" \
+            -framework "$WATCHOS_SIMULATOR_FRAMEWORK" \
+            -framework "$TVOS_FRAMEWORK" \
+            -framework "$TVOS_SIMULATOR_FRAMEWORK" \
+            -framework "$VISIONOS_FRAMEWORK" \ # ADDED visionOS
+            -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \ # ADDED visionOS Simulator
+            -output "$OUTPUT_XCFRAMEWORK"
+
+          # Verify xcframework (optional)
+          echo lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}"
+
+      - name: Upload Combined xcframework Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Combined-liberlang-xcframework
+          path: liberlang.xcframework
+
+  test_matrix:
+    name: Test Matrix - ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }} # Use matrix.os for platform-specific runners
+    needs: combine_xcframework # Depends on combine_xcframework to have the final artifact
+    strategy:
+      matrix:
+        os: [macos-latest] # Or different OS if you have tests for other platforms
+        platform:
+          - { name: "iOS Tests", sdk: iphoneos, arch: arm64 }
+          - { name: "macOS Tests", sdk: macosx, arch: x86_64 }
+          - { name: "watchOS Tests", sdk: watchos, arch: arm64 }
+          - { name: "tvOS Tests", sdk: appletvos, arch: arm64 }
+          - { name: "visionOS Tests", sdk: visionos, arch: arm64 }
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Combined xcframework Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Combined-liberlang-xcframework
+          path: Combined-xcframework # Download to Combined-xcframework folder
+
+      - name: Run Tests for ${{ matrix.platform.name }}
+        shell: bash
+        run: |
+          echo "Running tests for ${{ matrix.platform.name }}"
+          # ... (Your test execution commands for each platform) ...
+          # Example: xcodebuild test -project ... -scheme ... -destination ...

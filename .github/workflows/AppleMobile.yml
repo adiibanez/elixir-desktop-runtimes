@@ -111,6 +111,8 @@ jobs:
         if: ${{ matrix.erlixir.erl-opts }} != ''
         run: |
           echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}" >> "$GITHUB_ENV"
+          # used for hashing cache key
+          echo "${{matrix.erlixir.erl-opts}}" > .kerl_configuration_options
 
       - name: Setup asdf .tool-versions
         id: asdf-setup
@@ -128,97 +130,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.asdf/
-          key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
-
-      # - name: Asdf Cache
-      #   uses: actions/cache@v3
-      #   id: asdf-cache
-      #   with:
-      #     path: |
-      #        $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }}
-      #        $HOME/.asdf/installs/erlang/${{ matrix.erlixir.otp-version }}
-      #     key: macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}
-      #     restore-keys: |
-      #       macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-
-      #       macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-
-      #       macos-asdf-${{ matrix.erlixir.otp-version }}-
-
-      # - name: Check ASDF commands and bust cache if needed
-      #   id: check-asdf
-      #   continue-on-error: true
-      #   shell: bash
-      #   run: |
-      #     # Check if erl, elixir, and mix are in PATH and functional
-      #     if ! which erl; then
-      #       echo "erl_found=false" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "erl_found=true" >> $GITHUB_OUTPUT
-      #     fi
-      #     if ! which elixir; then
-      #       echo "elixir_found=false" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "elixir_found=true" >> $GITHUB_OUTPUT
-      #     fi
-      #     if ! which mix; then
-      #       echo "mix_found=false" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "mix_found=true" >> $GITHUB_OUTPUT
-      #     fi
-
-      #     # Basic functionality check (e.g., check version) - rudimentary, can be improved
-      #     erl -version &> /dev/null || echo "erl_functional=false" >> $GITHUB_OUTPUT;
-      #     elixir --version &> /dev/null || echo "elixir_functional=false" >> $GITHUB_OUTPUT;
-      #     mix --version &> /dev/null || echo "mix_functional=false" >> $GITHUB_OUTPUT;
-          
-      #     erl -version
-      #     elixir --version
-
-      #     echo $GITHUB_OUTPUT
-
-      # - name: Bust ASDF Cache (if needed)
-      #   continue-on-error: true
-      #   if: |
-      #     steps.check-asdf.outputs.erl_found == 'false' ||
-      #     steps.check-asdf.outputs.elixir_found == 'false' ||
-      #     steps.check-asdf.outputs.mix_found == 'false' ||
-      #     steps.check-asdf.outputs.erl_functional == 'false' ||
-      #     steps.check-asdf.outputs.elixir_functional == 'false' ||
-      #     steps.check-asdf.outputs.mix_functional == 'false'
-      #   shell: bash
-      #   run: |
-      #     echo erl_found ${{ steps.check-asdf.outputs.erl_found }}
-      #     echo elixir_found ${{ steps.check-asdf.outputs.elixir_found }}
-      #     echo mix_found ${{ steps.check-asdf.outputs.mix_found }}
-      #     echo erl_functional ${{ steps.check-asdf.outputs.erl_functional }}
-      #     echo elixir_functional ${{ steps.check-asdf.outputs.elixir_functional }}
-      #     echo mix_functional ${{ steps.check-asdf.outputs.mix_functional }}
-
-      #     echo "Busting ASDF cache..."
-      #     # rm -rf ~/.asdf/cache
-      #     echo ERLANG $HOME/.asdf/installs/erlang/${{ matrix.erlixir.otp-version }}
-      #     rm -rf $HOME/.asdf/installs/erlang/${{ matrix.erlixir.otp-version }} || true
-      #     echo ELIXIR $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }}
-      #     rm -rf $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }} || true
-
-      #     # gh cache delete "macos-asdf-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}-${{ matrix.erlixir.elixir-version }}" | true
-
-      #     echo "ASDF cache busted."
-
-      # - name: Test Asdf install
-      #   shell: bash
-      #   run: |
-      #     asdf plugin list 
-      #     gh cache list
-
-      #     echo ERLANG $HOME/.asdf/installs/erlang/${{ matrix.erlixir.otp-version }}
-      #     ls -lah $HOME/.asdf/installs/erlang/${{ matrix.erlixir.otp-version }} || true
-      #     echo ELIXIR $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }}
-      #     ls -lah $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }} || true
-
-      #     exit 1
-
-      #     rm -rf $HOME/.asdf/installs/elixir/${{ matrix.erlixir.elixir-version }} || true
-      #     asdf install
+          key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions', '.kerl_configuration_options') }}
 
       - name: Install CD tools from .tool-versions
         if: steps.asdf-cache.outputs.cache-hit != 'true'
