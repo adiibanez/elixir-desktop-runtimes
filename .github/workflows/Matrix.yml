@@ -164,6 +164,9 @@ jobs:
         shell: bash
         run: |
 
+          FRAMEWORK_NAME=liberlang
+          OUTPUT_XCFRAMEWORK="$(FRAMEWORK_NAME).xcframework"
+
           IOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS/liberlang.xcframework"
           SIMULATOR_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS Simulator/liberlang.xcframework"
           MACOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-macOS/liberlang.xcframework"
@@ -186,7 +189,7 @@ jobs:
             -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \ 
             -output "$(FRAMEWORK_NAME).xcframework"
 
-          echo lipo -info "$OUTPUT_XCFRAMEWORK/$FRAMEWORK_NAME"
+          echo lipo -info "$(OUTPUT_XCFRAMEWORK)/$(FRAMEWORK_NAME)"
 
       - name: Upload Combined xcframework Artifact
         uses: actions/upload-artifact@v4
