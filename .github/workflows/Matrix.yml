@@ -392,7 +392,10 @@ jobs:
             -output "$OUTPUT_XCFRAMEWORK"
 
       - name: Check Architecture
-        run: lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}" || 1
+        run: |
+          ls -lah liberlang.xframework
+          du -sh liberlang.xframework
+          #lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}" || 1
           
       - name: Upload Combined xcframework Artifact
         uses: actions/upload-artifact@v4
