@@ -35,7 +35,6 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   """
 
   @additional_configuration """
-  --disable-distributed
   --disable-debug
   --disable-hipe
   --without-javac
