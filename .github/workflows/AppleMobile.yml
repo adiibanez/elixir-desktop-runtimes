@@ -33,7 +33,7 @@ env:
 
 jobs:
   build-ios:
-    if: false
+    # if: false
     strategy:
       fail-fast: false
       matrix:
@@ -301,7 +301,7 @@ jobs:
     steps: 
       - uses: actions/checkout@v3
       - name: Load outputs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: outputs
           path: outputs
