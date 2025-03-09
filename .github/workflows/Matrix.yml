@@ -164,7 +164,7 @@ jobs:
         shell: bash
         run: |
 
-          FRAMEWORK_NAME=liberlang
+          FRAMEWORK_NAME="liberlang"
           OUTPUT_XCFRAMEWORK="$(FRAMEWORK_NAME).xcframework"
 
           IOS_FRAMEWORK="liberlang-xcframework-slices/liberlang-xcframework-slice-iOS/liberlang.xcframework"
