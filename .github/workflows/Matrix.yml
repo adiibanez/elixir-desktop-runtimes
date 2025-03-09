@@ -44,9 +44,6 @@ jobs:
             openssl-${{ env.OPENSSL_VERSION }}
           key: openssl-source-cache-${{ env.OPENSSL_VERSION }}
 
-      - name: Install Dependencies (Mix deps)
-        if: false
-        run: echo mix deps.get && mix deps.compile
       - name: Download and Extract OpenSSL
         if: steps.openssl-cache.outputs.cache-hit != 'true'
         id: openssl-download
@@ -261,7 +258,7 @@ jobs:
 
           find . -name libbeam.a
           find . -name libcrypto.a
-          INCLUDE_PATTERN="libbeam.a|libz.a|libcrypto.a|_r.a|_s.a"
+          INCLUDE_PATTERN="lib/libbeam.a|libz.a|libcrypto.a|_r.a|_s.a"
           
           find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
           LIBS=`find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " %s", $1} END { print "" }'`
@@ -326,7 +323,7 @@ jobs:
           # mix deps.get
           # mix release
           # cd ..
-
+          
           cd ${{ github.workspace }}
 
           # dummy file
