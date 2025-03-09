@@ -18,11 +18,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up ASDF Erlang/Elixir
-        uses: erlef/setup-beam@v1
-        with:
-          otp-version: "27.2" # Or your desired OTP version
-          elixir-version: "1.16.3" # Or your desired Elixir version
+    #   - name: Set up ASDF Erlang/Elixir
+    #     uses: erlef/setup-beam@v1
+    #     with:
+    #       otp-version: "27.2" # Or your desired OTP version
+    #       elixir-version: "1.16.3" # Or your desired Elixir version
 
       - name: Cache ASDF and Toolchains
         uses: actions/cache@v4
@@ -33,8 +33,8 @@ jobs:
           restore-keys: |
             asdf-cache-${{ runner.os }}-
 
-      - name: Install Dependencies (Mix deps)
-        run: mix deps.get && mix deps.compile
+    #   - name: Install Dependencies (Mix deps)
+    #     run: mix deps.get && mix deps.compile
 
       - name: Download and Extract OpenSSL
         id: openssl-download
