@@ -83,9 +83,9 @@ jobs:
           # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
           # - {name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-        #   - {name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun"}
+        #   - {name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
         #   - {name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-        #   - {name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun"}
+        #   - {name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
         #   - {name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
     steps:
       - name: Checkout code
@@ -162,6 +162,7 @@ jobs:
           path: |
             otp_src_${{matrix.erlixir.otp-version}}
             _build/otp
+            _build/otp_builder
           key: macos-otp-${{ matrix.platform.name }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}
           restore-keys: |
             macos-otp-${{ matrix.platform.name }}-${{ matrix.erlixir.otp-version }}-
@@ -213,9 +214,12 @@ jobs:
 
           # exit 0
 
+
+          cp -r otp_src_${{matrix.erlixir.otp-version}} _build/otp_builder
+
           echo `env` > /tmp/otp_cmd.sh
 
-          echo cd otp_src_${{matrix.erlixir.otp-version}} \
+          echo cd _build/otp_builder \
           ./otp_build configure \
           --prefix="$OTP_PREFIX" \
           --with-ssl="$OPENSSL_PREFIX" \
@@ -223,7 +227,7 @@ jobs:
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           --enable-static-nifs="$STATIC_NIFS" >> /tmp/otp_cmd.sh
 
-          cd otp_src_${{matrix.erlixir.otp-version}}
+          cd _build/otp_builder
           ./otp_build configure \
           --prefix="$OTP_PREFIX" \
           --with-ssl="$OPENSSL_PREFIX" \
@@ -231,21 +235,14 @@ jobs:
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           --enable-static-nifs="$STATIC_NIFS"
 
-          # make && make install 
+          mkdir -p _build/otp
           
           ./otp_build boot -a
           ./otp_build release -a
 
           ls -lah $OTP_PREFIX
-          
-          #./scripts/build-otp.sh # Assuming you have a script to build OTP, adapt as needed
 
           cd ${{ github.workspace }}
-
-          cp -r otp_src_${{matrix.erlixir.otp-version}} _build/otp
-
-          #mkdir -p _build/otp
-          #touch _build/otp/testfile.txt
 
           #echo "OTP_BUILD_PATH=$PWD/_build/otp" >> "$GITHUB_OUTPUT"
           #echo "name=otp_build_path::$PWD/_build/otp" >> $GITHUB_OUTPUT
@@ -264,6 +261,7 @@ jobs:
         shell: bash
         run: |
           cd _build/otp
+          ls -lah 
           find . -name "*.a"
 
       # - name: Download OTP Build Artifact (Round 1)
