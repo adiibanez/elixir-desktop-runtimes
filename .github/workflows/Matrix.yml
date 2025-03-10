@@ -166,13 +166,13 @@ jobs:
           echo export KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" >> $GITHUB_ENV
           echo export ERL_FLAGS="-smp disable" >> $GITHUB_ENV
           echo ARCH=${{ matrix.platform.openssl_arch }} >> $GITHUB_ENV
-          echo OPENSSL_PREFIX=$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }} >> $GITHUB_ENV
-          echo OTP_PREFIX=$(pwd)/_build/otp_${{matrix.erlixir.otp-version}} >> $GITHUB_ENV
-          echo LIBS="$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" >> $GITHUB_ENV
+          echo OPENSSL_PREFIX=${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }} >> $GITHUB_ENV
+          echo OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} >> $GITHUB_ENV
+          echo LIBS="${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" >> $GITHUB_ENV
           # echo INSTALL_PROGRAM="/usr/bin/install -c" >> $GITHUB_ENV
           echo MAKEFLAGS="-j10 -O" >> $GITHUB_ENV
           echo RELEASE_LIBBEAM="yes" >> $GITHUB_ENV
-          # echo RELEASE_ROOT=$(pwd)/_build/otp >> $GITHUB_ENV
+          # echo RELEASE_ROOT=${{github.workspace}}/_build/otp >> $GITHUB_ENV
           # echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) $CC" >> $GITHUB_ENV
           # echo CFLAGS="-isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $CFLAGS" >> $GITHUB_ENV
           # echo LDFLAGS="-syslibroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $LDFLAGS" >> $GITHUB_ENV
@@ -188,7 +188,7 @@ jobs:
 
           # echo $CC
 
-          STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
+          STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
           echo $STATIC_NIFS
 
           mkdir -p _build

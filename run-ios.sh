@@ -9,7 +9,7 @@ export RUST_TARGET=ios-arm64
 #x86_64-apple-ios
 # ["ios", "ios-arm64", "iossimulator-x86_64", "iossimulator-arm64"]
 #--nifs "openssl,rustler_btleplug"
-mix package.ios.runtime 
+mix package.ios.runtime
 #--arch ios-arm64
 
 #mix package.ios.nif iossimulator-x86_64 rustler_btleplug
