@@ -83,6 +83,7 @@ jobs:
         id: openssl-build-cache
         with:
           path: |
+            openssl-${{ env.OPENSSL_VERSION }}
             _build/openssl-${{ env.OPENSSL_VERSION }}
           key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.arch }}
           # -${{ hashFiles('./scripts/install_openssl_new.sh') }}
@@ -92,10 +93,10 @@ jobs:
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-
       - name: Build OpenSSL
         id: openssl-build
-        # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
+        if: steps.openssl-build-cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p _build/openssl-${{ env.OPENSSL_VERSION }}
-          # patch not required for newer ssl versions
+          # patch not required for newer > 1.* ssl versions
           # cp patch/openssl-ios.conf openssl-${{ env.OPENSSL_VERSION }}/Configurations/15-ios.conf
           echo "OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
           echo "OPENSSL_SRC_PREFIX=${{ github.workspace }}/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
