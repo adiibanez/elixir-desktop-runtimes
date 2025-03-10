@@ -210,7 +210,7 @@ jobs:
 
           cd ${{ github.workspace }}
 
-            - name: Combine static OTP libs
+      - name: Combine static OTP libs
         continue-on-error: false
         shell: bash
         run: |
