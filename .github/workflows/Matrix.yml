@@ -110,12 +110,12 @@ jobs:
         run: |
               echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" >> $GITHUB_ENV
               # echo ERL_FLAGS="-smp disable" >> $GITHUB_ENV
-              echo ARCH=${{ matrix.platform.openssl_arch }} >> $GITHUB_ENV
+              # echo ARCH=${{ matrix.platform.openssl_arch }} >> $GITHUB_ENV
               echo OPENSSL_PREFIX=$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }} >> $GITHUB_ENV
               echo OTP_PREFIX=$(pwd)/_build/otp >> $GITHUB_ENV
               echo LIBS="$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" >> $GITHUB_ENV
               # echo INSTALL_PROGRAM="/usr/bin/install -c" >> $GITHUB_ENV
-              echo MAKEFLAGS="-j10 -O" >> $GITHUB_ENV
+              # echo MAKEFLAGS="-j10 -O" >> $GITHUB_ENV
               echo RELEASE_LIBBEAM="yes" >> $GITHUB_ENV
               # echo RELEASE_ROOT=$(pwd)/_build/otp >> $GITHUB_ENV
               # echo STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a" >> $GITHUB_ENV
