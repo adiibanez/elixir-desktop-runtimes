@@ -8,7 +8,7 @@ on:
 env:
   OPENSSL_VERSION: "3.4.1"
   OPENSSL_HASH: "002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
-  IPHONEOS_DEPLOYMENT_TARGET: 14.0
+  IPHONEOS_DEPLOYMENT_TARGET: 11.0
   #CFLAGS: "-miphoneos-version-min=14.0"
   #LDFLAGS: "-miphoneos-version-min=14.0"
   # MACOSX_DEPLOYMENT_TARGET: 11.0
@@ -109,16 +109,10 @@ jobs:
         shell: bash
         run: |
               echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" >> $GITHUB_ENV
-              # echo ERL_FLAGS="-smp disable" >> $GITHUB_ENV
-              # echo ARCH=${{ matrix.platform.openssl_arch }} >> $GITHUB_ENV
               echo OPENSSL_PREFIX=$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }} >> $GITHUB_ENV
               echo OTP_PREFIX=$(pwd)/_build/otp >> $GITHUB_ENV
-              echo LIBS="$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" >> $GITHUB_ENV
-              # echo INSTALL_PROGRAM="/usr/bin/install -c" >> $GITHUB_ENV
-              # echo MAKEFLAGS="-j10 -O" >> $GITHUB_ENV
               echo RELEASE_LIBBEAM="yes" >> $GITHUB_ENV
-              # echo RELEASE_ROOT=$(pwd)/_build/otp >> $GITHUB_ENV
-              # echo STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a" >> $GITHUB_ENV
+              echo STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a" >> $GITHUB_ENV
           
       - name: Build OpenSSL
         id: openssl-build
@@ -126,11 +120,7 @@ jobs:
         run: |
           cd openssl-${{ env.OPENSSL_VERSION }}    
           echo "OPENSSL_PREFIX=_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
-          CFLAGS="-O2 -g -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" \
-            CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" \
-            MAKEFLAGS="-j10 -O" ARCH=${{ matrix.platform.openssl_arch }} \
-            OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-            ../scripts/install_openssl_new.sh
+          MAKEFLAGS="-j10 -O" ARCH=${{ matrix.platform.openssl_arch }} OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ../scripts/install_openssl_new.sh
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
@@ -199,9 +189,6 @@ jobs:
         shell: bash
         run: |
   
-          # echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" >> $GITHUB_ENV
-          # echo CFLAGS="-O2 -g -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" >> $GITHUB_ENV    
-
           ls -lah _build/openssl-$OPENSSL_VERSION
           ls -lah $OPENSSL_PREFIX
 
@@ -209,14 +196,12 @@ jobs:
 
           echo $CC
 
-          export LIBTOOL="xcrun -sdk ${{ matrix.platform.sdk }} libtool",
-
           echo "$OPENSSL_PREFIX/lib/libcrypto.a"
           ls -lah "$OPENSSL_PREFIX/lib/libcrypto.a"
 
           echo $STATIC_NIFS
 
-          echo `lipo -info $LIBS` || 1
+          
 
           # exit 0
 
@@ -235,13 +220,15 @@ jobs:
 
           export LIBS=${OPENSSL_PREFIX}/lib/libcrypto.a
 
+          echo `lipo -info $LIBS` || 1
+
+          # --host=${{ matrix.platform.otp_arch }}
           cd _build/otp_builder
-          ./otp_build configure --host=${{ matrix.platform.otp_arch }} \
+          ./otp_build configure  \
           --with-ssl="$OPENSSL_PREFIX" \
           --disable-dynamic-ssl-lib \
+          --enable-static-nifs="$STATIC_NIFS" \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf 
-
-          # --enable-static-nifs="$STATIC_NIFS" \
           
           ./otp_build boot -a
           ./otp_build release -a
