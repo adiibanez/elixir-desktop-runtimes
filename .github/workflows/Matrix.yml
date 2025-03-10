@@ -8,11 +8,6 @@ on:
 env:
   OPENSSL_VERSION: "3.4.1"
   OPENSSL_HASH: "002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
-  # MACOSX_DEPLOYMENT_TARGET: 11.0
-
-  # OPENSSL_VERSION: 1.1.1
-  # OPENSSL_HASH: "d6697e2871e77238460402e9362d47d18382b15ef9f246aba6c7bd780d38a6b0"
-
 jobs:
   build_setup:
     name: Setup Dependencies
@@ -50,35 +45,29 @@ jobs:
           echo "OPENSSL_VERSION=$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
           echo "OPENSSL_HASH=$OPENSSL_HASH" >> "$GITHUB_OUTPUT"
           echo "OPENSSL_PATH=$PWD/openssl-$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
-
   build_platform_matrix:
-    name: Build - ${{ matrix.platform.name }} OTP-${{ matrix.erlixir.otp-version }} ELX-${{ matrix.erlixir.elixir-version }}
+    name: Build - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }} ELX${{ matrix.erlixir.elixir-version }}
     runs-on: macos-latest
     needs: build_setup
     strategy:
       fail-fast: false
       matrix:
         erlixir:
-          # - {otp-version: 28.0-rc1, elixir-version: 1.18.3-otp-27, use-git: true }
-          - {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038", use_git: true} # configured in package_ios_runtime.ex too configuration
+          - {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038",} # configured in package_ios_runtime.ex too configuration
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
-          # - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
+          - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
         os: [macos-latest]
         platform:
           # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
-          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios",}
+          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
     steps:
-      # - name: Select xcode
-      #   uses: maxim-lobanov/setup-xcode@v1
-      #   with:
-      #     xcode-version: latest
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Cache Openssl source
@@ -100,34 +89,13 @@ jobs:
           restore-keys: |
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-
-
-      - name: Debug osx cc
-        shell: bash
-        run: |
-            xcodebuild -version
-            echo MACOSX
-            xcrun -sdk macosx --version
-            xcrun --sdk macosx --show-sdk-path
-            xcrun -sdk macosx cc --version
-            
-            echo IPHONEOS
-            xcrun -sdk iphoneos --version
-            xcrun --sdk iphoneos --show-sdk-path
-            xcrun -sdk iphoneos cc --version
-    
-      - name: OpenSSL Env
-        shell: bash
-        run: |
-          echo "OPENSSL_PREFIX=_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
-
       - name: Build OpenSSL
         id: openssl-build
         if: steps.openssl-build-cache.outputs.cache-hit != 'true'
         run: |
           cd openssl-${{ env.OPENSSL_VERSION }}
-          # IPHONEOS_DEPLOYMENT_TARGET=11.0 
-          SDKROOT="$(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" MAKEFLAGS="-j10 -O" ARCH=${{ matrix.platform.openssl_arch }} OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ../scripts/install_openssl_new.sh
-
+          echo "OPENSSL_PREFIX=_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
+          ARCH=${{ matrix.platform.openssl_arch }} MAKEFLAGS="-j10 -O" OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ../scripts/install_openssl_new.sh
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
         run: |
@@ -137,16 +105,10 @@ jobs:
       - name: Setup asdf .tool-versions
         id: asdf-setup
         run: |
-          unset IPHONEOS_DEPLOYMENT_TARGET
           echo "" > .tool-versions
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
           echo PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH" >> "$GITHUB_ENV"
-
-          export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
-          export CC="xcrun -sdk macosx cc -arch arm64"
-          export CFLAGS="-mios-version-min=11.0 -fno-common -Os -D__IOS__=yes"
-
       - name: Setup asdf
         uses: asdf-vm/actions/setup@master
       - name: asdf cache
@@ -155,11 +117,8 @@ jobs:
         with:
           path: ~/.asdf/
           key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions', '.kerl_configuration_options') }}
-      
       - name: Install CD tools from .tool-versions
         continue-on-error: true
-        env: 
-          SDKROOT: $(xcrun --sdk macosx --show-sdk-path)
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         uses: asdf-vm/actions/install@master
       - name: Test asdf tools
@@ -180,110 +139,34 @@ jobs:
           restore-keys: |
             macos-otp-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-
             macos-otp-
-
-      - name: Download OTP 
+      - name: Download OTP
         shell: bash
-        # if: steps.otp-cache.outputs.cache-hit != 'true'
+        if: steps.otp-cache.outputs.cache-hit != 'true'
         run: |
-          USE_GIT="${{ matrix.erlixir.use-git }}"
-            
-          if [[ "$USE_GIT" == "true" ]]; then 
-            # --branch OTP-${{matrix.erlixir.otp-version}}
-            git clone --depth 1 https://github.com/adiibanez/otp otp_src_${{matrix.erlixir.otp-version}}
-          else 
-            curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
-            tar -xzf otp_src_${{matrix.erlixir.otp-version}}.tar.gz
-          fi
-      - name: setup OTP env
+          curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
+          tar -xzf otp_src_${{matrix.erlixir.otp-version}}.tar.gz
+      - name: Setup OTP env
         shell: bash
         run: |
-          echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" >> $GITHUB_ENV
+          echo export KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" >> $GITHUB_ENV
+          echo export ERL_FLAGS="-smp disable" >> $GITHUB_ENV
+          echo ARCH=${{ matrix.platform.openssl_arch }} >> $GITHUB_ENV
+          echo OPENSSL_PREFIX=$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }} >> $GITHUB_ENV
           echo OTP_PREFIX=$(pwd)/_build/otp >> $GITHUB_ENV
-          # echo MAKEFLAGS="-j10 -O" >> $GITHUB_ENV
+          echo LIBS="$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" >> $GITHUB_ENV
+          # echo INSTALL_PROGRAM="/usr/bin/install -c" >> $GITHUB_ENV
+          echo MAKEFLAGS="-j10 -O" >> $GITHUB_ENV
           echo RELEASE_LIBBEAM="yes" >> $GITHUB_ENV
-          echo STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a" >> $GITHUB_ENV
-      
+          # echo RELEASE_ROOT=$(pwd)/_build/otp >> $GITHUB_ENV
+          # echo STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a" >> $GITHUB_ENV
+          # echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) $CC" >> $GITHUB_ENV
+          # echo CFLAGS="-isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $CFLAGS" >> $GITHUB_ENV
+          # echo LDFLAGS="-syslibroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $LDFLAGS" >> $GITHUB_ENV
       - name: Build OTP Round 1 (xcomp)
         id: otp-setup
-        # if: steps.otp-cache.outputs.cache-hit != 'true'
+        if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          echo "$OPENSSL_PREFIX/lib/libcrypto.a"
-          ls -lah "$OPENSSL_PREFIX/lib/libcrypto.a"
-
-          unset CFLAGS
-
-          # export ac_cv_func_malloc_0_nonnull=yes
-          # export ac_cv_func_realloc_0_nonnull=yes
-          # export ac_cv_prog_cc_works=yes
-          # export ac_cv_prog_cc_cross=yes
-          # export ac_cv_prog_cxx_works=yes
-          # export ac_cv_prog_cxx_cross=yes
-
-          # export CC="xcrun -sdk iphoneos cc -arch arm64"
-          # export CXX="xcrun -sdk iphoneos c++ -arch arm64"
-          # export LD="xcrun -sdk iphoneos ld -arch arm64"
-          # export RANLIB="xcrun -sdk iphoneos ranlib"
-          # export AR="xcrun -sdk iphoneos ar"
-
-          echo COMPILER TEST
-          echo 'int main() { return 0; }' > test.c
-          xcrun -sdk iphoneos cc -arch arm64 -o test test.c
-          echo RESULT exitcode : $?
-
-          # exit 1
-
-          mkdir -p _build/otp
-
-          cp -r otp_src_${{matrix.erlixir.otp-version}} _build/otp_builder
-
-          echo `env` > /tmp/otp_cmd.sh
-
-          echo OTP_ARCH: ${{matrix.erlixir.otp-version}}
-          echo OTP_ARCH: ${{matrix.platform.otp_arch}}
-          echo XCOMP: ${{matrix.platform.xcomp}}
-
-          env
-
-          export LIBS=${OPENSSL_PREFIX}/lib/libcrypto.a
-
-          xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path
-          xcrun -sdk ${{ matrix.platform.sdk }} cc --version
-          xcrun -sdk ${{ matrix.platform.sdk }} clang --version
-          xcrun -sdk ${{ matrix.platform.sdk }} ld -v
-
-          cd _build/otp_builder
-
-          ./otp_build configure --host=${{ matrix.platform.otp_arch }} \
-          --with-ssl="$OPENSSL_PREFIX" \
-          --disable-dynamic-ssl-lib \
-          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf  \
-          --enable-static-nifs="$STATIC_NIFS"
-          
-          ./otp_build boot -a
-          ./otp_build release -a
-
-          ls -lah $OTP_PREFIX
-
-          cd ${{ github.workspace }}
-
-
-      - name: Build OTP Round 1 (xcomp)
-        id: otp-setup_
-        if: false && steps.otp-cache.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          export SDKROOT="$(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)"
-          export CFLAGS="-isysroot $SDKROOT -miphoneos-version-min=11.0 -fno-common -Os -D__IOS__=yes"
-          export LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v"
-
-          #unset CC
-          #unset CFLAGS
-
-          # export IPHONEOS_DEPLOYMENT_TARGET=11.0
-          # export CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch arm64"
-          # export CFLAGS="-mios-version-min=11.0 -fno-common -Os -D__IOS__=yes"
-
           ls -lah _build/openssl-$OPENSSL_VERSION
           ls -lah $OPENSSL_PREFIX
 
@@ -296,6 +179,8 @@ jobs:
 
           echo $STATIC_NIFS
 
+          echo `lipo -info $LIBS` || 1
+
           # exit 0
 
           mkdir -p _build/otp
@@ -304,54 +189,20 @@ jobs:
 
           echo `env` > /tmp/otp_cmd.sh
 
-          echo OTP_ARCH: ${{matrix.erlixir.otp-version}}
-          echo OTP_ARCH: ${{matrix.platform.otp_arch}}
-          echo XCOMP: ${{matrix.platform.xcomp}}
-
-          env
-
-          export ac_cv_func_malloc_0_nonnull=yes
-          export ac_cv_func_realloc_0_nonnull=yes
-          export ac_cv_prog_cc_works=yes
-          export ac_cv_prog_cc_cross=yes
-          export ac_cv_prog_cxx_works=yes
-          export ac_cv_prog_cxx_cross=yes
-
-          # echo cd _build/otp_builder \
-          # ./otp_build configure \
-          # --with-ssl="$OPENSSL_PREFIX" \
-          # --disable-dynamic-ssl-lib \
-          # --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
-          # --enable-static-nifs="$STATIC_NIFS" >> /tmp/otp_cmd.sh
-
-          export LIBS=${OPENSSL_PREFIX}/lib/libcrypto.a
-
-          xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path
-          xcrun -sdk ${{ matrix.platform.sdk }} cc --version
-          xcrun -sdk ${{ matrix.platform.sdk }} clang --version
-          xcrun -sdk ${{ matrix.platform.sdk }} ld -v
-
-          # echo `lipo -info $LIBS` || 1
-
-          # --host=${{ matrix.platform.otp_arch }}
-          # IPHONEOS_DEPLOYMENT_TARGET=7.0.0 
-          cd _build/otp_builder
-
-
-          find . -name conftest
-          # codesign -dvvv _build/otp_builder/conftest
-          # spctl --assess -v _build/otp_builder/conftest
-          # codesign -s - _build/otp_builder/conftest --force --deep
-
-
-          # --host=${{matrix.platform.xcomp}}
-
+          echo cd _build/otp_builder \
           ./otp_build configure \
           --with-ssl="$OPENSSL_PREFIX" \
           --disable-dynamic-ssl-lib \
-          --enable-static-nifs="$STATIC_NIFS" \
-          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf 
-          
+          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
+          --enable-static-nifs="$STATIC_NIFS" >> /tmp/otp_cmd.sh
+
+          cd _build/otp_builder
+          ./otp_build configure \
+          --with-ssl="$OPENSSL_PREFIX" \
+          --disable-dynamic-ssl-lib \
+          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
+          --enable-static-nifs="$STATIC_NIFS"
+
           ./otp_build boot -a
           ./otp_build release -a
 
@@ -359,7 +210,7 @@ jobs:
 
           cd ${{ github.workspace }}
 
-      - name: Combine static OTP libs
+            - name: Combine static OTP libs
         continue-on-error: false
         shell: bash
         run: |
@@ -573,30 +424,3 @@ jobs:
         with:
           name: lipo-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
           path: liberlang.xcframework
-  # test_matrix:
-  #   name: Test Matrix - ${{ matrix.platform.name }}
-  #   runs-on: macos-latest
-  #   needs: combine_xcframework
-  #   strategy:
-  #     matrix:
-  #       os: [macos-latest]
-  #       platform:
-  #         - {name: "iOS Tests", sdk: iphoneos, arch: arm64}
-  #         - {name: "macOS Tests", sdk: macosx, arch: x86_64}
-  #         - {name: "watchOS Tests", sdk: watchos, arch: arm64}
-  #         - {name: "tvOS Tests", sdk: appletvos, arch: arm64}
-  #         - {name: "visionOS Tests", sdk: visionos, arch: arm64}
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #     - name: Download Combined xcframework Artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: lipo
-  #         path: Combined-xcframework # Download to Combined-xcframework folder
-  #     - name: Run Tests for ${{ matrix.platform.name }}
-  #       shell: bash
-  #       run: |-
-  #         echo "Running tests for ${{ matrix.platform.name }}"
-  #         # ... (Your test execution commands for each platform) ...
-  #         # Example: xcodebuild test -project ... -scheme ... -destination ...
