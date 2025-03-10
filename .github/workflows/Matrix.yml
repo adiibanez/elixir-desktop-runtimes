@@ -98,6 +98,7 @@ jobs:
           # patch not required for newer ssl versions
           # cp patch/openssl-ios.conf openssl-${{ env.OPENSSL_VERSION }}/Configurations/15-ios.conf
           echo "OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
+          echo "OPENSSL_SRC_PREFIX=${{ github.workspace }}/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
           ARCH=${{ matrix.platform.openssl_arch }} MAKEFLAGS="-j10 -O" OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ./scripts/install_openssl_new.sh
 
           ls -lah _build/openssl-$OPENSSL_VERSION
@@ -201,15 +202,16 @@ jobs:
 
           echo cd _build/otp_builder \
           ./otp_build configure \
-          --with-ssl="$OPENSSL_PREFIX" \
+          --with-ssl="$OPENSSL_SRC_PREFIX" \
           --disable-dynamic-ssl-lib \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           --enable-static-nifs="$STATIC_NIFS" >> /tmp/otp_cmd.sh
+          
+          #--prefix="${{ github.workspace }}/_build/otp_release_${{matrix.erlixir.otp-version}}"
 
           cd _build/otp_builder
           ./otp_build configure \
-          --prefix="${{ github.workspace }}/_build/otp_release_${{matrix.erlixir.otp-version}}"
-          --with-ssl="$OPENSSL_PREFIX" \
+          --with-ssl="$OPENSSL_SRC_PREFIX" \
           --disable-dynamic-ssl-lib \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           --enable-static-nifs="$STATIC_NIFS"
@@ -218,8 +220,11 @@ jobs:
           ./otp_build release -a
 
 
-          ls -alh ${{ github.workspace }}/_build/otp_release_${{matrix.erlixir.otp-version}}
+          find . -type d -name release
 
+          #ls -alh ${{ github.workspace }}/_build/otp_release_${{matrix.erlixir.otp-version}}
+
+          find ~+ -name libbeam.a
           find ~+ -name asn1rt_nif.a
           find ~+ -name crypto.a
 
