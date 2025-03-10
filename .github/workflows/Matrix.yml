@@ -92,7 +92,7 @@ jobs:
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-
       - name: Build OpenSSL
         id: openssl-build
-        if: steps.openssl-build-cache.outputs.cache-hit != 'true'
+        # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
         run: |
           cd openssl-${{ env.OPENSSL_VERSION }}
           echo "OPENSSL_PREFIX=_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
@@ -134,7 +134,7 @@ jobs:
         with:
           path: |
             otp_src_${{matrix.erlixir.otp-version}}
-            _build/otp
+            _build/otp_release_${{matrix.erlixir.otp-version}}
             _build/otp_builder
           key: macos-otp-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}
           restore-keys: |
@@ -200,6 +200,7 @@ jobs:
 
           cd _build/otp_builder
           ./otp_build configure \
+          --prefix="${{ github.workspace }}/_build/otp_release_${{matrix.erlixir.otp-version}}"
           --with-ssl="$OPENSSL_PREFIX" \
           --disable-dynamic-ssl-lib \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
@@ -207,6 +208,9 @@ jobs:
 
           ./otp_build boot -a
           ./otp_build release -a
+
+
+          ls -alh ${{ github.workspace }}/_build/otp_release_${{matrix.erlixir.otp-version}}
 
           find ~+ -name asn1rt_nif.a
           find ~+ -name crypto.a
@@ -223,7 +227,7 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          cd _build/otp_builder/release/
+          cd _build/otp_release_${{matrix.erlixir.otp-version}}
 
           # find . -name libbeam.a
           # find . -name libcrypto.a
@@ -235,6 +239,11 @@ jobs:
           #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " lipo -info " $1}' | sh >> /tmp/lib_report.log
           #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " otool -L " $1}' | sh >> /tmp/lib_report.log
 
+
+          rm -rf /tmp/otp_libs
+          mkdir /tmp/otp_libs
+          find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " cp " $1 " `basename " $1 "`"}' | sh
+
           LIBS=`find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " %s", $1} END { print "" }'`
           echo $LIBS
 
@@ -243,6 +252,8 @@ jobs:
           # xcrun -sdk ${{matrix.platform.sdk}} 
           rm -f $OUTPUT_LIB
           libtool -static -o $OUTPUT_LIB $LIBS
+
+          cp $OUTPUT_LIB /tmp/otp_libs
 
           ls -lah $OUTPUT_LIB
           # lipo -info ${{ github.workspace }}/_build/$OUTPUT_LIB
@@ -357,6 +368,8 @@ jobs:
           xcodebuild -create-xcframework \
             -output liberlang.xcframework \
             $LIBS
+
+          cp -rf liberlang.xcframework /tmp/otp_libs/
 
           echo "xcframework_slice_path=liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}" >> "$GITHUB_OUTPUT"
 
