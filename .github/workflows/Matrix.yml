@@ -100,14 +100,33 @@ jobs:
           restore-keys: |
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-
+
+      - name: Debug osx cc
+        shell: bash
+        run: |
+            xcodebuild -version
+            echo MACOSX
+            xcrun -sdk macosx --version
+            xcrun --sdk macosx --show-sdk-path
+            xcrun -sdk macosx cc --version
+            
+            echo IPHONEOS
+            xcrun -sdk iphoneos --version
+            xcrun --sdk iphoneos --show-sdk-path
+            xcrun -sdk iphoneos cc --version
     
+      - name: OpenSSL Env
+        shell: bash
+        run: |
+          echo "OPENSSL_PREFIX=_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
+
       - name: Build OpenSSL
         id: openssl-build
         if: steps.openssl-build-cache.outputs.cache-hit != 'true'
         run: |
-          cd openssl-${{ env.OPENSSL_VERSION }}    
-          echo "OPENSSL_PREFIX=_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
-          IPHONEOS_DEPLOYMENT_TARGET=11.0 MAKEFLAGS="-j10 -O" ARCH=${{ matrix.platform.openssl_arch }} OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ../scripts/install_openssl_new.sh
+          cd openssl-${{ env.OPENSSL_VERSION }}
+          # IPHONEOS_DEPLOYMENT_TARGET=11.0 
+          SDKROOT="$(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" MAKEFLAGS="-j10 -O" ARCH=${{ matrix.platform.openssl_arch }} OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ../scripts/install_openssl_new.sh
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
@@ -123,6 +142,11 @@ jobs:
           echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
           echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
           echo PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH" >> "$GITHUB_ENV"
+
+          export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+          export CC="xcrun -sdk macosx cc -arch arm64"
+          export CFLAGS="-mios-version-min=11.0 -fno-common -Os -D__IOS__=yes"
+
       - name: Setup asdf
         uses: asdf-vm/actions/setup@master
       - name: asdf cache
@@ -131,8 +155,11 @@ jobs:
         with:
           path: ~/.asdf/
           key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions', '.kerl_configuration_options') }}
+      
       - name: Install CD tools from .tool-versions
         continue-on-error: true
+        env: 
+          SDKROOT: $(xcrun --sdk macosx --show-sdk-path)
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         uses: asdf-vm/actions/install@master
       - name: Test asdf tools
@@ -161,7 +188,8 @@ jobs:
           USE_GIT="${{ matrix.erlixir.use-git }}"
             
           if [[ "$USE_GIT" == "true" ]]; then 
-            git clone --depth 1 https://github.com/adiibanez/otp --branch OTP-${{matrix.erlixir.otp-version}} otp_src_${{matrix.erlixir.otp-version}}
+            # --branch OTP-${{matrix.erlixir.otp-version}}
+            git clone --depth 1 https://github.com/adiibanez/otp otp_src_${{matrix.erlixir.otp-version}}
           else 
             curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
             tar -xzf otp_src_${{matrix.erlixir.otp-version}}.tar.gz
@@ -181,8 +209,15 @@ jobs:
         # if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
+          # export SDKROOT="$(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)"
 
-          unset IPHONEOS_DEPLOYMENT_TARGET
+          unset CC
+          unset CFLAGS
+
+          # export IPHONEOS_DEPLOYMENT_TARGET=11.0
+          # export CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch arm64"
+          # export CFLAGS="-mios-version-min=11.0 -fno-common -Os -D__IOS__=yes"
+
           ls -lah _build/openssl-$OPENSSL_VERSION
           ls -lah $OPENSSL_PREFIX
 
@@ -203,6 +238,12 @@ jobs:
 
           echo `env` > /tmp/otp_cmd.sh
 
+          echo OTP_ARCH: ${{matrix.erlixir.otp-version}}
+          echo OTP_ARCH: ${{matrix.platform.otp_arch}}
+          echo XCOMP: ${{matrix.platform.xcomp}}
+
+          env
+
           # echo cd _build/otp_builder \
           # ./otp_build configure \
           # --with-ssl="$OPENSSL_PREFIX" \
@@ -212,12 +253,21 @@ jobs:
 
           export LIBS=${OPENSSL_PREFIX}/lib/libcrypto.a
 
-          echo `lipo -info $LIBS` || 1
+          # echo `lipo -info $LIBS` || 1
 
           # --host=${{ matrix.platform.otp_arch }}
           # IPHONEOS_DEPLOYMENT_TARGET=7.0.0 
           cd _build/otp_builder
-          ./otp_build configure  \
+
+
+          find . -name conftest
+          # codesign -dvvv _build/otp_builder/conftest
+          # spctl --assess -v _build/otp_builder/conftest
+          # codesign -s - _build/otp_builder/conftest --force --deep
+
+
+
+          ./otp_build configure --host=${{matrix.platform.arch}} \
           --with-ssl="$OPENSSL_PREFIX" \
           --disable-dynamic-ssl-lib \
           --enable-static-nifs="$STATIC_NIFS" \
@@ -272,6 +322,10 @@ jobs:
           RUSTFLAGS: "-C target-feature=+crt-static"
         run: |
           echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
+
+          export SDKROOT="$(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)"
+          export CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch arm64"
+          export CFLAGS="-mios-version-min=11.0 -fno-common -Os -D__IOS__=yes"
 
           mkdir -p _build/nifs/
           cd _build/nifs/
