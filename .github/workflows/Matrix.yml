@@ -199,8 +199,8 @@ jobs:
         shell: bash
         run: |
   
-          echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" >> $GITHUB_ENV
-          echo CFLAGS="-O2 -g -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" >> $GITHUB_ENV    
+          # echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" >> $GITHUB_ENV
+          # echo CFLAGS="-O2 -g -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" >> $GITHUB_ENV    
 
           ls -lah _build/openssl-$OPENSSL_VERSION
           ls -lah $OPENSSL_PREFIX
@@ -236,7 +236,7 @@ jobs:
           export LIBS=${OPENSSL_PREFIX}/lib/libcrypto.a
 
           cd _build/otp_builder
-          ./otp_build configure \
+          ./otp_build configure --host=${{ matrix.platform.otp_arch }} \
           --with-ssl="$OPENSSL_PREFIX" \
           --disable-dynamic-ssl-lib \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf 
