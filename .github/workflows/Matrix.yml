@@ -178,64 +178,64 @@ jobs:
           # echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) $CC" >> $GITHUB_ENV
           # echo CFLAGS="-isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $CFLAGS" >> $GITHUB_ENV
           # echo LDFLAGS="-syslibroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $LDFLAGS" >> $GITHUB_ENV
-      # - name: Build OTP Round 1 (xcomp)
-      #   id: otp-setup
-      #   # if: steps.otp-cache.outputs.cache-hit != 'true'
-      #   shell: bash
-      #   run: |
+      - name: Build OTP Round 1 (xcomp)
+        id: otp-setup
+        # if: steps.otp-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
 
-      #     # unset SDKROOT https://stackoverflow.com/questions/62118332/using-sys-root-for-iphonesimulator-but-targeting-macosx-warning-in-npm-insta
+          # unset SDKROOT https://stackoverflow.com/questions/62118332/using-sys-root-for-iphonesimulator-but-targeting-macosx-warning-in-npm-insta
 
-      #     ls -lah _build/openssl-$OPENSSL_VERSION
+          ls -lah _build/openssl-$OPENSSL_VERSION
 
-      #     # echo $CC
+          # echo $CC
 
-      #     STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
-      #     echo $STATIC_NIFS
+          STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
+          echo $STATIC_NIFS
 
-      #     mkdir -p _build
+          mkdir -p _build
 
-      #     cp -r otp_src_${{matrix.erlixir.otp-version}} _build/otp_builder
+          cp -r otp_src_${{matrix.erlixir.otp-version}} _build/otp_builder
 
-      #     echo `env` > /tmp/otp_cmd.sh
+          echo `env` > /tmp/otp_cmd.sh
 
-      #     ls -lah $OPENSSL_PREFIX
+          ls -lah $OPENSSL_PREFIX
 
-      #     echo cd _build/otp_builder \
-      #     ./otp_build configure \
-      #     --with-ssl="$OPENSSL_SRC_PREFIX" \
-      #     --disable-dynamic-ssl-lib \
-      #     --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
-      #     --enable-static-nifs="$STATIC_NIFS" >> /tmp/otp_cmd.sh
+          echo cd _build/otp_builder \
+          ./otp_build configure \
+          --with-ssl="$OPENSSL_PREFIX" \
+          --disable-dynamic-ssl-lib \
+          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
+          --enable-static-nifs="$STATIC_NIFS" >> /tmp/otp_cmd.sh
           
-      #     #--prefix="${{ github.workspace }}/_build/otp_release_${{matrix.erlixir.otp-version}}"
+          #--prefix="${{ github.workspace }}/_build/otp_release_${{matrix.erlixir.otp-version}}"
 
-      #     cd _build/otp_builder
-      #     ./otp_build configure \
-      #     --disable-dynamic-ssl-lib \
-      #     --with-ssl=$OPENSSL_PREFIX \
-      #     --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
-      #     --enable-static-nifs="$STATIC_NIFS"
+          cd _build/otp_builder
+          ./otp_build configure \
+          --disable-dynamic-ssl-lib \
+          --with-ssl=$OPENSSL_PREFIX \
+          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
+          --enable-static-nifs="$STATIC_NIFS"
 
-      #     ./otp_build boot -a
-      #     ./otp_build release -a
+          ./otp_build boot -a
+          ./otp_build release -a
 
 
-      #     find . -type d -name release
+          find . -type d -name release
 
-      #     #ls -alh ${{ github.workspace }}/_build/otp_release_${{matrix.erlixir.otp-version}}
+          #ls -alh ${{ github.workspace }}/_build/otp_release_${{matrix.erlixir.otp-version}}
 
-      #     find ~+ -name libbeam.a
-      #     find ~+ -name asn1rt_nif.a
-      #     find ~+ -name crypto.a
+          find ~+ -name libbeam.a
+          find ~+ -name asn1rt_nif.a
+          find ~+ -name crypto.a
 
-      #     #otool -L ${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a
-      #     #otool -L ${{ github.workspace }}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a
+          #otool -L ${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a
+          #otool -L ${{ github.workspace }}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a
           
-      #     cd ${{ github.workspace }}
+          cd ${{ github.workspace }}
 
-      #     #ls -lah $OTP_PREFIX
-      #     ls -lah _build/otp_builder
+          #ls -lah $OTP_PREFIX
+          ls -lah _build/otp_builder
 
   #     - name: Combine static OTP libs
   #       continue-on-error: true
