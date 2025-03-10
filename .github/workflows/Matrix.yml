@@ -53,7 +53,7 @@ jobs:
       fail-fast: false
       matrix:
         erlixir:
-          - {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038", use-git: true, git-repo: "adiibanez/otp", git-ref: "master"}
+          - {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038", use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-27.2.4-iosminversion"}
           #- {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038", use-git: true} # configured in package_ios_runtime.ex too configuration
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
           #- { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
@@ -173,9 +173,12 @@ jobs:
           # echo LDFLAGS="-syslibroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $LDFLAGS" >> $GITHUB_ENV
       - name: Build OTP Round 1 (xcomp)
         id: otp-setup
-        if: steps.otp-cache.outputs.cache-hit != 'true'
+        # if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
+
+          # unset SDKROOT https://stackoverflow.com/questions/62118332/using-sys-root-for-iphonesimulator-but-targeting-macosx-warning-in-npm-insta
+
           ls -lah _build/openssl-$OPENSSL_VERSION
           ls -lah $OPENSSL_PREFIX
 
@@ -215,9 +218,12 @@ jobs:
           ./otp_build boot -a
           ./otp_build release -a
 
-          ls -lah $OTP_PREFIX
+          
 
           cd ${{ github.workspace }}
+
+          ls -lah $OTP_PREFIX
+          ls -lah _build/otp_builder
 
       - name: Combine static OTP libs
         continue-on-error: false
