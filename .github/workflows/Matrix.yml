@@ -8,6 +8,20 @@ on:
 env:
   OPENSSL_VERSION: "3.4.1"
   OPENSSL_HASH: "002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
+  IPHONEOS_DEPLOYMENT_TARGET: 14.0
+  #CFLAGS: "-miphoneos-version-min=14.0"
+  #LDFLAGS: "-miphoneos-version-min=14.0"
+  # MACOSX_DEPLOYMENT_TARGET: 11.0
+  # IPHONEOS_DEPLOYMENT_TARGET: 10.0
+  # IPHONEOS_DEPLOYMENT_TARGET: 14.0
+  # IPHONEOS_DEPLOYMENT_TARGET: 14.0
+  # MACOSX_DEPLOYMENT_TARGET: 10.12
+  # IPHONEOS_DEPLOYMENT_TARGET: 10.0
+  # IPHONEOS_DEPLOYMENT_TARGET: 13.1
+
+  # OPENSSL_VERSION: 1.1.1
+  # OPENSSL_HASH: "d6697e2871e77238460402e9362d47d18382b15ef9f246aba6c7bd780d38a6b0"
+
 jobs:
   build_setup:
     name: Setup Dependencies
@@ -60,7 +74,7 @@ jobs:
         os: [macos-latest]
         platform:
           # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
-          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios",}
+          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
@@ -96,7 +110,7 @@ jobs:
         run: |
           cd openssl-${{ env.OPENSSL_VERSION }}
           echo "OPENSSL_PREFIX=_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
-          ARCH=${{ matrix.platform.openssl_arch }} MAKEFLAGS="-j10 -O" OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ../scripts/install_openssl_new.sh
+          MAKEFLAGS="-j10 -O" ARCH=${{ matrix.platform.openssl_arch }} OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ../scripts/install_openssl_new.sh
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
         run: |
@@ -171,12 +185,12 @@ jobs:
           echo RELEASE_LIBBEAM="yes" >> $GITHUB_ENV
           # echo RELEASE_ROOT=$(pwd)/_build/otp >> $GITHUB_ENV
           # echo STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a" >> $GITHUB_ENV
-          # echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) $CC" >> $GITHUB_ENV
-          # echo CFLAGS="-isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $CFLAGS" >> $GITHUB_ENV
-          # echo LDFLAGS="-syslibroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }} $LDFLAGS" >> $GITHUB_ENV
+          # echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" >> $GITHUB_ENV
+          #echo CFLAGS="-isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" >> $GITHUB_ENV
+          #echo LDFLAGS="-syslibroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" >> $GITHUB_ENV
       - name: Build OTP Round 1 (xcomp)
         id: otp-setup
-        if: steps.otp-cache.outputs.cache-hit != 'true'
+        # if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           ls -lah _build/openssl-$OPENSSL_VERSION
@@ -185,6 +199,8 @@ jobs:
           find . -name libcrypto.a
 
           echo $CC
+
+          export LIBTOOL="xcrun -sdk ${{ matrix.platform.sdk }} libtool",
 
           echo "$OPENSSL_PREFIX/lib/libcrypto.a"
           ls -lah "$OPENSSL_PREFIX/lib/libcrypto.a"
@@ -208,14 +224,16 @@ jobs:
           # --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           # --enable-static-nifs="$STATIC_NIFS" >> /tmp/otp_cmd.sh
 
-          # --with-ssl="$OPENSSL_PREFIX" \
+          export LIBS=${OPENSSL_PREFIX}/lib/libcrypto.a
+
           cd _build/otp_builder
           ./otp_build configure \
-          --without-ssl \
+          --with-ssl="$OPENSSL_PREFIX" \
           --disable-dynamic-ssl-lib \
-          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
-          --enable-static-nifs="$STATIC_NIFS"
+          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf 
 
+          # --enable-static-nifs="$STATIC_NIFS" \
+          
           ./otp_build boot -a
           ./otp_build release -a
 
@@ -232,12 +250,14 @@ jobs:
           # find . -name libbeam.a
           # find . -name libcrypto.a
           INCLUDE_PATTERN="lib/libbeam.a|libz.a|libcrypto.a|_r.a|_s.a"
+          # https://askubuntu.com/questions/444551/get-absolute-path-of-files-using-find-command
 
           find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
           LIBS=`find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " %s", $1} END { print "" }'`
           echo $LIBS
 
-          xcrun -sdk ${{matrix.platform.sdk}} libtool -static -o ${{ github.workspace }}/_build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a $LIBS
+          # xcrun -sdk ${{matrix.platform.sdk}} 
+          libtool -static -o ${{ github.workspace }}/_build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a $LIBS
 
           # lipo -thin ${{matrix.platform.arch}} temp_liberlang.a
 
@@ -259,7 +279,7 @@ jobs:
         env: 
           RUSTLER_BTLEPLUG_BUILD: 1
           WASMEX_BUILD: 1
-          RUST_TARGET: ${{ matrix.platform.rust_target }}
+          RUST_TARGET: ${{ matrix.platform.otp_arch }}
           RUSTFLAGS: "-C target-feature=+crt-static"
         run: |
           echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
@@ -351,8 +371,8 @@ jobs:
           cd liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
 
           xcodebuild -create-xcframework \
-            $LIBS \
-            -output liberlang.xcframework
+            -output liberlang.xcframework \
+            $LIBS
 
           echo "xcframework_slice_path=liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}" >> "$GITHUB_OUTPUT"
 
@@ -363,6 +383,7 @@ jobs:
           name: liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
           path: ${{ steps.build-xcframework-slice.outputs.xcframework_slice_path }}
   combine_xcframework:
+    if: false
     name: Combine XC Framework
     runs-on: macos-latest
     needs: build_platform_matrix
