@@ -183,7 +183,7 @@ jobs:
 
       - name: Download OTP 
         shell: bash
-        if: steps.otp-cache.outputs.cache-hit != 'true'
+        # if: steps.otp-cache.outputs.cache-hit != 'true'
         run: |
           USE_GIT="${{ matrix.erlixir.use-git }}"
             
@@ -194,25 +194,91 @@ jobs:
             curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
             tar -xzf otp_src_${{matrix.erlixir.otp-version}}.tar.gz
           fi
-      # - name: setup OTP env
-      #   shell: bash
-      #   run: |
-      #         echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" >> $GITHUB_ENV
-      #         echo OPENSSL_PREFIX=$(pwd)/_build/openssl-${{ env.OPENSSL_VERSION }} >> $GITHUB_ENV
-      #         echo OTP_PREFIX=$(pwd)/_build/otp >> $GITHUB_ENV
-      #         echo MAKEFLAGS="-j10 -O" >> $GITHUB_ENV
-      #         echo RELEASE_LIBBEAM="yes" >> $GITHUB_ENV
-      #         echo STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a" >> $GITHUB_ENV
+      - name: setup OTP env
+        shell: bash
+        run: |
+          echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" >> $GITHUB_ENV
+          echo OTP_PREFIX=$(pwd)/_build/otp >> $GITHUB_ENV
+          # echo MAKEFLAGS="-j10 -O" >> $GITHUB_ENV
+          echo RELEASE_LIBBEAM="yes" >> $GITHUB_ENV
+          echo STATIC_NIFS="$(pwd)/_build/otp/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,$(pwd)/_build/otp/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a" >> $GITHUB_ENV
       
       - name: Build OTP Round 1 (xcomp)
         id: otp-setup
         # if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          # export SDKROOT="$(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)"
+          echo "$OPENSSL_PREFIX/lib/libcrypto.a"
+          ls -lah "$OPENSSL_PREFIX/lib/libcrypto.a"
 
-          unset CC
           unset CFLAGS
+
+          # export ac_cv_func_malloc_0_nonnull=yes
+          # export ac_cv_func_realloc_0_nonnull=yes
+          # export ac_cv_prog_cc_works=yes
+          # export ac_cv_prog_cc_cross=yes
+          # export ac_cv_prog_cxx_works=yes
+          # export ac_cv_prog_cxx_cross=yes
+
+          # export CC="xcrun -sdk iphoneos cc -arch arm64"
+          # export CXX="xcrun -sdk iphoneos c++ -arch arm64"
+          # export LD="xcrun -sdk iphoneos ld -arch arm64"
+          # export RANLIB="xcrun -sdk iphoneos ranlib"
+          # export AR="xcrun -sdk iphoneos ar"
+
+          echo COMPILER TEST
+          echo 'int main() { return 0; }' > test.c
+          xcrun -sdk iphoneos cc -arch arm64 -o test test.c
+          echo RESULT exitcode : $?
+
+          # exit 1
+
+          mkdir -p _build/otp
+
+          cp -r otp_src_${{matrix.erlixir.otp-version}} _build/otp_builder
+
+          echo `env` > /tmp/otp_cmd.sh
+
+          echo OTP_ARCH: ${{matrix.erlixir.otp-version}}
+          echo OTP_ARCH: ${{matrix.platform.otp_arch}}
+          echo XCOMP: ${{matrix.platform.xcomp}}
+
+          env
+
+          export LIBS=${OPENSSL_PREFIX}/lib/libcrypto.a
+
+          xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path
+          xcrun -sdk ${{ matrix.platform.sdk }} cc --version
+          xcrun -sdk ${{ matrix.platform.sdk }} clang --version
+          xcrun -sdk ${{ matrix.platform.sdk }} ld -v
+
+          cd _build/otp_builder
+
+          ./otp_build configure --host=${{ matrix.platform.otp_arch }} \
+          --with-ssl="$OPENSSL_PREFIX" \
+          --disable-dynamic-ssl-lib \
+          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf  \
+          --enable-static-nifs="$STATIC_NIFS"
+          
+          ./otp_build boot -a
+          ./otp_build release -a
+
+          ls -lah $OTP_PREFIX
+
+          cd ${{ github.workspace }}
+
+
+      - name: Build OTP Round 1 (xcomp)
+        id: otp-setup_
+        if: false && steps.otp-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          export SDKROOT="$(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)"
+          export CFLAGS="-isysroot $SDKROOT -miphoneos-version-min=11.0 -fno-common -Os -D__IOS__=yes"
+          export LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v"
+
+          #unset CC
+          #unset CFLAGS
 
           # export IPHONEOS_DEPLOYMENT_TARGET=11.0
           # export CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch arm64"
@@ -244,6 +310,13 @@ jobs:
 
           env
 
+          export ac_cv_func_malloc_0_nonnull=yes
+          export ac_cv_func_realloc_0_nonnull=yes
+          export ac_cv_prog_cc_works=yes
+          export ac_cv_prog_cc_cross=yes
+          export ac_cv_prog_cxx_works=yes
+          export ac_cv_prog_cxx_cross=yes
+
           # echo cd _build/otp_builder \
           # ./otp_build configure \
           # --with-ssl="$OPENSSL_PREFIX" \
@@ -252,6 +325,11 @@ jobs:
           # --enable-static-nifs="$STATIC_NIFS" >> /tmp/otp_cmd.sh
 
           export LIBS=${OPENSSL_PREFIX}/lib/libcrypto.a
+
+          xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path
+          xcrun -sdk ${{ matrix.platform.sdk }} cc --version
+          xcrun -sdk ${{ matrix.platform.sdk }} clang --version
+          xcrun -sdk ${{ matrix.platform.sdk }} ld -v
 
           # echo `lipo -info $LIBS` || 1
 
@@ -266,8 +344,9 @@ jobs:
           # codesign -s - _build/otp_builder/conftest --force --deep
 
 
+          # --host=${{matrix.platform.xcomp}}
 
-          ./otp_build configure --host=${{matrix.platform.arch}} \
+          ./otp_build configure \
           --with-ssl="$OPENSSL_PREFIX" \
           --disable-dynamic-ssl-lib \
           --enable-static-nifs="$STATIC_NIFS" \
