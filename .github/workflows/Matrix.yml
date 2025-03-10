@@ -8,7 +8,6 @@ on:
 env:
   OPENSSL_VERSION: "3.4.1"
   OPENSSL_HASH: "002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
-  IPHONEOS_DEPLOYMENT_TARGET: 11.0
 
   # OPENSSL_VERSION: 1.1.1
   # OPENSSL_HASH: "d6697e2871e77238460402e9362d47d18382b15ef9f246aba6c7bd780d38a6b0"
@@ -102,7 +101,7 @@ jobs:
         run: |
           cd openssl-${{ env.OPENSSL_VERSION }}    
           echo "OPENSSL_PREFIX=_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
-          MAKEFLAGS="-j10 -O" ARCH=${{ matrix.platform.openssl_arch }} OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ../scripts/install_openssl_new.sh
+          IPHONEOS_DEPLOYMENT_TARGET=11.0 MAKEFLAGS="-j10 -O" ARCH=${{ matrix.platform.openssl_arch }} OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ../scripts/install_openssl_new.sh
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
@@ -179,7 +178,6 @@ jobs:
         # if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
-  
           ls -lah _build/openssl-$OPENSSL_VERSION
           ls -lah $OPENSSL_PREFIX
 
@@ -213,7 +211,7 @@ jobs:
 
           # --host=${{ matrix.platform.otp_arch }}
           cd _build/otp_builder
-          ./otp_build configure  \
+          IPHONEOS_DEPLOYMENT_TARGET=11.0 ./otp_build configure  \
           --with-ssl="$OPENSSL_PREFIX" \
           --disable-dynamic-ssl-lib \
           --enable-static-nifs="$STATIC_NIFS" \
