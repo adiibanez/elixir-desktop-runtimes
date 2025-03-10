@@ -237,6 +237,8 @@ jobs:
           # https://askubuntu.com/questions/444551/get-absolute-path-of-files-using-find-command
 
           find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
+          find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " lipo -info " $1}' | sh
+
           LIBS=`find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " %s", $1} END { print "" }'`
           echo $LIBS
 
