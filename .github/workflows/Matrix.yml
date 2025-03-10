@@ -85,9 +85,9 @@ jobs:
           path: |
             openssl-${{ env.OPENSSL_VERSION }}
             _build/openssl-${{ env.OPENSSL_VERSION }}
-          key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.arch }}
+          key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.openssl_arch }}
           # -${{ hashFiles('./scripts/install_openssl_new.sh') }}
-          # #openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.arch }}-
+          # #openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.openssl_arch }}-
           restore-keys: |
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
             openssl-build-cache-${{ env.OPENSSL_VERSION }}-
