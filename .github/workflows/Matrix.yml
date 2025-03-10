@@ -126,8 +126,8 @@ jobs:
         run: |
           cd openssl-${{ env.OPENSSL_VERSION }}    
           echo "OPENSSL_PREFIX=_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
-          CFLAGS="-O2 -g $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" \
-            CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" \
+          CFLAGS="-O2 -g -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" \
+            CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" \
             MAKEFLAGS="-j10 -O" ARCH=${{ matrix.platform.openssl_arch }} \
             OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
             ../scripts/install_openssl_new.sh
@@ -198,9 +198,9 @@ jobs:
         # if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
-
-          echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" >> $GITHUB_ENV
-          echo CFLAGS="-O2 -g $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" >> $GITHUB_ENV    
+  
+          echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" >> $GITHUB_ENV
+          echo CFLAGS="-O2 -g -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" >> $GITHUB_ENV    
 
           ls -lah _build/openssl-$OPENSSL_VERSION
           ls -lah $OPENSSL_PREFIX
