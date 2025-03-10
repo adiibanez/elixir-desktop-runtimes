@@ -362,45 +362,45 @@ jobs:
   #     #     name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-liberlang
   #     #     path: libs
 
-      - name: Download Libs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-        uses: actions/download-artifact@v4
-        with:
-          pattern: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-*
-          path: _build/libs
-          merge-multiple: true
+      # - name: Download Libs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     pattern: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-*
+      #     path: _build/libs
+      #     merge-multiple: true
 
-      - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-        shell: bash
-        id: build-xcframework-slice
-        run: |
+      # - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+      #   shell: bash
+      #   id: build-xcframework-slice
+      #   run: |
 
-          #INCLUDE_PATTERN="lib/libbeam.a|libz.a|libcrypto.a|_r.a|_s.a"
-          #INCLUDE_PATTERN="liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a|.a"
-          INCLUDE_PATTERN="liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a|release/*.a"
+      #     #INCLUDE_PATTERN="lib/libbeam.a|libz.a|libcrypto.a|_r.a|_s.a"
+      #     #INCLUDE_PATTERN="liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a|.a"
+      #     INCLUDE_PATTERN="liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a|release/*.a"
           
-          # libtool -static -o ${{ github.workspace }}/_build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a $LIBS
+      #     # libtool -static -o ${{ github.workspace }}/_build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a $LIBS
 
-          echo LOOKUP_LIBS for liberlang.xcframework Slice
+      #     echo LOOKUP_LIBS for liberlang.xcframework Slice
 
-          # find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
-          # LIBS=`find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " -library %s", $1} END { print "" }'`
-          find ${{ github.workspace }}/_build/libs -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
-          LIBS=`find ${{ github.workspace }}/_build/libs -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " -library %s", $1} END { print "" }'`
-          echo $LIBS
-          # libtool -static -o ${{ github.workspace }}/_build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a $LIBS
+      #     # find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
+      #     # LIBS=`find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " -library %s", $1} END { print "" }'`
+      #     find ${{ github.workspace }}/_build/libs -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
+      #     LIBS=`find ${{ github.workspace }}/_build/libs -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " -library %s", $1} END { print "" }'`
+      #     echo $LIBS
+      #     # libtool -static -o ${{ github.workspace }}/_build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a $LIBS
 
-          echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
-          mkdir liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+      #     echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
+      #     mkdir liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
 
-          cd liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+      #     cd liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
 
-          xcodebuild -create-xcframework \
-            -output liberlang.xcframework \
-            $LIBS
+      #     xcodebuild -create-xcframework \
+      #       -output liberlang.xcframework \
+      #       $LIBS
 
-          cp -rf liberlang.xcframework /tmp/otp_libs/
+      #     cp -rf liberlang.xcframework /tmp/otp_libs/
 
-          echo "xcframework_slice_path=liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}" >> "$GITHUB_OUTPUT"
+      #     echo "xcframework_slice_path=liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}" >> "$GITHUB_OUTPUT"
 
   #     - name: Upload liberlang.xcframework Slice Artifact for ${{ matrix.platform.name }}
   #       uses: actions/upload-artifact@v4
