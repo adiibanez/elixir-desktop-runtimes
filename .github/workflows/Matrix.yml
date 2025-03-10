@@ -94,9 +94,15 @@ jobs:
         id: openssl-build
         # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
         run: |
-          cd openssl-${{ env.OPENSSL_VERSION }}
-          echo "OPENSSL_PREFIX=_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
-          ARCH=${{ matrix.platform.openssl_arch }} MAKEFLAGS="-j10 -O" OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ../scripts/install_openssl_new.sh
+          mkdir -p _build/openssl-${{ env.OPENSSL_VERSION }}
+          # patch not required for newer ssl versions
+          # cp patch/openssl-ios.conf openssl-${{ env.OPENSSL_VERSION }}/Configurations/15-ios.conf
+          echo "OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-$OPENSSL_VERSION" >> "$GITHUB_ENV"
+          ARCH=${{ matrix.platform.openssl_arch }} MAKEFLAGS="-j10 -O" OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} ./scripts/install_openssl_new.sh
+
+          ls -lah _build/openssl-$OPENSSL_VERSION
+          find _build/openssl-$OPENSSL_VERSION -name "*.a"
+
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
         run: |
@@ -191,6 +197,8 @@ jobs:
 
           echo `env` > /tmp/otp_cmd.sh
 
+          ls -lah $OPENSSL_PREFIX
+
           echo cd _build/otp_builder \
           ./otp_build configure \
           --with-ssl="$OPENSSL_PREFIX" \
@@ -255,7 +263,7 @@ jobs:
 
           cp $OUTPUT_LIB /tmp/otp_libs
 
-          ls -lah $OUTPUT_LIB
+          ls -lah "$OUTPUT_LIB/lib"
           # lipo -info ${{ github.workspace }}/_build/$OUTPUT_LIB
           
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
