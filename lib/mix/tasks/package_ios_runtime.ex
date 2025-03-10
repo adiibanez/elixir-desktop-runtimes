@@ -332,6 +332,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       (lipo(sims) ++ lipo(reals))
       |> Enum.map(fn lib -> "-library #{lib}" end)
 
+    IO.inspect(libs, label: "LIBS inspection")
+
     framework = "./_build/liberlang.xcframework"
 
     if File.exists?(framework) do
