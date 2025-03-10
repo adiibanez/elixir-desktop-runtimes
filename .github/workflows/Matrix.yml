@@ -109,8 +109,8 @@ jobs:
       - name: setup build env
         shell: bash
         run: |
-              echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" >> $GITHUB_ENV
-              echo CFLAGS="-O2 -g -isysroot $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" >> $GITHUB_ENV
+              echo CC="$(xcrun --sdk ${{ matrix.platform.sdk }} --find clang) $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)" >> $GITHUB_ENV
+              echo CFLAGS="-O2 -g $(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path) -arch ${{ matrix.platform.arch }}" >> $GITHUB_ENV
               echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" >> $GITHUB_ENV
               # echo ERL_FLAGS="-smp disable" >> $GITHUB_ENV
               echo ARCH=${{ matrix.platform.openssl_arch }} >> $GITHUB_ENV
