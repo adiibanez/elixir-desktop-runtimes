@@ -497,7 +497,7 @@ jobs:
         with:
           path: xcframework-slices
           pattern: liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-*
-          merge-multiple: true
+          # merge-multiple: true
 
       - name: Setup Combined xcframework env
         shell: bash
@@ -524,6 +524,17 @@ jobs:
           ls -lah xcframework-slices
           find xcframework-slices -type d
           find xcframework-slices -type f -name "*.a"
+
+          if [ -z "$IOS_FRAMEWORK" ]; then
+            echo "iOS Framework $IOS_FRAMEWORK does not exist"
+            exit 1
+          fi
+
+          if [ -z "$SIMULATOR_FRAMEWORK" ]; then
+            echo "iOS Sim Framework $SIMULATOR_FRAMEWORK does not exist"
+            exit 1
+          fi
+
 
           xcodebuild -create-xcframework \
             -framework "$IOS_FRAMEWORK" \
