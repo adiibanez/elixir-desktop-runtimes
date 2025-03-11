@@ -29,14 +29,13 @@ cd openssl-$OPENSSL_VERSION
 echo `pwd`
 # ls -lah 
 
-echo ./Configure $OPENSSL_OPTS $ARCH --prefix=$OPENSSL_PREFIX 
+echo ./Configure --prefix=$OPENSSL_PREFIX  $OPENSSL_OPTS $ARCH 
 #"$@"
 
-./Configure $OPENSSL_OPTS $ARCH --prefix=$OPENSSL_PREFIX 
-#"$@"
-make clean
-make depend
-make -j$THREAD_COUNT
+./Configure --prefix=$OPENSSL_PREFIX  $OPENSSL_OPTS $ARCH && \
+make clean  && \
+make depend && \
+make -j$THREAD_COUNT && \
 make install_sw install_ssldirs
 
 echo "OPENSSL INSTALLED $OPENSSL_PREFIX"
