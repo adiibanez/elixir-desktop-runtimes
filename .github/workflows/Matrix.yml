@@ -210,6 +210,7 @@ jobs:
           # unset SDKROOT https://stackoverflow.com/questions/62118332/using-sys-root-for-iphonesimulator-but-targeting-macosx-warning-in-npm-insta
 
           ls -lah _build/openssl-$OPENSSL_VERSION
+          ls -lah _build/
 
           # echo $CC
 
