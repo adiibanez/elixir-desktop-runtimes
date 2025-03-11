@@ -502,8 +502,8 @@ jobs:
       - name: Setup Combined xcframework env
         shell: bash
         run: |
-          echo "IOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios/liberlang.xcframework" >> $GITHUB_ENV
-          echo "SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim/liberlang.xcframework" >> $GITHUB_ENV
+          echo "IOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios/liberlang.xcframework/ios-arm64/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a" >> $GITHUB_ENV
+          echo "SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim/liberlang.xcframework/ios-x86_64-simulator/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a" >> $GITHUB_ENV
           # echo "WATCHOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos/liberlang.xcframework" >> $GITHUB_ENV
           # echo "WATCHOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos_sim/liberlang.xcframework" >> $GITHUB_ENV
           # echo "TVOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework" >> $GITHUB_ENV
@@ -535,15 +535,22 @@ jobs:
             exit 1
           fi
 
+          echo $IOS_FRAMEWORK
+          echo $SIMULATOR_FRAMEWORK
+          echo $OUTPUT_XCFRAMEWORK
+
+          echo xcodebuild -create-xcframework \
+            -library $IOS_FRAMEWORK \
+            -library $SIMULATOR_FRAMEWORK \
+            -output $OUTPUT_XCFRAMEWORK
 
           xcodebuild -create-xcframework \
-            -framework "$IOS_FRAMEWORK" \
-            -framework "$SIMULATOR_FRAMEWORK" \
-            -output "$OUTPUT_XCFRAMEWORK"
-
+            -library $IOS_FRAMEWORK \
+            -library $SIMULATOR_FRAMEWORK \
+            -output $OUTPUT_XCFRAMEWORK
 
           rm -rf /tmp/xcframwork_output
-          cp -r "$OUTPUT_XCFRAMEWORK" /tmp/xcframwork_output/
+          cp -r $OUTPUT_XCFRAMEWORK /tmp/xcframwork_output/
 
           # -framework "$WATCHOS_FRAMEWORK" \
           # -framework "$WATCHOS_SIMULATOR_FRAMEWORK" \
