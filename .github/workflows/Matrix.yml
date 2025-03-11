@@ -186,9 +186,9 @@ jobs:
             _build/otp_release_${{matrix.erlixir.otp-version}}
             _build/otp_builder
           key: macos-otp-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts-description }}
-          restore-keys: |
-            macos-otp-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-
-            macos-otp-
+          # restore-keys: |
+          #   macos-otp-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-
+          #   macos-otp-
       - name: Download OTP 
         shell: bash
         if: steps.otp-cache.outputs.cache-hit != 'true'
@@ -277,6 +277,7 @@ jobs:
           #ERL_FLAGS="-smp disable" \
           
 
+          # KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
           # KERL_CONFIGURE_DISABLE_APPLICATIONS https://github.com/kerl/kerl/blob/master/kerl
           # https://www.erlang.org/docs/19/applications
 
@@ -284,7 +285,6 @@ jobs:
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
           CFLAGS="-I$INCLUDE_PATH" \
-          KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           ERL_FLAGS="-smp disable" \
           ARCH=${{ matrix.platform.arch }} \
