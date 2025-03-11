@@ -62,13 +62,13 @@ jobs:
           - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
           - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_opts: "no-shared no-dso no-hw no-engine", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
           - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine", openssl_arch: "xros-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: arm64, openssl_arch: "xrossimulator-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-iossimulator"}
+          - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "xros-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "xrossimulator-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-iossimulator"}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -219,6 +219,9 @@ jobs:
 
           ulimit -n 65536
 
+
+          file ${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a"
+
           # unset SDKROOT https://stackoverflow.com/questions/62118332/using-sys-root-for-iphonesimulator-but-targeting-macosx-warning-in-npm-insta
 
           ls -lah _build/openssl-$OPENSSL_VERSION
@@ -317,7 +320,7 @@ jobs:
           find . -name libbeam.a
           cd ${{ github.workspace }}
 
-          cd _build/otp_builder/release
+          cd _build/otp_builder/release/${{matrix.platform.otp_arch}}
 
           # find . -name libbeam.a
           # find . -name libcrypto.a
