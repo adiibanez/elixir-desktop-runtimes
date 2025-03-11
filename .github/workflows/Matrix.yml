@@ -104,11 +104,11 @@ jobs:
           echo "OPENSSL_SRC_PREFIX=${{ github.workspace }}/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
           
           SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path` \
-          CC="xcrun -sdk ${{ matrix.platform.sdk }} cc ${{ matrix.platform.openssl_arch }}" \
+          CC="xcrun -sdk ${{ matrix.platform.sdk }} cc" \
           CFLAGS="-fno-common -Os -D__IOS__=yes" \
-          CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++ $XCOMP_ARCH" \
+          CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++" \
           CXXFLAGS=$CFLAGS \
-          LD="xcrun -sdk ${{ matrix.platform.sdk }} ld $XCOMP_ARCH" \
+          LD="xcrun -sdk ${{ matrix.platform.sdk }} ld" \
           LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v" \
           DED_LD=$LD \
           DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v" \
