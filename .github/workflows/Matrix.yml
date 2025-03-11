@@ -497,7 +497,7 @@ jobs:
         with:
           path: xcframework-slices
           pattern: liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-*
-          # merge-multiple: true
+          merge-multiple: true
 
       - name: Setup Combined xcframework env
         shell: bash
@@ -518,6 +518,9 @@ jobs:
           FRAMEWORK_NAME=liberlang
           OUTPUT_XCFRAMEWORK=${FRAMEWORK_NAME}.xcframework
 
+          rm -rf /tmp/xcframework-slices
+          cp -r xcframework-slices /tmp/xcframework-slices
+
           ls -lah xcframework-slices
           find xcframework-slices -type d
           find xcframework-slices -type f -name "*.a"
@@ -527,6 +530,10 @@ jobs:
             -framework "$SIMULATOR_FRAMEWORK" \
             -output "$OUTPUT_XCFRAMEWORK"
 
+
+          rm -rf /tmp/xcframwork_output
+          cp -r "$OUTPUT_XCFRAMEWORK" /tmp/xcframwork_output/
+
           # -framework "$WATCHOS_FRAMEWORK" \
           # -framework "$WATCHOS_SIMULATOR_FRAMEWORK" \
           # -framework "$TVOS_FRAMEWORK" \
@@ -535,11 +542,11 @@ jobs:
           # -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \
           
 
-      - name: Check Architecture
-        run: |
-          ls -lah liberlang.xframework
-          du -sh liberlang.xframework
-          #lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}" || 1
+      # - name: Check Architecture
+      #   run: |
+      #     ls -lah liberlang.xframework
+      #     du -sh liberlang.xframework
+      #     #lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}" || 1
           
       - name: Upload Combined xcframework Artifact
         uses: actions/upload-artifact@v4
