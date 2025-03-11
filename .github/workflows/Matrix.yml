@@ -413,8 +413,8 @@ jobs:
         shell: bash
         id: build-xcframework-slice
         run: |
-          ls -lah 
-          ls -lah _build/libs
+          ls -lah ./
+          ls -lah _build/
 
       #     #INCLUDE_PATTERN="lib/libbeam.a|libz.a|libcrypto.a|_r.a|_s.a"
       #     #INCLUDE_PATTERN="liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a|.a"
