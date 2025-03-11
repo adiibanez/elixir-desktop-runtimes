@@ -267,9 +267,10 @@ jobs:
           RELEASE_LIBBEAM="yes" ./otp_build configure \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           --with-ssl=${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }} \
+          --enable-static-nifs="$STATIC_NIFS" \
           --disable-dynamic-ssl-lib
 
-          # --enable-static-nifs="$STATIC_NIFS"
+          # 
 
           rm -rf /tmp/otp_builder
           cp -r ./ /tmp/otp_builder
