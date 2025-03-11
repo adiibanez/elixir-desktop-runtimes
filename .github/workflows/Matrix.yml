@@ -285,7 +285,7 @@ jobs:
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
           CFLAGS="-I$INCLUDE_PATH" \
-          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
+          KERL_CONFIGURE_OPTIONS="--disable-stripped-runtime ${{matrix.erlixir.kerl-opts}}" \
           ERL_FLAGS="-smp disable" \
           ARCH=${{ matrix.platform.arch }} \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
