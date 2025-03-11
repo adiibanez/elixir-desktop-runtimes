@@ -250,6 +250,7 @@ jobs:
           ARCH=${{ matrix.platform.arch }} \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           LIBS="${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" \
+          MAKEFLAGS="-j10 -O" \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           --disable-dynamic-ssl-lib \
@@ -313,7 +314,7 @@ jobs:
 
           # xcrun -sdk ${{matrix.platform.sdk}} 
           rm -f $OUTPUT_LIB
-          libtool -static -o $OUTPUT_LIB $LIBS
+          libtool -static -o $OUTPUT_LIB ../bin/${{matrix.platform.otp_arch}}/libbeam.a $LIBS
   
       - name: Check output lib
         shell: bash
