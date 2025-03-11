@@ -413,6 +413,7 @@ jobs:
         shell: bash
         id: build-xcframework-slice
         run: |
+          ls -lah 
           ls -lah _build/libs
 
       #     #INCLUDE_PATTERN="lib/libbeam.a|libz.a|libcrypto.a|_r.a|_s.a"
