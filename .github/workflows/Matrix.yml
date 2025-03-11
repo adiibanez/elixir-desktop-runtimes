@@ -58,12 +58,13 @@ jobs:
         os: [macos-latest]
         platform:
           # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
-          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -fembed-bitcode", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
-          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
+          #  -fembed-bitcode
+          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
+          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_opts: "no-shared no-dso no-hw no-engine", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
           - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          # - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_opts: "no-shared no-dso no-hw no-engine -DNO_FORK", openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine", openssl_arch: "xros-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}

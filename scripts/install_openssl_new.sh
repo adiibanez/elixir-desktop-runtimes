@@ -38,11 +38,11 @@ rm ./apps/lib/http_server.c
 # 	make clean
 # fi
 
-echo ./Configure --prefix=$OPENSSL_PREFIX  $OPENSSL_OPTS $ARCH -fembed-bitcode
+echo ./Configure --prefix=$OPENSSL_PREFIX  $OPENSSL_OPTS $ARCH
 #"$@"
 
 # do not build apps including silly forking https server
-./Configure --prefix=$OPENSSL_PREFIX no-apps $OPENSSL_OPTS $ARCH -fembed-bitcode && \
+./Configure --prefix=$OPENSSL_PREFIX no-apps $OPENSSL_OPTS $ARCH && \
 make clean  && \
 make depend && \
 make -j$THREAD_COUNT && \
