@@ -343,7 +343,7 @@ jobs:
 
           # xcrun -sdk ${{matrix.platform.sdk}} 
           rm -f $OUTPUT_LIB
-          libtool -static -o $OUTPUT_LIB ../bin/${{matrix.platform.otp_arch}}/libbeam.a $LIBS
+          libtool -static -o $OUTPUT_LIB ${{ github.workspace }}/_build/otp_builder/bin/${{matrix.platform.otp_arch}}/libbeam.a $LIBS
   
       - name: Check output lib
         shell: bash
