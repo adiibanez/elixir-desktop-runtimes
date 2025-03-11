@@ -12,7 +12,6 @@ else
     export OPENSSL_OPTS="no-shared"
 fi 
 
-
 echo "OPENSSL PREFIX: $OPENSSL_PREFIX"
 
 # install openssl
@@ -29,10 +28,10 @@ cd openssl-$OPENSSL_VERSION
 echo `pwd`
 # ls -lah 
 
-echo ./Configure --prefix=$OPENSSL_PREFIX  $OPENSSL_OPTS $ARCH 
+echo ./Configure --prefix=$OPENSSL_PREFIX  $OPENSSL_OPTS $ARCH -fembed-bitcode
 #"$@"
 
-./Configure --prefix=$OPENSSL_PREFIX  $OPENSSL_OPTS $ARCH && \
+./Configure --prefix=$OPENSSL_PREFIX  $OPENSSL_OPTS $ARCH -fembed-bitcode && \
 make clean  && \
 make depend && \
 make -j$THREAD_COUNT && \

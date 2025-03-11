@@ -6,7 +6,7 @@ on:
       - refactoring
   pull_request:
 env:
-  OPENSSL_VERSION: "3.1.6"
+  OPENSSL_VERSION: "3.4.0"
   OPENSSL_HASH: "002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
 jobs:
   build_setup:
@@ -59,9 +59,10 @@ jobs:
         platform:
           # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
           # - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -fembed-bitcode", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
-          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
-          - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_opts: "no-threads no-shared no-dso no-hw no-engine -fembed-bitcode", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_opts: "no-threads no-shared no-dso no-hw no-engine -fembed-bitcode", openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          #- {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
+          #- {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_opts: "no-asm no-shared no-tests -fembed-bitcode", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          #- {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_opts: "no-threads no-shared no-dso no-hw no-engine -fembed-bitcode", openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -fembed-bitcode", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
@@ -83,12 +84,21 @@ jobs:
         id: openssl-build-cache
         with:
           path: |
+            _build/ios-openssl
             openssl-${{ env.OPENSSL_VERSION }}
             _build/openssl-${{ env.OPENSSL_VERSION }}
           key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.sdk }}-${{ matrix.platform.openssl_arch }}-${{ hashFiles('./scripts/install_openssl_new.sh') }}
           # restore-keys: |
           #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
           #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-
+
+      - name: Build iOS OpenSSL
+        if: false
+        shell: bash
+        run: |
+          mkdir -p _build/ios-openssl
+          cd openssl-${{ env.OPENSSL_VERSION }}
+          BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{ matrix.platform.arch }} ${{ matrix.platform.id }}
       - name: Build OpenSSL
         id: openssl-build
         if: steps.openssl-build-cache.outputs.cache-hit != 'true'
@@ -104,19 +114,33 @@ jobs:
           # CXXFLAGS=$CFLAGS \
           # CFLAGS="-fno-common -Os -D__IOS__=yes" \
           OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
-          SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path` \
-          CC="xcrun -sdk ${{ matrix.platform.sdk }} cc" \
-          CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++" \
-          LD="xcrun -sdk ${{ matrix.platform.sdk }} ld" \
-          LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v" \
-          DED_LD=$LD \
-          DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v" \
-          RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib" \
-          AR="xcrun -sdk ${{ matrix.platform.sdk }} ar" \
           ARCH=${{ matrix.platform.openssl_arch }} \
           MAKEFLAGS="-j10 -O" \
           OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
           ./scripts/install_openssl_new.sh
+
+          # # CXXFLAGS=$CFLAGS \
+          # # CFLAGS="-fno-common -Os -D__IOS__=yes" \
+          # OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
+          # SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path` \
+          # CC="xcrun -sdk ${{ matrix.platform.sdk }} cc" \
+          # CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++" \
+          # LD="xcrun -sdk ${{ matrix.platform.sdk }} ld" \
+          # LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v" \
+          # DED_LD=$LD \
+          # DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v" \
+          # RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib" \
+          # AR="xcrun -sdk ${{ matrix.platform.sdk }} ar" \
+          # ARCH=${{ matrix.platform.openssl_arch }} \
+          # MAKEFLAGS="-j10 -O" \
+          # OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
+          # ./scripts/install_openssl_new.sh
+
+
+          
+
+
+          
 
           env
 
