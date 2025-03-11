@@ -219,7 +219,6 @@ jobs:
           STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
           echo $STATIC_NIFS
 
-
           mkdir -p _build
 
           rm -rf _build/otp_builder
@@ -241,37 +240,31 @@ jobs:
           fi
 
 
-          # echo cd _build/otp_builder \
-          # KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" \
-          # ERL_FLAGS="-smp disable" \
-          # OPENSSL_PREFIX=${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-          # OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
-          # LIBS="${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" \
-          # MAKEFLAGS="-j10 -O" \
-          # RELEASE_LIBBEAM="yes" \
-          # ./otp_build configure \
-          # --host=${{ matrix.platform.arch }}
-          # --with-ssl=$OPENSSL_PREFIX \
-          # --disable-dynamic-ssl-lib \
-          # --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
-          # --enable-static-nifs="$STATIC_NIFS" >> /tmp/otp_cmd.sh
+          echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" \
+          ERL_FLAGS="-smp disable" \
+          OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
+          LIBS="${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" \
+          RELEASE_LIBBEAM="yes" ./otp_build configure \
+          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
+          --with-ssl=${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }} \
+          --disable-dynamic-ssl-lib \
+          --enable-static-nifs="$STATIC_NIFS" >> /tmp/otp_cmd.sh
           
           #--prefix="${{ github.workspace }}/_build/otp_release_${{matrix.erlixir.otp-version}}"
 
-
-          # --host=${{ matrix.platform.arch }} \
+          # MAKEFLAGS="-j10 -O" \
+          # --host=${{ matrix.platform.xcomp }} \
           cd _build/otp_builder
 
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" \
           ERL_FLAGS="-smp disable" \
-          OPENSSL_PREFIX=${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }} \
+          ARCH=${{ matrix.platform.arch }} \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           LIBS="${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" \
-          MAKEFLAGS="-j10 -O" \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
-          --with-ssl=$OPENSSL_PREFIX \
-          --disable-dynamic-ssl-lib \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
+          --with-ssl=${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }} \
+          --disable-dynamic-ssl-lib \
           --enable-static-nifs="$STATIC_NIFS"
 
           rm -rf /tmp/otp_builder
