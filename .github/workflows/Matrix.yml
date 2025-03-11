@@ -59,9 +59,9 @@ jobs:
         platform:
           # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
           #  -fembed-bitcode
-          # - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
-          # - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
-          - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
+          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
+          # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
@@ -101,7 +101,7 @@ jobs:
           BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{ matrix.platform.arch }} ${{ matrix.platform.id }}
       - name: Build OpenSSL
         id: openssl-build
-        # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
+        if: steps.openssl-build-cache.outputs.cache-hit != 'true'
         run: |
 
           mkdir -p _build/openssl-${{ env.OPENSSL_VERSION }}
@@ -135,13 +135,7 @@ jobs:
           ARCH=${{ matrix.platform.openssl_arch }} \
           MAKEFLAGS="-j10 -O" \
           OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-          ./scripts/install_openssl_new.sh
-
-
-          
-
-
-          
+          ./scripts/install_openssl_new.sh        
 
           env
 
@@ -268,9 +262,19 @@ jobs:
           # --host=${{ matrix.platform.xcomp }} \
           cd _build/otp_builder
 
+          ls -lah "${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/"
+          file "${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a"
+          otool -L "${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a"
+
+          # exit 1
+
           # KERL_CONFIGURE_DISABLE_APPLICATIONS https://github.com/kerl/kerl/blob/master/kerl
           # https://www.erlang.org/docs/19/applications
 
+          INCLUDE_PATH="$OPENSSL_PREFIX/include" \
+          LIB_PATH="$OPENSSL_PREFIX/lib" \
+          LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
+          CFLAGS="-I$INCLUDE_PATH" \
           KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" \
           ERL_FLAGS="-smp disable" \
@@ -498,14 +502,14 @@ jobs:
       - name: Setup Combined xcframework env
         shell: bash
         run: |
-          echo "IOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-ios-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-ios_sim-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "WATCHOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-watchos-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "WATCHOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-watchos_sim-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "TVOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-tvos-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "TVOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-tvos_sim-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "VISIONOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-visionos-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
-          echo "VISIONOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-visionos_sim-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework" >> $GITHUB_ENV
+          echo "IOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios/liberlang.xcframework" >> $GITHUB_ENV
+          echo "SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim/liberlang.xcframework" >> $GITHUB_ENV
+          # echo "WATCHOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos/liberlang.xcframework" >> $GITHUB_ENV
+          # echo "WATCHOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos_sim/liberlang.xcframework" >> $GITHUB_ENV
+          # echo "TVOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework" >> $GITHUB_ENV
+          # echo "TVOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim/liberlang.xcframework" >> $GITHUB_ENV
+          # echo "VISIONOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos/liberlang.xcframework" >> $GITHUB_ENV
+          # echo "VISIONOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos_sim/liberlang.xcframework" >> $GITHUB_ENV
 
       - name: Create Combined xcframework
         shell: bash
@@ -521,13 +525,15 @@ jobs:
           xcodebuild -create-xcframework \
             -framework "$IOS_FRAMEWORK" \
             -framework "$SIMULATOR_FRAMEWORK" \
-            -framework "$WATCHOS_FRAMEWORK" \
-            -framework "$WATCHOS_SIMULATOR_FRAMEWORK" \
-            -framework "$TVOS_FRAMEWORK" \
-            -framework "$TVOS_SIMULATOR_FRAMEWORK" \
-            -framework "$VISIONOS_FRAMEWORK" \
-            -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \
             -output "$OUTPUT_XCFRAMEWORK"
+
+          # -framework "$WATCHOS_FRAMEWORK" \
+          # -framework "$WATCHOS_SIMULATOR_FRAMEWORK" \
+          # -framework "$TVOS_FRAMEWORK" \
+          # -framework "$TVOS_SIMULATOR_FRAMEWORK" \
+          # -framework "$VISIONOS_FRAMEWORK" \
+          # -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \
+          
 
       - name: Check Architecture
         run: |

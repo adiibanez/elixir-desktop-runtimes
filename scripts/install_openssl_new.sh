@@ -9,7 +9,8 @@ fi
 if [ -n "$OPENSSL_OPTS" ]; then
     echo OPENSSL_OPTS: $OPENSSL_OPTS
 else 
-    export OPENSSL_OPTS="no-shared"
+    export OPENSSL_OPTS="no-shared no-dso no-hw no-engine -DNO_FORK"
+    # -mios-version-min=13.4
 fi 
 
 echo "OPENSSL PREFIX: $OPENSSL_PREFIX"
