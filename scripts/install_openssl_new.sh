@@ -28,10 +28,21 @@ cd openssl-$OPENSSL_VERSION
 echo `pwd`
 # ls -lah 
 
+rm ./apps/lib/http_server.c
+
+# if [[ ! -d $BUILD_DIR/build/lib ]]; then
+# 	./Configure --prefix="$BUILD_DIR/build" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$HOST_ARC-cc CFLAGS="$NATIVE_BUILD_FLAGS"
+# 	make clean
+# 	make -j$THREAD_COUNT
+# 	make install
+# 	make clean
+# fi
+
 echo ./Configure --prefix=$OPENSSL_PREFIX  $OPENSSL_OPTS $ARCH -fembed-bitcode
 #"$@"
 
-./Configure --prefix=$OPENSSL_PREFIX  $OPENSSL_OPTS $ARCH -fembed-bitcode && \
+# do not build apps including silly forking https server
+./Configure --prefix=$OPENSSL_PREFIX no-apps $OPENSSL_OPTS $ARCH -fembed-bitcode && \
 make clean  && \
 make depend && \
 make -j$THREAD_COUNT && \
