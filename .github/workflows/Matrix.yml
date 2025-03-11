@@ -60,7 +60,7 @@ jobs:
           # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
           #  -fembed-bitcode
           - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
-          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
+          # - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
@@ -72,6 +72,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Ensure mix dependencies
+        shell: bash
+        run: mix deps.get
+
       - name: Cache Openssl source
         uses: actions/cache@v4
         id: openssl-source-cache
@@ -318,34 +323,51 @@ jobs:
         shell: bash
         run: |
 
-          cd _build/otp_builder/
-          find . -name libbeam.a
-          cd ${{ github.workspace }}
+          BUILD_HOST=`_build/otp_builder/erts/autoconf/config.guess`
+          echo "BUID_HOST: $BUILD_HOST"
 
-          cd _build/otp_builder/release/${{matrix.platform.otp_arch}}
+          rm -f /tmp/libs.txt
+          MIX_ENV=prod mix run -e "Mix.Tasks.Package.Ios.Runtime.filter_lib_files(\"${{ github.workspace }}/_build/otp_builder\", \"${{matrix.platform.otp_arch}}\", \"$BUILD_HOST\")"  2>/dev/null
+
+          #echo mix run -e \"Mix.Tasks.Package.Ios.Runtime.filter_lib_files(\"${{ github.workspace }}/_build/otp_builder\", \"${{matrix.platform.otp_arch}}\", \"$BUILD_HOST\")"
+          # LIBS=`MIX_ENV=prod mix run -e "Mix.Tasks.Package.Ios.Runtime.filter_lib_files(\"${{ github.workspace }}/_build/otp_builder\", \"${{matrix.platform.otp_arch}}\", \"$BUILD_HOST\")"  2>/dev/null`
+          #exit 1
+          
+          LIBS=`cat /tmp/libs.txt`
+
+          cd _build/otp_builder
+          # find . -name libbeam.a
+          # cd ${{ github.workspace }}
+
+          # cd _build/otp_builder/release/${{matrix.platform.otp_arch}}
+          # cd _build/otp_builder/${{matrix.platform.otp_arch}}
 
           # find . -name libbeam.a
           # find . -name libcrypto.a
-          INCLUDE_PATTERN="lib/libbeam.a|libz.a|libcrypto.a|_r.a|_s.a"
-          # https://askubuntu.com/questions/444551/get-absolute-path-of-files-using-find-command
+          # INCLUDE_PATTERN="_r.a|_s.a"
+          # # https://askubuntu.com/questions/444551/get-absolute-path-of-files-using-find-command
 
-          find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
+          # find ~+ -type f -name "*.a" | grep -v "$BUILD_HOST" -e "${{matrix.platform.otp_arch}}" -E "$INCLUDE_PATTERN" | awk '{print " ls -alh " $1}' | sh
+
+          # exit 1
           #  >> /tmp/lib_report.log
           #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " lipo -info " $1}' | sh >> /tmp/lib_report.log
           #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " otool -L " $1}' | sh >> /tmp/lib_report.log
 
           rm -rf /tmp/otp_libs
           mkdir /tmp/otp_libs
-          find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " cp " $1 " `basename " $1 "`"}' | sh
+          # find ~+ -type f -name "*.a" | grep -v "$BUILD_HOST" -e "${{matrix.platform.otp_arch}}" -E "$INCLUDE_PATTERN" | awk '{print " cp " $1 " `basename " $1 "`"}' | sh
 
-          LIBS=`find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " %s", $1} END { print "" }'`
+          # LIBS=`find ~+ -type f -name "*.a" | grep -v "$BUILD_HOST" -e "${{matrix.platform.otp_arch}}" -E "$INCLUDE_PATTERN" | awk '{printf " %s", $1} END { print "" }'`
           echo $LIBS
 
           OUTPUT_LIB="${{ github.workspace }}/_build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a"
 
+          # ${{ github.workspace }}/_build/otp_builder/bin/${{matrix.platform.otp_arch}}/libbeam.a
+
           # xcrun -sdk ${{matrix.platform.sdk}} 
           rm -f $OUTPUT_LIB
-          libtool -static -o $OUTPUT_LIB ${{ github.workspace }}/_build/otp_builder/bin/${{matrix.platform.otp_arch}}/libbeam.a $LIBS
+          libtool -static -o $OUTPUT_LIB $LIBS
   
       - name: Check output lib
         shell: bash
@@ -487,7 +509,7 @@ jobs:
       matrix:
         erlixir:
           - {otp-version: 27.3, elixir-version: 1.18.2, erl-opts-description: "-year2038;-megaco", erl-opts: "--disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner", use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-27.3-noiosminversion"}
-          # - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
+          - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
         os: [macos-latest]
     steps:
       - name: Checkout code

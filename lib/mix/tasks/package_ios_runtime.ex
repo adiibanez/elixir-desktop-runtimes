@@ -288,6 +288,33 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     end
   end
 
+  def filter_lib_files(path, arch_name, build_host) do
+    files =
+      :filelib.fold_files(
+        String.to_charlist(path),
+        ~c".+\\.a$",
+        true,
+        fn name, acc ->
+          name = List.to_string(name)
+
+          if String.contains?(name, arch_name) and
+               not (String.contains?(name, build_host) or
+                      String.ends_with?(name, "_st.a") or String.ends_with?(name, "_r.a")) do
+            Map.put(acc, Path.basename(name), name)
+          else
+            acc
+          end
+        end,
+        %{}
+      )
+      |> Map.values()
+
+    # |> dbg()
+
+    output = Enum.join(files, " ")
+    File.write!("/tmp/libs.txt", output)
+  end
+
   #  Method takes multiple ".a" archive files and extracts their ".o" contents
   # to then reassemble all of them into a single `target` ".a" archive
   defp repackage_archive(files, target) do
