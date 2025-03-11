@@ -266,21 +266,18 @@ jobs:
           LIBS="${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
+          --disable-dynamic-ssl-lib \
           --with-ssl=${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-          --enable-static-nifs="$STATIC_NIFS" \
-          --disable-dynamic-ssl-lib
+          --enable-static-nifs="$STATIC_NIFS"
+          
+          # rm -rf /tmp/otp_builder
+          # cp -r ./ /tmp/otp_builder
 
-          # 
-
-          rm -rf /tmp/otp_builder
-          cp -r ./ /tmp/otp_builder
-
-          rm -rf /tmp/openssl_otp
-          cp -r $OPENSSL_PREFIX/ /tmp/openssl_otp
+          # rm -rf /tmp/openssl_otp
+          # cp -r $OPENSSL_PREFIX/ /tmp/openssl_otp
 
           ./otp_build boot -a
           ./otp_build release -a
-
 
           find . -type d -name release
 
