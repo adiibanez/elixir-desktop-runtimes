@@ -187,7 +187,7 @@ jobs:
       - name: Build OTP Round 1 (xcomp)
         id: otp-setup
         # if: false
-        # if: steps.otp-cache.outputs.cache-hit != 'true'
+        if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
 
@@ -281,45 +281,45 @@ jobs:
           #ls -lah $OTP_PREFIX
           ls -lah _build/otp_builder
 
-      # - name: Combine static OTP libs
-      #   continue-on-error: true
-      #   shell: bash
-      #   run: |
-      #     cd _build/otp_builder
+      - name: Combine static OTP libs
+        continue-on-error: true
+        shell: bash
+        run: |
+          cd _build/otp_builder
 
-      #     # find . -name libbeam.a
-      #     # find . -name libcrypto.a
-      #     INCLUDE_PATTERN="lib/libbeam.a|libz.a|libcrypto.a|_r.a|_s.a"
-      #     # https://askubuntu.com/questions/444551/get-absolute-path-of-files-using-find-command
+          # find . -name libbeam.a
+          # find . -name libcrypto.a
+          INCLUDE_PATTERN="lib/libbeam.a|libz.a|libcrypto.a|_r.a|_s.a"
+          # https://askubuntu.com/questions/444551/get-absolute-path-of-files-using-find-command
 
-      #     find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
-      #     #  >> /tmp/lib_report.log
-      #     #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " lipo -info " $1}' | sh >> /tmp/lib_report.log
-      #     #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " otool -L " $1}' | sh >> /tmp/lib_report.log
+          find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
+          #  >> /tmp/lib_report.log
+          #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " lipo -info " $1}' | sh >> /tmp/lib_report.log
+          #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " otool -L " $1}' | sh >> /tmp/lib_report.log
 
-      #     rm -rf /tmp/otp_libs
-      #     mkdir /tmp/otp_libs
-      #     find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " cp " $1 " `basename " $1 "`"}' | sh
+          rm -rf /tmp/otp_libs
+          mkdir /tmp/otp_libs
+          find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " cp " $1 " `basename " $1 "`"}' | sh
 
-      #     LIBS=`find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " %s", $1} END { print "" }'`
-      #     echo $LIBS
+          LIBS=`find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " %s", $1} END { print "" }'`
+          echo $LIBS
 
-      #     OUTPUT_LIB="${{ github.workspace }}/_build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a"
+          OUTPUT_LIB="${{ github.workspace }}/_build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a"
 
-      #     # xcrun -sdk ${{matrix.platform.sdk}} 
-      #     rm -f $OUTPUT_LIB
-      #     libtool -static -o $OUTPUT_LIB $LIBS
+          # xcrun -sdk ${{matrix.platform.sdk}} 
+          rm -f $OUTPUT_LIB
+          libtool -static -o $OUTPUT_LIB $LIBS
 
-      #     cp $OUTPUT_LIB /tmp/otp_libs
+          cp $OUTPUT_LIB /tmp/otp_libs
 
-      #     ls -lah "$OUTPUT_LIB/lib"
-      #     # lipo -info ${{ github.workspace }}/_build/$OUTPUT_LIB
+          ls -lah "$OUTPUT_LIB/lib"
+          # lipo -info ${{ github.workspace }}/_build/$OUTPUT_LIB
           
-      # - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-liberlang
-      #     path: _build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a
+      - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-liberlang
+          path: _build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a
       
   #     - name: Set up Rust Toolchain (Nightly)
   #       uses: dtolnay/rust-toolchain@nightly
