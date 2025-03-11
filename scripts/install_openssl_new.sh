@@ -1,8 +1,17 @@
 #!/bin/bash
 
+THREAD_COUNT=$(sysctl hw.ncpu | awk '{print $2}')
+
 if [ -z "$OPENSSL_PREFIX" ]; then
 export OPENSSL_PREFIX=/usr/local/openssl
 fi 
+
+if [ -n "$OPENSSL_OPTS" ]; then
+    echo OPENSSL_OPTS: $OPENSSL_OPTS
+else 
+    export OPENSSL_OPTS="no-shared"
+fi 
+
 
 echo "OPENSSL PREFIX: $OPENSSL_PREFIX"
 
@@ -20,12 +29,15 @@ cd openssl-$OPENSSL_VERSION
 echo `pwd`
 # ls -lah 
 
-echo ./Configure $ARCH --prefix=$OPENSSL_PREFIX 
+echo ./Configure $OPENSSL_OPTS $ARCH --prefix=$OPENSSL_PREFIX 
 #"$@"
 
-./Configure $ARCH --prefix=$OPENSSL_PREFIX 
+./Configure $OPENSSL_OPTS $ARCH --prefix=$OPENSSL_PREFIX 
 #"$@"
-make clean && make depend && make && make install_sw install_ssldirs
+make clean
+make depend
+make -j$THREAD_COUNT
+make install_sw install_ssldirs
 
 echo "OPENSSL INSTALLED $OPENSSL_PREFIX"
 ls -lah "$OPENSSL_PREFIX/lib"
