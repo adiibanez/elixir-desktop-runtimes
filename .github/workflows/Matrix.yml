@@ -56,7 +56,7 @@ jobs:
           - {otp-version: 27.3, elixir-version: 1.18.2, erl-opts-description: "-year2038;-megaco", erl-opts: "--disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner", use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-27.3-noiosminversion"}
           #- {otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038", use-git: true} # configured in package_ios_runtime.ex too configuration
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
-          # - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
+          - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
         os: [macos-latest]
         platform:
           # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
@@ -85,15 +85,13 @@ jobs:
           path: |
             openssl-${{ env.OPENSSL_VERSION }}
             _build/openssl-${{ env.OPENSSL_VERSION }}
-          key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.openssl_arch }}
-          # -${{ hashFiles('./scripts/install_openssl_new.sh') }}
-          # #openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.openssl_arch }}-
-          restore-keys: |
-            openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
-            openssl-build-cache-${{ env.OPENSSL_VERSION }}-
+          key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.sdk }}-${{ matrix.platform.openssl_arch }}-${{ hashFiles('./scripts/install_openssl_new.sh') }}
+          # restore-keys: |
+          #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
+          #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-
       - name: Build OpenSSL
         id: openssl-build
-        # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
+        if: steps.openssl-build-cache.outputs.cache-hit != 'true'
         run: |
 
           mkdir -p _build/openssl-${{ env.OPENSSL_VERSION }}
