@@ -54,14 +54,14 @@ jobs:
       matrix:
         erlixir:
           - {otp-version: 27.3, elixir-version: 1.18.2, erl-opts-description: "-year2038;-megaco", erl-opts: "--disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner", use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-27.3-noiosminversion"}
-          - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
+          # - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
         os: [macos-latest]
         platform:
           # # - {name: "macOS", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-arm64"}
           # - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -fembed-bitcode", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
           - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
-          # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -fembed-bitcode", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -fembed-bitcode", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_opts: "no-shared no-dso no-hw no-engine -fembed-bitcode", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
