@@ -282,10 +282,10 @@ jobs:
           ls -lah _build/otp_builder
 
       - name: Combine static OTP libs
-        continue-on-error: true
+        continue-on-error: false
         shell: bash
         run: |
-          cd _build/otp_builder
+          cd _build/otp_builder/release
 
           # find . -name libbeam.a
           # find . -name libcrypto.a
@@ -309,12 +309,20 @@ jobs:
           # xcrun -sdk ${{matrix.platform.sdk}} 
           rm -f $OUTPUT_LIB
           libtool -static -o $OUTPUT_LIB $LIBS
+  
+      - name: Check output lib
+        shell: bash
+        continue-on-error: true
+        run: |
+          file $OUTPUT_LIB
+          lipo -info $OUTPUT_LIB
 
-          cp $OUTPUT_LIB /tmp/otp_libs
+      - name: Upload liberlang.a libs Artifact for ${{ matrix.platform.name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-liberlang
+          path: /tmp/otp_libs/*
 
-          ls -lah "$OUTPUT_LIB/lib"
-          # lipo -info ${{ github.workspace }}/_build/$OUTPUT_LIB
-          
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
         with:
