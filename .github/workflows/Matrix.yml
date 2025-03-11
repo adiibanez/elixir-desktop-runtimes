@@ -73,10 +73,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Ensure mix dependencies
-        shell: bash
-        run: mix deps.get
-
       - name: Cache Openssl source
         uses: actions/cache@v4
         id: openssl-source-cache
@@ -178,6 +174,9 @@ jobs:
           erl -version
           elixir --version
           mix --version
+      - name: Ensure mix dependencies
+        shell: bash
+        run: mix deps.get
       - name: OTP Cache
         uses: actions/cache@v3
         id: otp-cache
