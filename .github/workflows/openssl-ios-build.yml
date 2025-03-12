@@ -20,10 +20,8 @@ jobs:
   build_setup:
     name: Build openssl libs for iOS targets
     runs-on: macos-latest
+    uses: actions/checkout@v4
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Cache Openssl source
         uses: actions/cache@v4
         id: openssl-cache
