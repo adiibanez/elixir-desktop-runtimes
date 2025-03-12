@@ -339,7 +339,7 @@ jobs:
           LIBS="${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" \
           MAKEFLAGS="-j10 -O" \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
-          --xcomp-conf=xcomp/erl-xcomp-arm64-apple-multi-sdk.conf \
+          --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
           --disable-dynamic-ssl-lib \
           --with-ssl=${{ env.OPENSSL_PREFIX }} \
           --enable-static-nifs="$STATIC_NIFS"
