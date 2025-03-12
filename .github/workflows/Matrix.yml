@@ -694,11 +694,10 @@ jobs:
           path: /tmp/raw-artifacts/
           
       - name: Assemble xcframework
-          id: assemble-xcframework
-          shell: bash
-          continue-on-error: true
-          run: |
-
+        id: "assemble-xcframework"
+        shell: bash
+        continue-on-error: true
+        run: |
           echo $IOS_FRAMEWORK
           echo $SIMULATOR_FRAMEWORK
           echo $OUTPUT_XCFRAMEWORK
