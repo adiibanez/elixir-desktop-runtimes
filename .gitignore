@@ -1,7 +1,10 @@
+/.env
+/.actcache
 /deps
 /otp
 /_build
 /erl_crash.dump
+*.log
 *.so
 *.zip
 *.tar.gz
