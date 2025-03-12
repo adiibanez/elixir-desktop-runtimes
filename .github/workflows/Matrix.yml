@@ -62,7 +62,8 @@ jobs:
           # - {id: "macos_arm64", name: "macOS ARM64", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-x86_64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
           # - {id: "macos", name: "macOS", sdk: macosx, arch: arm64, openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-arm64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
           #  -fembed-bitcode
-          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
+          # ios: , xcomp: "arm64-ios"
+          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-apple-multi-sdk"}
           - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
@@ -310,6 +311,9 @@ jobs:
 
           # MAKEFLAGS="-j10 -O" \
           # --host=${{ matrix.platform.xcomp }} \
+
+          cp patch/erl-xcomp-apple-multi-sdk.conf _build/otp_builder/xcomp/erl-xcomp-apple-multi-sdk.conf
+
           cd _build/otp_builder
           
           # exit 1
@@ -318,7 +322,6 @@ jobs:
           #KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" \
           #ERL_FLAGS="-smp disable" \
           
-
           # KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
           # KERL_CONFIGURE_DISABLE_APPLICATIONS https://github.com/kerl/kerl/blob/master/kerl
           # https://www.erlang.org/docs/19/applications
@@ -327,6 +330,8 @@ jobs:
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
           CFLAGS="-I$INCLUDE_PATH" \
+          XCOMP_SDK="${{matrix.platform.sdk}}" \
+          XCOMP_ARCH="${{matrix.platform.arch}}" \
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           ERL_FLAGS="-smp disable" \
           ARCH=${{ matrix.platform.arch }} \
@@ -334,11 +339,12 @@ jobs:
           LIBS="${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" \
           MAKEFLAGS="-j10 -O" \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
-          --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
+          --xcomp-conf=xcomp/erl-xcomp-arm64-apple-multi-sdk.conf \
           --disable-dynamic-ssl-lib \
           --with-ssl=${{ env.OPENSSL_PREFIX }} \
           --enable-static-nifs="$STATIC_NIFS"
           
+          # ${{ matrix.platform.xcomp }}
           # rm -rf /tmp/otp_builder
           # cp -r ./ /tmp/otp_builder
 
