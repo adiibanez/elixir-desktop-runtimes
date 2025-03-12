@@ -1,0 +1,31 @@
+name: Build iOS Openssl
+
+on:
+  workflow_call:
+
+env:
+  OPENSSL_VERSION: "3.4.0"
+  OPENSSL_HASH: "002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
+jobs:
+  build_setup:
+    name: Setup Dependencies
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache Openssl iOS builds
+        uses: actions/cache@v4
+        id: openssl-ios-build-cache
+        with:
+          path: |
+            _build/ios-openssl
+          key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+
+      - name: Build iOS OpenSSL
+        if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          mkdir -p _build/ios-openssl
+          cd openssl-${{ env.OPENSSL_VERSION }}
+          OPENSSL_VERSION=${{ env.OPENSSL_VERSION }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh
