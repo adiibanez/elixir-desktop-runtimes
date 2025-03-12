@@ -220,6 +220,17 @@ jobs:
       - name: Ensure mix dependencies
         shell: bash
         run: mix deps.get
+
+      # save even if later jobs fail
+      - name: Cache ASDF and Toolchains
+        uses: actions/cache/save@v4
+        id: asdf-cache-save
+        with:
+          path: ~/.asdf
+          key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+          restore-keys: |
+            asdf-cache-${{ runner.os }}-
+
       - name: OTP Cache
         uses: actions/cache@v3
         id: otp-cache
@@ -259,8 +270,7 @@ jobs:
         run: |
 
           ulimit -n 65536
-          file "${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a"
-
+          # file "${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a"
           # unset SDKROOT https://stackoverflow.com/questions/62118332/using-sys-root-for-iphonesimulator-but-targeting-macosx-warning-in-npm-insta
 
           #ls -lah _build/openssl-$OPENSSL_VERSION
