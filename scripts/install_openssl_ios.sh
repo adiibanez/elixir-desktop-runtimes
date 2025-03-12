@@ -59,10 +59,26 @@ function arc()
 	fi
 }
 
+build_macos_libs() {
+	if [[ ! -d $BUILD_DIR/build/lib.macos ]]; then
+		./Configure --prefix="$BUILD_DIR/build/openssl.macos" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$FOREIGN_ARC-cc CFLAGS="$FOREIGN_BUILD_FLAGS"
+		make clean
+		make -j$THREAD_COUNT
+		make install
+
+		mkdir $BUILD_DIR/build/lib.macos
+		# lipo -create $BUILD_DIR/build/lib/libssl.a libssl.a -output $BUILD_DIR/build/lib.macos/libssl.a
+		# lipo -create $BUILD_DIR/build/lib/libcrypto.a libcrypto.a -output $BUILD_DIR/build/lib.macos/libcrypto.a
+
+		make clean
+	fi
+}
+
+
 build_catalyst_libs()
 {
 	if [[ ! -d $BUILD_DIR/build/lib.catalyst-$1 ]]; then
-		./Configure --prefix="$BUILD_DIR/build/lib.catalyst.$1" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$1-cc --target=$(arc $1)-apple-ios13.4-macabi -isysroot $MACSYSROOT/SDKs/MacOSX.sdk
+		./Configure --prefix="$BUILD_DIR/build/openssl.catalyst.$1" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$1-cc --target=$(arc $1)-apple-ios13.4-macabi -isysroot $MACSYSROOT/SDKs/MacOSX.sdk
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -141,52 +157,73 @@ if [[ ! -d $BUILD_DIR/build/lib ]]; then
 	make clean
 fi
 
-if [[ ! -d $BUILD_DIR/build/lib.macos ]]; then
-	./Configure --prefix="$BUILD_DIR/build/openssl.macos" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$FOREIGN_ARC-cc CFLAGS="$FOREIGN_BUILD_FLAGS"
-	make clean
-	make -j$THREAD_COUNT
-	make install
+# if [[ ! -d $BUILD_DIR/build/lib.catalyst ]]; then
+# 	build_catalyst_libs arm64
+# 	build_catalyst_libs x86_64
+# 	mkdir $BUILD_DIR/build/lib.catalyst
+# 	# lipo -create $BUILD_DIR/build/lib.catalyst-x86_64/libssl.a $BUILD_DIR/build/lib.catalyst-arm64/libssl.a -output $BUILD_DIR/build/lib.catalyst/libssl.a
+# 	# lipo -create $BUILD_DIR/build/lib.catalyst-x86_64/libcrypto.a $BUILD_DIR/build/lib.catalyst-arm64/libcrypto.a -output $BUILD_DIR/build/lib.catalyst/libcrypto.a
+# fi
 
-	mkdir $BUILD_DIR/build/lib.macos
-	# lipo -create $BUILD_DIR/build/lib/libssl.a libssl.a -output $BUILD_DIR/build/lib.macos/libssl.a
-	# lipo -create $BUILD_DIR/build/lib/libcrypto.a libcrypto.a -output $BUILD_DIR/build/lib.macos/libcrypto.a
 
-	make clean
-fi
 
-if [[ ! -d $BUILD_DIR/build/lib.catalyst ]]; then
-	build_catalyst_libs arm64
-	build_catalyst_libs x86_64
-	mkdir $BUILD_DIR/build/lib.catalyst
-	# lipo -create $BUILD_DIR/build/lib.catalyst-x86_64/libssl.a $BUILD_DIR/build/lib.catalyst-arm64/libssl.a -output $BUILD_DIR/build/lib.catalyst/libssl.a
-	# lipo -create $BUILD_DIR/build/lib.catalyst-x86_64/libcrypto.a $BUILD_DIR/build/lib.catalyst-arm64/libcrypto.a -output $BUILD_DIR/build/lib.catalyst/libcrypto.a
-fi
 
-if [[ ! -d $BUILD_DIR/build/lib.iossim ]]; then
-	build_sim_libs arm64
-	build_sim_libs x86_64
-	mkdir $BUILD_DIR/build/lib.iossim
-	# lipo -create $BUILD_DIR/build/lib.iossim-x86_64/libssl.a $BUILD_DIR/build/lib.iossim-arm64/libssl.a -output $BUILD_DIR/build/lib.iossim/libssl.a
-	# lipo -create $BUILD_DIR/build/lib.iossim-x86_64/libcrypto.a $BUILD_DIR/build/lib.iossim-arm64/libcrypto.a -output $BUILD_DIR/build/lib.iossim/libcrypto.a
-fi
+# if [[ ! -d $BUILD_DIR/build/lib.iossim ]]; then
+# 	build_sim_libs arm64
+# 	build_sim_libs x86_64
+# 	mkdir $BUILD_DIR/build/lib.iossim
+# 	# lipo -create $BUILD_DIR/build/lib.iossim-x86_64/libssl.a $BUILD_DIR/build/lib.iossim-arm64/libssl.a -output $BUILD_DIR/build/lib.iossim/libssl.a
+# 	# lipo -create $BUILD_DIR/build/lib.iossim-x86_64/libcrypto.a $BUILD_DIR/build/lib.iossim-arm64/libcrypto.a -output $BUILD_DIR/build/lib.iossim/libcrypto.a
+# fi
 
-if [ -d $XROSSIMSYSROOT/SDKs/XRSimulator.sdk ]; then
-	if [[ ! -d $BUILD_DIR/build/lib.xrossim ]]; then
-		build_xrossim_libs arm64
-		build_xrossim_libs x86_64
-		mkdir $BUILD_DIR/build/lib.xrossim
-		# lipo -create $BUILD_DIR/build/lib.xrossim-x86_64/libssl.a $BUILD_DIR/build/lib.xrossim-arm64/libssl.a -output $BUILD_DIR/build/lib.xrossim/libssl.a
-		# lipo -create $BUILD_DIR/build/lib.xrossim-x86_64/libcrypto.a $BUILD_DIR/build/lib.xrossim-arm64/libcrypto.a -output $BUILD_DIR/build/lib.xrossim/libcrypto.a
-	fi
-fi
+# if [ -d $XROSSIMSYSROOT/SDKs/XRSimulator.sdk ]; then
+# 	if [[ ! -d $BUILD_DIR/build/lib.xrossim ]]; then
+# 		build_xrossim_libs arm64
+# 		build_xrossim_libs x86_64
+# 		mkdir $BUILD_DIR/build/lib.xrossim
+# 		# lipo -create $BUILD_DIR/build/lib.xrossim-x86_64/libssl.a $BUILD_DIR/build/lib.xrossim-arm64/libssl.a -output $BUILD_DIR/build/lib.xrossim/libssl.a
+# 		# lipo -create $BUILD_DIR/build/lib.xrossim-x86_64/libcrypto.a $BUILD_DIR/build/lib.xrossim-arm64/libcrypto.a -output $BUILD_DIR/build/lib.xrossim/libcrypto.a
+# 	fi
+# fi
 
-build_ios_libs
-if [ -d $XROSSYSROOT ]; then
-    build_xros_libs
-fi
+# build_ios_libs
+# if [ -d $XROSSYSROOT ]; then
+#     build_xros_libs
+# fi
 
-find $BUILD_DIR/build/ -name "*.a"
-find $BUILD_DIR/build -name "*.a" -exec lipo -info {} \;
+case "$BUILD_ARCH" in
+    "ios")
+        build_ios_libs
+        ;;
+    "ios_sim")
+        build_sim_libs arm64
+        build_sim_libs x86_64
+        ;;
+    "xros")
+        build_xros_libs
+        ;;
+    "xrossim")
+        build_xrossim_libs arm64
+        build_xrossim_libs x86_64
+        ;;
+    "macos")
+        build_macos_libs
+        ;;
+    "catalyst")
+        build_catalyst_libs arm64
+        build_catalyst_libs x86_64
+        ;;
+    *)
+        echo "❌ Error: Invalid build target '$BUILD_ARCH'"
+        echo "Valid options: ios, ios_sim, xros, xrossim, macos, catalyst"
+        exit 1
+        ;;
+esac
+
+echo "✅ Build for '$BUILD_ARCH' completed successfully."
+
+find $BUILD_DIR/build/ -name "libcrypto.a"
+find $BUILD_DIR/build -name "libcrypto.a" -exec lipo -info {} \;
 
 #mkdir $BUILD_DIR/frameworks
 

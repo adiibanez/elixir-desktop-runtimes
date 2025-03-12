@@ -1,13 +1,24 @@
-name: Build Apple targets liberlang.xframework
+name: Build OTP
+
 on:
-  push:
-    branches:
-      - main
-      - refactoring
-  pull_request:
-env:
-  OPENSSL_VERSION: "3.4.0"
-  OPENSSL_HASH: "002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
+  workflow_call:
+    inputs:
+      version: # the variable you can use in place of a matrix
+        required: true
+        type: number
+      repo: 
+        required: true
+        type: string
+      ref: 
+        required: true
+        type: string
+      openssl_prefix:
+        required: true
+        type: string
+      erl_opts:
+        required: true
+        type: string
+
 jobs:
   # build_openssl: 
   #   uses: ./.github/workflows/openssl-ios-build.yml
@@ -29,25 +40,7 @@ jobs:
           key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
           restore-keys: |
             asdf-cache-${{ runner.os }}-
-      - name: Cache Openssl source
-        uses: actions/cache@v4
-        id: openssl-cache
-        with:
-          path: |
-            openssl-${{ env.OPENSSL_VERSION }}
-          key: openssl-source-cache-${{ env.OPENSSL_VERSION }}
-      - name: Download and Extract OpenSSL
-        if: steps.openssl-cache.outputs.cache-hit != 'true'
-        id: openssl-download
-        run: |
-          wget "https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz"
-          # echo "$OPENSSL_HASH  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c
-          tar xzf openssl-$OPENSSL_VERSION.tar.gz
-          ls -lah ${{github.workspace}}/openssl-$OPENSSL_VERSION
-
-          echo "OPENSSL_VERSION=$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
-          echo "OPENSSL_HASH=$OPENSSL_HASH" >> "$GITHUB_OUTPUT"
-          echo "OPENSSL_PATH=$PWD/openssl-$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
+      
   build_platform_matrix:
     name: Build - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }} ELX${{ matrix.erlixir.elixir-version }}
     runs-on: macos-latest
@@ -65,8 +58,8 @@ jobs:
           # - {id: "macos_arm64", name: "macOS ARM64", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-x86_64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
           # - {id: "macos", name: "macOS", sdk: macosx, arch: arm64, openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-arm64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
           #  -fembed-bitcode
-          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
-          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, arch_type: ios_sim, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
+          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
+          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
@@ -104,15 +97,15 @@ jobs:
         with:
           path: |
             _build/ios-openssl
-          key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{matrix.platform.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+          key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
-      - name: Build iOS OpenSSL
-        if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          mkdir -p _build/ios-openssl
-          cd openssl-${{ env.OPENSSL_VERSION }}
-          OPENSSL_VERSION=${{ env.OPENSSL_VERSION }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{matrix.platform.arch_type}}
+      # - name: Build iOS OpenSSL
+      #   if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
+      #   shell: bash
+      #   run: |
+      #     mkdir -p _build/ios-openssl
+      #     cd openssl-${{ env.OPENSSL_VERSION }}
+      #     OPENSSL_VERSION=${{ env.OPENSSL_VERSION }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh
 
       - name: Build OpenSSL
         id: openssl-build

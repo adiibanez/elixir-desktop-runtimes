@@ -2,10 +2,20 @@ name: Build iOS Openssl
 
 on:
   workflow_call:
+    inputs:
+      version: # the variable you can use in place of a matrix
+        required: true
+        type: number
+      hash: 
+        required: true
+        type: string
+      arch_type: 
+        required: true
+        type: string
 
 env:
-  OPENSSL_VERSION: "3.4.0"
-  OPENSSL_HASH: "002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
+  OPENSSL_VERSION: ${{inputs.version}}
+  OPENSSL_HASH: ${{inputs.hash}}
 jobs:
   build_setup:
     name: Build openssl libs for iOS targets
@@ -40,7 +50,7 @@ jobs:
         with:
           path: |
             _build/ios-openssl
-          key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+          key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{inputs.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
       - name: Build iOS OpenSSL
         if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
@@ -48,4 +58,4 @@ jobs:
         run: |
           mkdir -p _build/ios-openssl
           cd openssl-${{ env.OPENSSL_VERSION }}
-          OPENSSL_VERSION=${{ env.OPENSSL_VERSION }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh
+          OPENSSL_VERSION=${{ env.OPENSSL_VERSION }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{inputs.arch_type}}
