@@ -64,13 +64,13 @@ jobs:
           - {id: "macos_x86_64", name: "macOS x86_64", sdk: macosx, arch: x86_64, arch_type: macos, openssl_prefix: "_build/ios-openssl/build/openssl.macos.x86_64", openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-x86_64", otp_arch: "x86_64-apple-darwin", xcomp: "x86_64-darwin"}
           # ios: , xcomp: "arm64-ios"
           - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
-          - {id: "ios_sim_arm64", name: "iOS Simulator arm64", sdk: iphonesimulator, arch: arm64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.arm64", openssl_arch: "iossimulator-arm64-xcrun", otp_arch: "arm64-apple-iossimulator", xcomp: "arm64-iossimulator" }
+          - {id: "ios_sim_arm64", name: "iOS Simulator arm64", sdk: iphonesimulator, arch: arm64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.arm64", openssl_arch: "iossimulator-arm64-xcrun", otp_arch: "aarch64-apple-iossimulator", xcomp: "arm64-iossimulator" }
           - {id: "ios_sim_x86_64", name: "iOS Simulator x86_64", sdk: iphonesimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
           
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          - {id: "tvos_sim_arm64", name: "tvOS Simulator arm64", sdk: appletvsimulator, arch: arm64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.arm64", openssl_arch: "iossimulator-arm64-xcrun", otp_arch: "arm64-apple-iossimulator", xcomp: "arm64-iossimulator"}
+          - {id: "tvos_sim_arm64", name: "tvOS Simulator arm64", sdk: appletvsimulator, arch: arm64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.arm64", openssl_arch: "iossimulator-arm64-xcrun", otp_arch: "aarch64-apple-iossimulator", xcomp: "arm64-iossimulator"}
           - {id: "tvos_sim_x86_64", name: "tvOS Simulator x86_64", sdk: appletvsimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator"}
           # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
@@ -326,8 +326,7 @@ jobs:
           # MAKEFLAGS="-j10 -O" \
           # --host=${{ matrix.platform.xcomp }} \
 
-          cp patch/erl-xcomp-apple-multi-sdk.conf _build/otp_builder/xcomp/erl-xcomp-apple-multi-sdk.conf
-
+          cp patch/erl-xcomp-*.conf _build/otp_builder/xcomp/
           cd _build/otp_builder
           
           # exit 1
