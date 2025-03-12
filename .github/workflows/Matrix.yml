@@ -62,8 +62,8 @@ jobs:
           # - {id: "macos_arm64", name: "macOS ARM64", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-x86_64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
           # - {id: "macos", name: "macOS", sdk: macosx, arch: arm64, openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-arm64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
           #  -fembed-bitcode
-          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
-          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, arch_type: ios_sim, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
+          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.arm64", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
+          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
@@ -136,6 +136,16 @@ jobs:
             _build/ios-openssl
           key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{matrix.platform.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
+
+      - name: Openssl Env
+        shell: bash
+        run: |
+          echo "OPENSSL_PREFIX=${{ github.workspace }}/${{matrix.platform.openssl_prefix }}" >> "$GITHUB_ENV"
+          #echo "OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
+          echo "OPENSSL_SRC_PREFIX=${{ github.workspace }}/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
+          
+
+
       - name: Build OpenSSL
         if: false
         id: openssl-build
@@ -146,9 +156,6 @@ jobs:
           # https://github.com/erlang/otp/issues/5706
           cp patch/openssl-ios.conf openssl-${{ env.OPENSSL_VERSION }}/Configurations/15-ios.conf
         
-          echo "OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
-          echo "OPENSSL_SRC_PREFIX=${{ github.workspace }}/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
-          
           # CXXFLAGS=$CFLAGS \
           # CFLAGS="-fno-common -Os -D__IOS__=yes" \
           # OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
@@ -329,7 +336,7 @@ jobs:
           RELEASE_LIBBEAM="yes" ./otp_build configure \
           --xcomp-conf=xcomp/erl-xcomp-${{ matrix.platform.xcomp }}.conf \
           --disable-dynamic-ssl-lib \
-          --with-ssl=${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }} \
+          --with-ssl=${{ env.OPENSSL_PREFIX }} \
           --enable-static-nifs="$STATIC_NIFS"
           
           # rm -rf /tmp/otp_builder
