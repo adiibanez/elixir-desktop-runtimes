@@ -416,7 +416,7 @@ jobs:
           # LIBS=`MIX_ENV=prod mix run -e "Mix.Tasks.Package.Ios.Runtime.filter_lib_files(\"${{ github.workspace }}/_build/otp_builder\", \"${{matrix.platform.otp_arch}}\", \"$BUILD_HOST\")"  2>/dev/null`
           #exit 1
           
-          LIBS="`cat /tmp/libs.txt`,${{env.OPENSSL_PREFIX}}/lib/libcrypto.a"
+          LIBS="`cat /tmp/libs.txt` ${{env.OPENSSL_PREFIX}}/lib/libcrypto.a"
 
           cd _build/otp_builder
           # find . -name libbeam.a
