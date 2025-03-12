@@ -45,6 +45,7 @@ runs:
 
     - name: Build iOS OpenSSL
       if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
+      id: build-openssl
       shell: bash
       run: |
         mkdir -p _build/ios-openssl
@@ -59,6 +60,13 @@ runs:
         find $BUILD_DIR -name "*.a"
         find $BUILD_DIR -name "*.a" -exec lipo -info {} \;
 
+    - name: Extract logs for ${{ matrix.platform.name }}
+      if: always() && steps.build-openssl.outcome != 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-logs-openssl-ios-build-${{inputs.version }}-${{ runner.os }}-${{inputs.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+        path: "**/*.log"
+
     - name: Cache Openssl iOS builds
       uses: actions/cache/save@v4
       id: openssl-ios-build-cache-save
@@ -66,7 +74,4 @@ runs:
         path: |
           _build/ios-openssl
         key: openssl-ios-build-cache-${{inputs.version }}-${{ runner.os }}-${{inputs.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
-
-
-    
 

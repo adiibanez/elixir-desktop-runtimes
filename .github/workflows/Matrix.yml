@@ -63,8 +63,8 @@ jobs:
           # - {id: "macos", name: "macOS", sdk: macosx, arch: arm64, openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-arm64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
           #  -fembed-bitcode
           # ios: , xcomp: "arm64-ios"
-          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-apple-multi-sdk"}
-          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "arm64-apple-multi-sdk" }
+          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
+          - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-apple-multi-sdk"}
@@ -337,19 +337,20 @@ jobs:
           # CFLAGS="-I$INCLUDE_PATH" \
           # MAKEFLAGS="-j10 -O" \
 
+          # XCOMP_HOST=${{matrix.platform.otp_arch}} \
+          # XCOMP_SDK="${{matrix.platform.sdk}}" \
+          # XCOMP_ARCH="${{matrix.platform.arch}}" \
+          
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
-          XCOMP_HOST=${{matrix.platform.otp_arch}} \
-          XCOMP_SDK="${{matrix.platform.sdk}}" \
-          XCOMP_ARCH="${{matrix.platform.arch}}" \
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           ERL_FLAGS="-smp disable" \
           ARCH=${{ matrix.platform.arch }} \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
-          --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
+          --xcomp-conf=xcomp/erl-xcomp-${{matrix.platform.otp_xcomp}}.conf \
           --disable-dynamic-ssl-lib \
           --with-ssl=${{ env.OPENSSL_PREFIX }} \
           --enable-static-nifs="$STATIC_NIFS"
