@@ -4,7 +4,7 @@
 if [[ ! -z $LIB_ARM ]]; then
 xcrun --sdk iphoneos clang -o test_erl_start test_erl_start.c \
     -arch arm64 \
-    -isysroot $(xcrun --sdk iphone --show-sdk-path) \
+    -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
     -Wl,-force_load,$LIB_ARM
 fi 
 
