@@ -340,13 +340,13 @@ jobs:
           # XCOMP_HOST=${{matrix.platform.otp_arch}} \
           # XCOMP_SDK="${{matrix.platform.sdk}}" \
           # XCOMP_ARCH="${{matrix.platform.arch}}" \
+          # ARCH=${{ matrix.platform.arch }} \
           
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           ERL_FLAGS="-smp disable" \
-          ARCH=${{ matrix.platform.arch }} \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
