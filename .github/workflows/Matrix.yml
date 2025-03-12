@@ -69,9 +69,9 @@ jobs:
           
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          - {id: "tvos_sim_arm64", name: "tvOS Simulator arm64", sdk: appletvsimulator, arch: arm64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.arm64", openssl_arch: "iossimulator-arm64-xcrun", otp_arch: "aarch64-apple-iossimulator", xcomp: "arm64-iossimulator"}
-          - {id: "tvos_sim_x86_64", name: "tvOS Simulator x86_64", sdk: appletvsimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator"}
+          # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          # - {id: "tvos_sim_arm64", name: "tvOS Simulator arm64", sdk: appletvsimulator, arch: arm64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.arm64", openssl_arch: "iossimulator-arm64-xcrun", otp_arch: "aarch64-apple-iossimulator", xcomp: "arm64-iossimulator"}
+          #- {id: "tvos_sim_x86_64", name: "tvOS Simulator x86_64", sdk: appletvsimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator"}
           # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "visionos", name: "visionOS", sdk: xros, arch: arm64, openssl_arch: "xros-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
@@ -622,6 +622,7 @@ jobs:
           # merge-multiple: true
 
       - name: Setup Combined xcframework env
+        
         shell: bash
         run: |
 
@@ -635,32 +636,32 @@ jobs:
           # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a
           
           # rename dirs to avoid collisions while creating xcframework. need simpler approach with unique names and simplified paths
-          mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/ios-arm64/ \
-          xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/tvos_ios-arm64/
+          # mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/ios-arm64/ \
+          # xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/tvos_ios-arm64/
           
-          mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/ios-arm64-simulator \
-          xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator
+          # mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/ios-arm64-simulator \
+          # xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator
           
-          mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang.a \
-          xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang_tvos.a
+          # mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang.a \
+          # xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang_tvos.a
           
-          mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/ \
-          xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/
+          # mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/ \
+          # xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/
           
-          mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang.a \
-          xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang_tvos.a
+          # mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang.a \
+          # xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang_tvos.a
           
-          mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang.a \
-          xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang_tvos.a
+          # mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang.a \
+          # xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang_tvos.a
           
           echo "MACOS_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a" >> $GITHUB_ENV
           echo "MACOS_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_x86_64/liberlang.xcframework/macos-x86_64/liberlang.a" >> $GITHUB_ENV
           echo "IOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios/liberlang.xcframework/ios-arm64/liberlang.a" >> $GITHUB_ENV
           echo "SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a" >> $GITHUB_ENV
           echo "SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a" >> $GITHUB_ENV
-          echo "TVOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang_tvos.a" >> $GITHUB_ENV
-          echo "TVOS_SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang_tvos.a" >> $GITHUB_ENV
-          echo "TVOS_SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang_tvos.a" >> $GITHUB_ENV
+          # echo "TVOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang_tvos.a" >> $GITHUB_ENV
+          # echo "TVOS_SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang_tvos.a" >> $GITHUB_ENV
+          # echo "TVOS_SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang_tvos.a" >> $GITHUB_ENV
 
           # echo "WATCHOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos/liberlang.xcframework" >> $GITHUB_ENV
           # echo "WATCHOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos_sim/liberlang.xcframework" >> $GITHUB_ENV
@@ -796,25 +797,25 @@ jobs:
           IOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios/liberlang.xcframework/ios-arm64/liberlang.a"
           IOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a"
           IOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a"
-          TVOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang.a"
-          TVOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang.a"
-          TVOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang.a"
+          # TVOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang.a"
+          # TVOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang.a"
+          # TVOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang.a"
 
-          # --- Rename tvOS Libraries (for consistency) ---
-          # Do this *before* building the command, and check for existence.
-          TVOS_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64"
-          TVOS_SIM_ARM64_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator"
-          TVOS_SIM_X86_64_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator"
+          # # --- Rename tvOS Libraries (for consistency) ---
+          # # Do this *before* building the command, and check for existence.
+          # TVOS_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64"
+          # TVOS_SIM_ARM64_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator"
+          # TVOS_SIM_X86_64_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator"
 
-          if [ -f "$TVOS_SLICE_DIR/liberlang_tvos.a" ]; then
-              mv "$TVOS_SLICE_DIR/liberlang_tvos.a" "$TVOS_SLICE_DIR/liberlang.a"
-          fi
-          if [ -f "$TVOS_SIM_ARM64_SLICE_DIR/liberlang_tvos.a" ]; then
-              mv "$TVOS_SIM_ARM64_SLICE_DIR/liberlang_tvos.a" "$TVOS_SIM_ARM64_SLICE_DIR/liberlang.a"
-          fi
-          if [ -f "$TVOS_SIM_X86_64_SLICE_DIR/liberlang_tvos.a" ]; then
-              mv "$TVOS_SIM_X86_64_SLICE_DIR/liberlang_tvos.a" "$TVOS_SIM_X86_64_SLICE_DIR/liberlang.a"
-          fi
+          # if [ -f "$TVOS_SLICE_DIR/liberlang_tvos.a" ]; then
+          #     mv "$TVOS_SLICE_DIR/liberlang_tvos.a" "$TVOS_SLICE_DIR/liberlang.a"
+          # fi
+          # if [ -f "$TVOS_SIM_ARM64_SLICE_DIR/liberlang_tvos.a" ]; then
+          #     mv "$TVOS_SIM_ARM64_SLICE_DIR/liberlang_tvos.a" "$TVOS_SIM_ARM64_SLICE_DIR/liberlang.a"
+          # fi
+          # if [ -f "$TVOS_SIM_X86_64_SLICE_DIR/liberlang_tvos.a" ]; then
+          #     mv "$TVOS_SIM_X86_64_SLICE_DIR/liberlang_tvos.a" "$TVOS_SIM_X86_64_SLICE_DIR/liberlang.a"
+          # fi
 
           # --- Build the xcodebuild Command ---
           XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
@@ -824,9 +825,9 @@ jobs:
           add_library_if_exists "$IOS_ARM64_LIB"
           add_library_if_exists "$IOS_SIM_ARM64_LIB"
           add_library_if_exists "$IOS_SIM_X86_64_LIB"
-          add_library_if_exists "$TVOS_ARM64_LIB"
-          add_library_if_exists "$TVOS_SIM_ARM64_LIB"
-          add_library_if_exists "$TVOS_SIM_X86_64_LIB"
+          #add_library_if_exists "$TVOS_ARM64_LIB"
+          #add_library_if_exists "$TVOS_SIM_ARM64_LIB"
+          #add_library_if_exists "$TVOS_SIM_X86_64_LIB"
 
           XCFRAMEWORK_CMD+=" -output \"$OUTPUT_XCFRAMEWORK\"" # Quote the output path
 
