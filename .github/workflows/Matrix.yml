@@ -641,6 +641,9 @@ jobs:
       - name: Create Combined xcframework
         shell: bash
         run: |
+
+          find xcframework-slices -name "*.a"
+
           lipo -create $MACOS_FRAMEWORK_ARM64 $MACOS_FRAMEWORK_X86_64 -output /tmp/macos_lipo.a
           MACOS_FRAMEWORK=/tmp/macos_lipo.a
 
