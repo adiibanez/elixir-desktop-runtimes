@@ -330,7 +330,7 @@ jobs:
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
           CFLAGS="-I$INCLUDE_PATH" \
-          ERL_XCOMP_HOST=${{matrix.platform.otp_arch}} \
+          XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="${{matrix.platform.arch}}" \
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
