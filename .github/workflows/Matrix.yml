@@ -641,10 +641,9 @@ jobs:
           mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/ios-arm64-simulator \
           xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator
           
-          mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/ \
-          xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/
+          mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/ \
+          xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/
           
-
           echo "MACOS_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a" >> $GITHUB_ENV
           echo "MACOS_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_x86_64/liberlang.xcframework/macos-x86_64/liberlang.a" >> $GITHUB_ENV
           echo "IOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios/liberlang.xcframework/ios-arm64/liberlang.a" >> $GITHUB_ENV
@@ -661,6 +660,7 @@ jobs:
 
       - name: Collect Combined xcframework artifacts and lipo
         shell: bash
+        continue-on-error: true
         run: |
 
           find xcframework-slices -name "*.a"
@@ -694,15 +694,15 @@ jobs:
             exit 1
           fi
           
-          mkdir /tmp/raw-artifacts
-          cp -r "$IOS_FRAMEWORK" "$MACOS_FRAMEWORK" "$SIMULATOR_FRAMEWORK" "$TVOS_FRAMEWORK" "$TVOS_SIMULATOR_FRAMEWORK" /tmp/debug-artifacts/
+          #mkdir /tmp/raw-artifacts
+          #cp -r "$IOS_FRAMEWORK" "$MACOS_FRAMEWORK" "$SIMULATOR_FRAMEWORK" "$TVOS_FRAMEWORK" "$TVOS_SIMULATOR_FRAMEWORK" /tmp/debug-artifacts/
           
       - name: Upload Raw xcframework Artifacts
         uses: actions/upload-artifact@v4
         if: always() && steps.assemble-xcframework.outcome != 'success'
         with:
           name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-raw-lib-artifacts
-          path: /tmp/raw-artifacts/
+          path: xcframework-slices
           
       - name: Assemble xcframework
         id: "assemble-xcframework"
