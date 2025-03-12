@@ -667,86 +667,150 @@ jobs:
           # echo "VISIONOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos/liberlang.xcframework/ios-arm64/liberlang.a" >> $GITHUB_ENV
           # echo "VISIONOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos_sim/liberlang.xcframework/ios-x86_64-simulator/liberlang.a" >> $GITHUB_ENV
 
-      - name: Collect Combined xcframework artifacts and lipo
-        shell: bash
-        continue-on-error: true
-        run: |
-          mkdir xcframework-slices/lipos/
-          
-          # Merge iOS (arm64 )
-          lipo -create $IOS_FRAMEWORK $TVOS_FRAMEWORK -output ./xcframework-slices/lipos/ios_lipo.a
-          echo IOS_FRAMEWORK="./xcframework-slices/lipos/ios_lipo.a" >> $GITHUB_ENV
-
-          # Merge iOS Simulator (arm64 + x86_64)
-          lipo -create $SIMULATOR_FRAMEWORK_ARM64 $SIMULATOR_FRAMEWORK_X86_64 $TVOS_SIMULATOR_FRAMEWORK_ARM64 $TVOS_SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/ios_simulator_lipo.a
-          echo SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/ios_simulator_lipo.a" >> $GITHUB_ENV
-
-          # Merge macOS (arm64 + x86_64)
-          lipo -create $MACOS_FRAMEWORK_ARM64 $MACOS_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/macos_lipo.a
-          echo MACOS_FRAMEWORK="./xcframework-slices/lipos/macos_lipo.a" >> $GITHUB_ENV
-
-          # Merge tvOS Simulator (arm64 + x86_64)
-          #lipo -create $TVOS_SIMULATOR_FRAMEWORK_ARM64 $TVOS_SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/tvos_simulator_lipo.a
-          #echo TVOS_SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/tvos_simulator_lipo.a" >> $GITHUB_ENV
-
-          # Merge visionOS Simulator (arm64 + x86_64)
-          #lipo -create $VISIONOS_SIMULATOR_FRAMEWORK_ARM64 $VISIONOS_SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/visionos_simulator_lipo.a
-          #echo VISIONOS_SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/visionos_simulator_lipo.a" >> $GITHUB_ENV
-          
-      - name: Upload Raw xcframework Artifacts
-        uses: actions/upload-artifact@v4
-        if: always() && steps.assemble-xcframework.outcome != 'success'
-        with:
-          name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-raw-lib-artifacts
-          path: xcframework-slices
-          
+      # - name: Collect Combined xcframework artifacts and lipo
+      #   shell: bash
+      #   continue-on-error: true
+      #   run: |
+      #     mkdir xcframework-slices/lipos/
+      #
+      #
+      #     xcodebuild -create-xcframework \
+      #       -library "$IOS_ARM64_LIB" \
+      #       -library "$IOS_ARM64_SIM_LIB" \
+      #       -library "$IOS_X86_64_SIM_LIB" \
+      #       -library "$TVOS_ARM64_LIB" \
+      #       -library "$TVOS_ARM64_SIM_LIB" \
+      #       -library "$TVOS_X86_64_SIM_LIB" \
+      #       -library "$VISIONOS_ARM64_LIB" \
+      #       -library "$VISIONOS_ARM64_SIM_LIB" \
+      #       -output "$OUTPUT_XCFRAMEWORK"
+      #
+      #     # Merge iOS (arm64 )
+      #     lipo -create $IOS_FRAMEWORK $TVOS_FRAMEWORK -output ./xcframework-slices/lipos/ios_lipo.a
+      #     echo IOS_FRAMEWORK="./xcframework-slices/lipos/ios_lipo.a" >> $GITHUB_ENV
+      #
+      #     # Merge iOS Simulator (arm64 + x86_64)
+      #     lipo -create $SIMULATOR_FRAMEWORK_ARM64 $SIMULATOR_FRAMEWORK_X86_64 $TVOS_SIMULATOR_FRAMEWORK_ARM64 $TVOS_SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/ios_simulator_lipo.a
+      #     echo SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/ios_simulator_lipo.a" >> $GITHUB_ENV
+      #
+      #     # Merge macOS (arm64 + x86_64)
+      #     lipo -create $MACOS_FRAMEWORK_ARM64 $MACOS_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/macos_lipo.a
+      #     echo MACOS_FRAMEWORK="./xcframework-slices/lipos/macos_lipo.a" >> $GITHUB_ENV
+      #
+      #     # Merge tvOS Simulator (arm64 + x86_64)
+      #     #lipo -create $TVOS_SIMULATOR_FRAMEWORK_ARM64 $TVOS_SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/tvos_simulator_lipo.a
+      #     #echo TVOS_SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/tvos_simulator_lipo.a" >> $GITHUB_ENV
+      #
+      #     # Merge visionOS Simulator (arm64 + x86_64)
+      #     #lipo -create $VISIONOS_SIMULATOR_FRAMEWORK_ARM64 $VISIONOS_SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/visionos_simulator_lipo.a
+      #     #echo VISIONOS_SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/visionos_simulator_lipo.a" >> $GITHUB_ENV
+      #
+      # - name: Upload Raw xcframework Artifacts
+      #   uses: actions/upload-artifact@v4
+      #   if: always() && steps.assemble-xcframework.outcome != 'success'
+      #   with:
+      #     name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-raw-lib-artifacts
+      #     path: xcframework-slices
+      #
+      # - name: Assemble xcframework
+      #   id: "assemble-xcframework"
+      #   shell: bash
+      #   continue-on-error: true
+      #   run: |
+      #     echo "IOS ( lipo ios / tvos ): $IOS_FRAMEWORK"
+      #     echo "IOS_SIM (lipo ios / tvos ): $SIMULATOR_FRAMEWORK"
+      #     #echo "TVOS: $TVOS_FRAMEWORK"
+      #     #echo "TVOS SIM (lipo): $TVOS_SIMULATOR_FRAMEWORK"
+      #     echo "MACOS (lipo): $MACOS_FRAMEWORK"
+      #
+      #     XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
+      #
+      #     add_library_if_exists() {
+      #       if [ -f "$1" ]; then
+      #         echo "✅ Including: $1"
+      #         XCFRAMEWORK_CMD+=" -library $1"
+      #       else
+      #         echo "⚠️ Skipping missing library: $1"
+      #       fi
+      #     }
+      #
+      #
+      #     xcodebuild -create-xcframework \
+      #       -library "$IOS_ARM64_LIB" \
+      #       -library "$IOS_ARM64_SIM_LIB" \
+      #       -library "$IOS_X86_64_SIM_LIB" \
+      #       -library "$TVOS_ARM64_LIB" \
+      #       -library "$TVOS_ARM64_SIM_LIB" \
+      #       -library "$TVOS_X86_64_SIM_LIB" \
+      #       -library "$VISIONOS_ARM64_LIB" \
+      #       -library "$VISIONOS_ARM64_SIM_LIB" \
+      #       -output "$OUTPUT_XCFRAMEWORK"
+      #
+      #     add_library_if_exists "$IOS_FRAMEWORK"
+      #     add_library_if_exists "$SIMULATOR_FRAMEWORK"
+      #     #add_library_if_exists "$TVOS_FRAMEWORK"
+      #     #add_library_if_exists "$TVOS_SIMULATOR_FRAMEWORK"
+      #     add_library_if_exists "$MACOS_FRAMEWORK"
+      #
+      #     XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
+      #
+      #     echo "🚀 Running: $XCFRAMEWORK_CMD"
+      #     eval "$XCFRAMEWORK_CMD"
+      #
+      #     #xcodebuild -create-xcframework \
+      #     #  -library $IOS_FRAMEWORK \
+      #     #  -library $SIMULATOR_FRAMEWORK \
+      #     #  -library $MACOS_FRAMEWORK \
+      #     #  -library $TVOS_SIMULATOR_FRAMEWORK \
+      #     #  -output liberlang.xcframework
+      #
+      #     #rm -rf /tmp/xcframwork_output
+      #     #cp -r $OUTPUT_XCFRAMEWORK /tmp/xcframwork_output/
+      #
+      #     mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+      #     echo mv -f liberlang.xcframework liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
+      
       - name: Assemble xcframework
-        id: "assemble-xcframework"
         shell: bash
-        continue-on-error: true
         run: |
-          echo "IOS ( lipo ios / tvos ): $IOS_FRAMEWORK"
-          echo "IOS_SIM (lipo ios / tvos ): $SIMULATOR_FRAMEWORK"
-          #echo "TVOS: $TVOS_FRAMEWORK"
-          #echo "TVOS SIM (lipo): $TVOS_SIMULATOR_FRAMEWORK"
-          echo "MACOS (lipo): $MACOS_FRAMEWORK"
-          
-          XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
-          
-          add_library_if_exists() {
-            if [ -f "$1" ]; then
-              echo "✅ Including: $1"
-              XCFRAMEWORK_CMD+=" -library $1"
-            else
-              echo "⚠️ Skipping missing library: $1"
-            fi
-          }
-          
-          add_library_if_exists "$IOS_FRAMEWORK"
-          add_library_if_exists "$SIMULATOR_FRAMEWORK"
-          #add_library_if_exists "$TVOS_FRAMEWORK"
-          #add_library_if_exists "$TVOS_SIMULATOR_FRAMEWORK"
-          add_library_if_exists "$MACOS_FRAMEWORK"
-          
-          XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
-          
-          echo "🚀 Running: $XCFRAMEWORK_CMD"
-          eval "$XCFRAMEWORK_CMD"
+          OTP_VERSION="${{matrix.erlixir.otp-version}}"  # Get these from your environment
+          ELX_VERSION="${{matrix.erlixir.elixir-version}}"
+          BASE_SLICE_DIR="xcframework-slices"
+          OUTPUT_XCFRAMEWORK="liberlang.xcframework"
 
-          #xcodebuild -create-xcframework \
-          #  -library $IOS_FRAMEWORK \
-          #  -library $SIMULATOR_FRAMEWORK \
-          #  -library $MACOS_FRAMEWORK \
-          #  -library $TVOS_SIMULATOR_FRAMEWORK \
-          #  -output liberlang.xcframework
+          # --- Construct Paths to .a Files (using consistent naming) ---
+          MACOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a"
+          MACOS_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-macos_x86_64/liberlang.xcframework/macos-x86_64/liberlang.a"
+          IOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios/liberlang.xcframework/ios-arm64/liberlang.a"
+          IOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a"
+          IOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a"
+          TVOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang.a" # After renaming
+          TVOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang.a" # After renaming
+          TVOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang.a" # After renaming
 
-          #rm -rf /tmp/xcframwork_output
-          #cp -r $OUTPUT_XCFRAMEWORK /tmp/xcframwork_output/
+          # --- Create the XCFramework ---
+          xcodebuild -create-xcframework \
+            -library "$MACOS_ARM64_LIB" \
+            -library "$MACOS_X86_64_LIB" \
+            -library "$IOS_ARM64_LIB" \
+            -library "$IOS_SIM_ARM64_LIB" \
+            -library "$IOS_SIM_X86_64_LIB" \
+            -library "$TVOS_ARM64_LIB" \
+            -library "$TVOS_SIM_ARM64_LIB" \
+            -library "$TVOS_SIM_X86_64_LIB" \
+            -output "$OUTPUT_XCFRAMEWORK"
+
+          if [ $? -ne 0 ]; then
+            echo "Error: xcodebuild failed."
+            exit 1
+          fi
           
           mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-          echo mv -f liberlang.xcframework liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
+          mv -f liberlang.xcframework liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
+          echo "XCFramework created successfully: $OUTPUT_XCFRAMEWORK"
 
       - name: Check Architecture
+        if: false
         continue-on-error: true
         run: |
           #ls -lah liberlang.xframework
