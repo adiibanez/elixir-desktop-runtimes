@@ -624,14 +624,24 @@ jobs:
       - name: Setup Combined xcframework env
         shell: bash
         run: |
-          echo "MACOS_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macosx/liberlang.xcframework/macos-arm64/liberlang.a" >> $GITHUB_ENV
-          echo "MACOS_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macosx/liberlang.xcframework/macos-x86_64/liberlang.a" >> $GITHUB_ENV
+
+          # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a
+          # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-tvos_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a
+          # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-ios_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a
+          # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-ios/liberlang.xcframework/ios-arm64/liberlang.a
+          # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-tvos_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a
+          # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-tvos/liberlang.xcframework/ios-arm64/liberlang.a
+          # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-macos_x86_64/liberlang.xcframework/macos-x86_64/liberlang.a
+          # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a
+
+          echo "MACOS_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a" >> $GITHUB_ENV
+          echo "MACOS_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_x86_64/liberlang.xcframework/macos-x86_64/liberlang.a" >> $GITHUB_ENV
           echo "IOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios/liberlang.xcframework/ios-arm64/liberlang.a" >> $GITHUB_ENV
-          echo "SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim/liberlang.xcframework/ios-arm64-simulator/liberlang.a" >> $GITHUB_ENV
-          echo "SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim/liberlang.xcframework/ios-x86_64-simulator/liberlang.a" >> $GITHUB_ENV
+          echo "SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a" >> $GITHUB_ENV
+          echo "SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a" >> $GITHUB_ENV
           echo "TVOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/ios-arm64/liberlang.a" >> $GITHUB_ENV
-          echo "TVOS_SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim/liberlang.xcframework/ios-arm64-simulator/liberlang.a" >> $GITHUB_ENV
-          echo "TVOS_SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim/liberlang.xcframework/ios-x86_64-simulator/liberlang.a" >> $GITHUB_ENV
+          echo "TVOS_SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a" >> $GITHUB_ENV
+          echo "TVOS_SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a" >> $GITHUB_ENV
 
           # echo "WATCHOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos/liberlang.xcframework" >> $GITHUB_ENV
           # echo "WATCHOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos_sim/liberlang.xcframework" >> $GITHUB_ENV
