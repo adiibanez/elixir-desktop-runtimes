@@ -330,7 +330,7 @@ jobs:
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
           CFLAGS="-I$INCLUDE_PATH" \
-          ERL_XCOMP_HOST=${{matrix.platform.otp_arch}}
+          ERL_XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="${{matrix.platform.arch}}" \
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
@@ -558,7 +558,7 @@ jobs:
           path: ${{ steps.build-xcframework-slice.outputs.xcframework_slice_path }}
 
   combine_xcframework:
-    if: false
+    # if: false
     name: Combine XC Framework
     runs-on: macos-latest
     needs: build_platform_matrix
