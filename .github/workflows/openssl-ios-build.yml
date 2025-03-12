@@ -8,7 +8,7 @@ env:
   OPENSSL_HASH: "002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3"
 jobs:
   build_setup:
-    name: Setup Dependencies
+    name: Build openssl libs for iOS targets
     runs-on: macos-latest
     steps:
       - name: Checkout code
