@@ -712,20 +712,34 @@ jobs:
           echo $IOS_FRAMEWORK
           echo $SIMULATOR_FRAMEWORK
           echo $OUTPUT_XCFRAMEWORK
+          
+          XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
+          
+          add_library_if_exists() {
+            if [ -f "$1" ]; then
+              echo "✅ Including: $1"
+              XCFRAMEWORK_CMD+=" -library $1"
+            else
+              echo "⚠️ Skipping missing library: $1"
+            fi
+          }
+          
+          add_library_if_exists "$IOS_FRAMEWORK"
+          add_library_if_exists "$SIMULATOR_FRAMEWORK"
+          add_library_if_exists "$MACOS_FRAMEWORK"
+          add_library_if_exists "$TVOS_SIMULATOR_FRAMEWORK"
+          
+          XCFRAMEWORK_CMD+=" -output $OUTPUT_XCFRAMEWORK"
+          
+          echo "🚀 Running: $XCFRAMEWORK_CMD"
+          eval "$XCFRAMEWORK_CMD"
 
-          echo xcodebuild -create-xcframework \
-            -library $IOS_FRAMEWORK \
-            -library $SIMULATOR_FRAMEWORK \
-            -library $MACOS_FRAMEWORK \
-            -library $TVOS_SIMULATOR_FRAMEWORK \
-            -output $OUTPUT_XCFRAMEWORK
-
-          xcodebuild -create-xcframework \
-            -library $IOS_FRAMEWORK \
-            -library $SIMULATOR_FRAMEWORK \
-            -library $MACOS_FRAMEWORK \
-            -library $TVOS_SIMULATOR_FRAMEWORK \
-            -output $OUTPUT_XCFRAMEWORK
+          #xcodebuild -create-xcframework \
+          #  -library $IOS_FRAMEWORK \
+          #  -library $SIMULATOR_FRAMEWORK \
+          #  -library $MACOS_FRAMEWORK \
+          #  -library $TVOS_SIMULATOR_FRAMEWORK \
+          #  -output $OUTPUT_XCFRAMEWORK
 
           #rm -rf /tmp/xcframwork_output
           #cp -r $OUTPUT_XCFRAMEWORK /tmp/xcframwork_output/
