@@ -262,8 +262,8 @@ jobs:
 
           # unset SDKROOT https://stackoverflow.com/questions/62118332/using-sys-root-for-iphonesimulator-but-targeting-macosx-warning-in-npm-insta
 
-          ls -lah _build/openssl-$OPENSSL_VERSION
-          ls -lah _build/
+          #ls -lah _build/openssl-$OPENSSL_VERSION
+          #ls -lah _build/
 
           # echo $CC
           STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
@@ -281,13 +281,17 @@ jobs:
           fi
 
           # echo `env` > /tmp/otp_cmd.sh
-          ls -lah $OPENSSL_PREFIX
+          ls -lah $OPENSSL_PREFIX/lib
           echo $OPENSSL_PREFIX
 
           if [ -e $OPENSSL_PREFIX ]; then
               echo "Openssl $OPENSSL_PREFIX exists."
+              file "$OPENSSL_PREFIX/lib/libcrypto.a"
+              lipo -info "$OPENSSL_PREFIX/lib/libcrypto.a"
+              otool -L "$OPENSSL_PREFIX/lib/libcrypto.a"
           else
               echo "Openssl $OPENSSL_PREFIX doesn't exists."
+              exit 1
           fi
 
           export OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}}
@@ -307,11 +311,7 @@ jobs:
           # MAKEFLAGS="-j10 -O" \
           # --host=${{ matrix.platform.xcomp }} \
           cd _build/otp_builder
-
-          ls -lah "${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/"
-          file "${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a"
-          otool -L "${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a"
-
+          
           # exit 1
 
           #KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
@@ -356,9 +356,6 @@ jobs:
           find ~+ -name asn1rt_nif.a
           find ~+ -name crypto.a
 
-          #otool -L ${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a
-          #otool -L ${{ github.workspace }}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a
-          
           cd ${{ github.workspace }}
 
           #ls -lah $OTP_PREFIX
@@ -400,9 +397,9 @@ jobs:
           #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " lipo -info " $1}' | sh >> /tmp/lib_report.log
           #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " otool -L " $1}' | sh >> /tmp/lib_report.log
 
-          rm -rf /tmp/otp_libs
-          mkdir /tmp/otp_libs
-          cp $LIBS /tmp/otp_libs
+          #rm -rf /tmp/otp_libs
+          #mkdir /tmp/otp_libs
+          #cp $LIBS /tmp/otp_libs
 
           # find ~+ -type f -name "*.a" | grep -v "$BUILD_HOST" -e "${{matrix.platform.otp_arch}}" -E "$INCLUDE_PATTERN" | awk '{print " cp " $1 " `basename " $1 "`"}' | sh
 
