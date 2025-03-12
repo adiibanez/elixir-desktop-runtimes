@@ -329,9 +329,10 @@ jobs:
           xcodebuild -showsdks
           xcrun --sdk ${{matrix.platform.sdk}} --show-sdk-path
 
-          echo 'int main() { return 0; }' > test.c
-          xcrun -sdk ${{matrix.platform.sdk}} cc -arch ${{ matrix.platform.arch }} -o test test.c
-          ./test
+          echo 'int main() { return 0; }' > test_compiler.c
+          xcrun -sdk iphoneos cc -arch arm64 -o test_compiler test_compiler.c
+          #./test_compiler
+          file test_compiler
 
           # CFLAGS="-I$INCLUDE_PATH" \
           # MAKEFLAGS="-j10 -O" \

@@ -59,3 +59,14 @@ runs:
         find $BUILD_DIR -name "*.a"
         find $BUILD_DIR -name "*.a" -exec lipo -info {} \;
 
+    - name: Cache Openssl iOS builds
+      uses: actions/cache/save@v4
+      id: openssl-ios-build-cache
+      with:
+        path: |
+          _build/ios-openssl
+        key: openssl-ios-build-cache-${{inputs.version }}-${{ runner.os }}-${{inputs.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+
+
+    
+
