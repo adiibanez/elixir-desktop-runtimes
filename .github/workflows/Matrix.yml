@@ -368,6 +368,14 @@ jobs:
           #ls -lah $OTP_PREFIX
           ls -lah _build/otp_builder
 
+
+      - name: Extract logs for ${{ matrix.platform.name }}
+        if: always() && steps.otp-setup.outcome != 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+          path: **/*.log
+
       - name: Combine static OTP libs
         continue-on-error: false
         shell: bash
