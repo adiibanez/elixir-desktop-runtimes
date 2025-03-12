@@ -339,6 +339,11 @@ jobs:
           xcodebuild -showsdks
           xcrun --sdk ${{matrix.platform.sdk}} --show-sdk-path
 
+          # export CC="xcrun -sdk iphoneos cc"
+          # export CXX="xcrun -sdk iphoneos c++"
+          # export CFLAGS="-arch arm64 -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -mios-version-min=13.0"
+          # export LDFLAGS="-L$(xcrun --sdk iphoneos --show-sdk-path)/usr/lib/ -lc++"
+
           echo 'int main() { return 0; }' > test_compiler.c
           xcrun -sdk iphoneos cc -arch arm64 -o test_compiler test_compiler.c
           #./test_compiler
@@ -360,7 +365,7 @@ jobs:
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
-          --xcomp-conf=xcomp/erl-xcomp-${{matrix.platform.otp_xcomp}}.conf \
+          --xcomp-conf=xcomp/erl-xcomp-${{matrix.platform.xcomp}}.conf \
           --disable-dynamic-ssl-lib \
           --with-ssl=${{ env.OPENSSL_PREFIX }} \
           --enable-static-nifs="$STATIC_NIFS"
