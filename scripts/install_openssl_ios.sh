@@ -20,16 +20,16 @@ XROSSIMSYSROOT=$XCODE_ROOT/Platforms/XRSimulator.platform/Developer
 # BUILD_DIR="$( cd "$( dirname "./" )" >/dev/null 2>&1 && pwd )"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-if [ "$HOST_ARC" = "arm64" ]; then
-	FOREIGN_ARC=x86_64
-    FOREIGN_BUILD_FLAGS="" && [ ! -z "${MACOSX_VERSION_X86_64}" ] && FOREIGN_BUILD_FLAGS="-mmacosx-version-min=$MACOSX_VERSION_X86_64"
-    NATIVE_BUILD_FLAGS="" && [ ! -z "${MACOSX_VERSION_ARM}" ] && NATIVE_BUILD_FLAGS="-mmacosx-version-min=$MACOSX_VERSION_ARM"
-else
-	FOREIGN_ARC=arm64
-    FOREIGN_BUILD_FLAGS="" && [ ! -z "${MACOSX_VERSION_ARM}" ] && FOREIGN_BUILD_FLAGS="-mmacosx-version-min=$MACOSX_VERSION_ARM"
-    NATIVE_BUILD_FLAGS="" && [ ! -z "${MACOSX_VERSION_X86_64}" ] && NATIVE_BUILD_FLAGS="-mmacosx-version-min=$MACOSX_VERSION_X86_64"
-fi
-FOREIGN_BUILD_FLAGS="-arch $FOREIGN_ARC $FOREIGN_BUILD_FLAGS"
+# if [ "$HOST_ARC" = "arm64" ]; then
+# 	FOREIGN_ARC=x86_64
+#     FOREIGN_BUILD_FLAGS="" && [ ! -z "${MACOSX_VERSION_X86_64}" ] && FOREIGN_BUILD_FLAGS="-mmacosx-version-min=$MACOSX_VERSION_X86_64"
+#     NATIVE_BUILD_FLAGS="" && [ ! -z "${MACOSX_VERSION_ARM}" ] && NATIVE_BUILD_FLAGS="-mmacosx-version-min=$MACOSX_VERSION_ARM"
+# else
+# 	FOREIGN_ARC=arm64
+#     FOREIGN_BUILD_FLAGS="" && [ ! -z "${MACOSX_VERSION_ARM}" ] && FOREIGN_BUILD_FLAGS="-mmacosx-version-min=$MACOSX_VERSION_ARM"
+#     NATIVE_BUILD_FLAGS="" && [ ! -z "${MACOSX_VERSION_X86_64}" ] && NATIVE_BUILD_FLAGS="-mmacosx-version-min=$MACOSX_VERSION_X86_64"
+# fi
+# FOREIGN_BUILD_FLAGS="-arch $FOREIGN_ARC $FOREIGN_BUILD_FLAGS"
 
 if [[ ! -d $BUILD_DIR/frameworks ]]; then
 
@@ -67,7 +67,9 @@ build_macos_libs() {
 			BUILD_FLAGS="-mmacosx-version-min=$MACOSX_VERSION_ARM"
 		fi
 
-		./Configure --prefix="$BUILD_DIR/build/openssl.macos.$1" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$1-cc CFLAGS="$BUILD_FLAGS"
+		# CFLAGS="$BUILD_FLAGS"
+
+		./Configure --prefix="$BUILD_DIR/build/openssl.macos.$1" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$1-cc 
 		make clean
 		make -j$THREAD_COUNT
 		make install
