@@ -61,7 +61,7 @@ runs:
 
     - name: Cache Openssl iOS builds
       uses: actions/cache/save@v4
-      id: openssl-ios-build-cache
+      id: openssl-ios-build-cache-save
       with:
         path: |
           _build/ios-openssl
