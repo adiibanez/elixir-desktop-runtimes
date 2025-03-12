@@ -326,10 +326,19 @@ jobs:
           # KERL_CONFIGURE_DISABLE_APPLICATIONS https://github.com/kerl/kerl/blob/master/kerl
           # https://www.erlang.org/docs/19/applications
 
+          xcodebuild -showsdks
+          xcrun --sdk ${{matrix.platform.sdk}} --show-sdk-path
+
+          echo 'int main() { return 0; }' > test.c
+          xcrun -sdk ${{matrix.platform.sdk}} cc -arch ${{ matrix.platform.arch }} -o test test.c
+          ./test
+
+          # CFLAGS="-I$INCLUDE_PATH" \
+          # MAKEFLAGS="-j10 -O" \
+
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
-          CFLAGS="-I$INCLUDE_PATH" \
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="${{matrix.platform.arch}}" \
@@ -337,8 +346,7 @@ jobs:
           ERL_FLAGS="-smp disable" \
           ARCH=${{ matrix.platform.arch }} \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
-          LIBS="${{github.workspace}}/_build/openssl-${{ env.OPENSSL_VERSION }}/lib/libcrypto.a" \
-          MAKEFLAGS="-j10 -O" \
+          LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
           --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
           --disable-dynamic-ssl-lib \
@@ -368,7 +376,6 @@ jobs:
           #ls -lah $OTP_PREFIX
           ls -lah _build/otp_builder
 
-
       - name: Extract logs for ${{ matrix.platform.name }}
         if: always() && steps.otp-setup.outcome != 'success'
         uses: actions/upload-artifact@v4
@@ -380,7 +387,6 @@ jobs:
         continue-on-error: false
         shell: bash
         run: |
-
           BUILD_HOST=`_build/otp_builder/erts/autoconf/config.guess`
           echo "BUID_HOST: $BUILD_HOST"
 
@@ -636,8 +642,6 @@ jobs:
           echo $SIMULATOR_FRAMEWORK
           echo $OUTPUT_XCFRAMEWORK
 
-          LIB_ARM=$IOS_FRAMEWORK LIB_X86=LIB_ARM=$IOS_FRAMEWORK scripts/tester.sh
-
           echo xcodebuild -create-xcframework \
             -library $IOS_FRAMEWORK \
             -library $SIMULATOR_FRAMEWORK \
@@ -660,6 +664,9 @@ jobs:
 
           mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
           mv $OUTPUT_XCFRAMEWORK liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
+
+          cd scripts
+          LIB_ARM=$IOS_FRAMEWORK LIB_X86=LIB_ARM=$IOS_FRAMEWORK ./tester.sh
           
       # - name: Check Architecture
       #   run: |
