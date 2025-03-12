@@ -54,7 +54,7 @@ jobs:
       matrix:
         erlixir:
           - {otp-version: 27.3, elixir-version: 1.18.2, erl-opts-description: "min;no-stripping;-year2038;-megaco", erl-opts: "--disable-stripped-runtime --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba", use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-27.3-noiosminversion"}
-          - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
+          # - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
         os: [macos-latest]
         platform:
 
@@ -62,7 +62,7 @@ jobs:
           # - {id: "macos_arm64", name: "macOS ARM64", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-x86_64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
           # - {id: "macos", name: "macOS", sdk: macosx, arch: arm64, openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-arm64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
           #  -fembed-bitcode
-          - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
+          # - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
           - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, arch_type: ios_sim, openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
@@ -129,8 +129,9 @@ jobs:
           key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{matrix.platform.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
       - name: Build OpenSSL
+        if: false
         id: openssl-build
-        if: steps.openssl-build-cache.outputs.cache-hit != 'true'
+        # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
         run: |
 
           mkdir -p _build/openssl-${{ env.OPENSSL_VERSION }}
