@@ -1,22 +1,22 @@
 name: Build iOS Openssl
 
-on:
-  workflow_call:
-    inputs:
-      version: # the variable you can use in place of a matrix
-        required: true
-        type: number
-      hash: 
-        required: true
-        type: string
-      arch_type: 
-        required: true
-        type: string
+runs: 
+  using: "composite"
 
-env:
-  OPENSSL_VERSION: ${{inputs.version}}
-  OPENSSL_HASH: ${{inputs.hash}}
-jobs:
+# on:
+#   workflow_call:
+#     inputs:
+#       version: # the variable you can use in place of a matrix
+#         required: true
+#         type: number
+#       hash:
+#         required: true
+#         type: string
+#       arch_type:
+#         required: true
+#         type: string
+
+steps:
   build_setup:
     name: Build openssl libs for iOS targets
     runs-on: macos-latest

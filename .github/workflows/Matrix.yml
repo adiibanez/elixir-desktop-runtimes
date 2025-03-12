@@ -112,7 +112,7 @@ jobs:
       #     OPENSSL_VERSION=${{ env.OPENSSL_VERSION }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{matrix.platform.arch_type}}
 
       - name: build_openssl_ios
-        uses: ./.github/workflows/openssl-ios-build.yml
+        uses: ./.github/actions/openssl-ios
         if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
         with: 
           version: ${{env.OPENSSL_VERSION }}
