@@ -60,13 +60,19 @@ function arc()
 }
 
 build_macos_libs() {
-	if [[ ! -d $BUILD_DIR/build/lib.macos ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.macos" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$FOREIGN_ARC-cc CFLAGS="$FOREIGN_BUILD_FLAGS"
+	if [[ ! -d $BUILD_DIR/build/lib.macos-$1 ]]; then
+		if [ "$1" = "x86_64" ]; then
+			BUILD_FLAGS="-mmacosx-version-min=$MACOSX_VERSION_X86_64"
+		else
+			BUILD_FLAGS="-mmacosx-version-min=$MACOSX_VERSION_ARM"
+		fi
+
+		./Configure --prefix="$BUILD_DIR/build/openssl.macos.$1" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$1-cc CFLAGS="$BUILD_FLAGS"
 		make clean
 		make -j$THREAD_COUNT
 		make install
 
-		mkdir $BUILD_DIR/build/lib.macos
+		mkdir $BUILD_DIR/build/lib.macos-$1
 		# lipo -create $BUILD_DIR/build/lib/libssl.a libssl.a -output $BUILD_DIR/build/lib.macos/libssl.a
 		# lipo -create $BUILD_DIR/build/lib/libcrypto.a libcrypto.a -output $BUILD_DIR/build/lib.macos/libcrypto.a
 
@@ -207,7 +213,8 @@ case "$BUILD_ARCH" in
         build_xrossim_libs x86_64
         ;;
     "macos")
-        build_macos_libs
+        build_macos_libs arm64
+		build_macos_libs x86_64
         ;;
     "catalyst")
         build_catalyst_libs arm64
