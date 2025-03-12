@@ -773,53 +773,79 @@ jobs:
       - name: Assemble xcframework
         shell: bash
         run: |
-          OTP_VERSION="${{matrix.erlixir.otp-version}}"  # Get these from your environment
+          # set -e  # Exit immediately if any command fails
+
+          OTP_VERSION="${{matrix.erlixir.otp-version}}"
           ELX_VERSION="${{matrix.erlixir.elixir-version}}"
           BASE_SLICE_DIR="xcframework-slices"
           OUTPUT_XCFRAMEWORK="liberlang.xcframework"
-          
-          XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
-      
+
+          # --- Function to add libraries if they exist ---
           add_library_if_exists() {
             if [ -f "$1" ]; then
               echo "✅ Including: $1"
-              XCFRAMEWORK_CMD+=" -library $1"
+              XCFRAMEWORK_CMD+=" -library \"$1\"" # Quote the path!
             else
               echo "⚠️ Skipping missing library: $1"
             fi
           }
 
-          # --- Construct Paths to .a Files (using consistent naming) ---
+          # --- Construct Paths to .a Files ---
           MACOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a"
           MACOS_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-macos_x86_64/liberlang.xcframework/macos-x86_64/liberlang.a"
           IOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios/liberlang.xcframework/ios-arm64/liberlang.a"
           IOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a"
           IOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a"
-          TVOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang.a" # After renaming
-          TVOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang.a" # After renaming
-          TVOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang.a" # After renaming
+          TVOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang.a"
+          TVOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang.a"
+          TVOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang.a"
 
-          # --- Create the XCFramework ---
+          # --- Rename tvOS Libraries (for consistency) ---
+          # Do this *before* building the command, and check for existence.
+          TVOS_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64"
+          TVOS_SIM_ARM64_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator"
+          TVOS_SIM_X86_64_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator"
+
+          if [ -f "$TVOS_SLICE_DIR/liberlang_tvos.a" ]; then
+              mv "$TVOS_SLICE_DIR/liberlang_tvos.a" "$TVOS_SLICE_DIR/liberlang.a"
+          fi
+          if [ -f "$TVOS_SIM_ARM64_SLICE_DIR/liberlang_tvos.a" ]; then
+              mv "$TVOS_SIM_ARM64_SLICE_DIR/liberlang_tvos.a" "$TVOS_SIM_ARM64_SLICE_DIR/liberlang.a"
+          fi
+          if [ -f "$TVOS_SIM_X86_64_SLICE_DIR/liberlang_tvos.a" ]; then
+              mv "$TVOS_SIM_X86_64_SLICE_DIR/liberlang_tvos.a" "$TVOS_SIM_X86_64_SLICE_DIR/liberlang.a"
+          fi
+
+          # --- Build the xcodebuild Command ---
+          XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
 
           add_library_if_exists "$MACOS_ARM64_LIB"
           add_library_if_exists "$MACOS_X86_64_LIB"
           add_library_if_exists "$IOS_ARM64_LIB"
           add_library_if_exists "$IOS_SIM_ARM64_LIB"
           add_library_if_exists "$IOS_SIM_X86_64_LIB"
-          
-          XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
-          
+          add_library_if_exists "$TVOS_ARM64_LIB"
+          add_library_if_exists "$TVOS_SIM_ARM64_LIB"
+          add_library_if_exists "$TVOS_SIM_X86_64_LIB"
+
+          XCFRAMEWORK_CMD+=" -output \"$OUTPUT_XCFRAMEWORK\"" # Quote the output path
+
+          # --- Run the Command ---
           echo "🚀 Running: $XCFRAMEWORK_CMD"
           eval "$XCFRAMEWORK_CMD"
-            
-          # -library "$TVOS_ARM64_LIB" \
-          # -library "$TVOS_SIM_ARM64_LIB" \
-          # -library "$TVOS_SIM_X86_64_LIB" \
-          #
-          
-          mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-          mv -f liberlang.xcframework liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
-          echo "XCFramework created successfully: $OUTPUT_XCFRAMEWORK"
+
+          if [ $? -ne 0 ]; then  # Check for errors!
+            echo "Error: xcodebuild failed."
+            exit 1
+          fi
+
+          # --- Move XCFramework to a Versioned Directory ---
+          # This is good practice for organization.
+          VERSIONED_DIR="liberlang-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}"
+          mkdir -p "$VERSIONED_DIR"
+          mv "$OUTPUT_XCFRAMEWORK" "$VERSIONED_DIR/"
+
+          echo "XCFramework created successfully: $VERSIONED_DIR/$OUTPUT_XCFRAMEWORK"
 
       - name: Check Architecture
         if: false
