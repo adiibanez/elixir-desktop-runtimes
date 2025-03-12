@@ -14,6 +14,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Cache Openssl source
+        uses: actions/cache@v4
+        id: openssl-cache
+        with:
+          path: |
+            openssl-${{ env.OPENSSL_VERSION }}
+          key: openssl-source-cache-${{ env.OPENSSL_VERSION }}
+      - name: Download and Extract OpenSSL
+        if: steps.openssl-cache.outputs.cache-hit != 'true'
+        id: openssl-download
+        run: |
+          wget "https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz"
+          # echo "$OPENSSL_HASH  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c
+          tar xzf openssl-$OPENSSL_VERSION.tar.gz
+          ls -lah ${{github.workspace}}/openssl-$OPENSSL_VERSION
+
+          echo "OPENSSL_VERSION=$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
+          echo "OPENSSL_HASH=$OPENSSL_HASH" >> "$GITHUB_OUTPUT"
+          echo "OPENSSL_PATH=$PWD/openssl-$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Cache Openssl iOS builds
         uses: actions/cache@v4
         id: openssl-ios-build-cache
