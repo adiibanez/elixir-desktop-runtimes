@@ -664,18 +664,17 @@ jobs:
         run: |
 
           find xcframework-slices -name "*.a"
+          
+          mkdir xcframework-slices/lipos/
 
-          lipo -create $MACOS_FRAMEWORK_ARM64 $MACOS_FRAMEWORK_X86_64 -output ./macos_lipo.a
-          echo MACOS_FRAMEWORK="./macos_lipo.a" >> $GITHUB_ENV
+          lipo -create $MACOS_FRAMEWORK_ARM64 $MACOS_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/macos_lipo.a
+          echo MACOS_FRAMEWORK="./xcframework-slices/lipos/macos_lipo.a" >> $GITHUB_ENV
 
-          lipo -create $SIMULATOR_FRAMEWORK_ARM64 $SIMULATOR_FRAMEWORK_X86_64 -output ./ios_simulator_lipo.a
-          echo SIMULATOR_FRAMEWORK="./ios_simulator_lipo.a" >> $GITHUB_ENV
+          lipo -create $SIMULATOR_FRAMEWORK_ARM64 $SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/ios_simulator_lipo.a
+          echo SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/ios_simulator_lipo.a" >> $GITHUB_ENV
 
-          lipo -create $TVOS_SIMULATOR_FRAMEWORK_ARM64 $TVOS_SIMULATOR_FRAMEWORK_X86_64 -output ./tvos_simulator_lipo.a
-          echo TVOS_SIMULATOR_FRAMEWORK="./tvos_simulator_lipo.a" >> $GITHUB_ENV
-
-          FRAMEWORK_NAME="liberlang"
-          echo OUTPUT_XCFRAMEWORK="${FRAMEWORK_NAME}.xcframework" >> $GITHUB_ENV
+          lipo -create $TVOS_SIMULATOR_FRAMEWORK_ARM64 $TVOS_SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/tvos_simulator_lipo.a
+          echo TVOS_SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/tvos_simulator_lipo.a" >> $GITHUB_ENV
 
           #rm -rf /tmp/xcframework-slices
           #cp -r xcframework-slices /tmp/xcframework-slices
@@ -709,9 +708,10 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
-          echo $IOS_FRAMEWORK
-          echo $SIMULATOR_FRAMEWORK
-          echo $OUTPUT_XCFRAMEWORK
+          echo "IOS: $IOS_FRAMEWORK"
+          echo "IOS_SIM: $SIMULATOR_FRAMEWORK"
+          echo "TVOS: $TVOS_SIMULATOR_FRAMEWORK"
+          echo "MACOS: $MACOS_FRAMEWORK"
           
           XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
           
@@ -729,7 +729,7 @@ jobs:
           add_library_if_exists "$MACOS_FRAMEWORK"
           add_library_if_exists "$TVOS_SIMULATOR_FRAMEWORK"
           
-          XCFRAMEWORK_CMD+=" -output $OUTPUT_XCFRAMEWORK"
+          XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
           
           echo "🚀 Running: $XCFRAMEWORK_CMD"
           eval "$XCFRAMEWORK_CMD"
@@ -739,7 +739,7 @@ jobs:
           #  -library $SIMULATOR_FRAMEWORK \
           #  -library $MACOS_FRAMEWORK \
           #  -library $TVOS_SIMULATOR_FRAMEWORK \
-          #  -output $OUTPUT_XCFRAMEWORK
+          #  -output liberlang.xcframework
 
           #rm -rf /tmp/xcframwork_output
           #cp -r $OUTPUT_XCFRAMEWORK /tmp/xcframwork_output/
