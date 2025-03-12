@@ -119,6 +119,14 @@ jobs:
           hash: ${{env.OPENSSL_HASH}}
           arch_type: ${{matrix.platform.arch_type }}
 
+      - name: Check libs
+        shell: bash
+        env: 
+          BUILD_DIR: ${{github.workspace}}/_build/ios-openssl
+        run: |
+          find $BUILD_DIR -name "*.a"
+          find $BUILD_DIR -name "*.a" -exec lipo -info {} \;
+
       - name: Cache Openssl iOS build restore
         uses: actions/cache/restore@v4
         if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
