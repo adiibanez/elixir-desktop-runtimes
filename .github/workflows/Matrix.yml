@@ -673,38 +673,21 @@ jobs:
         run: |
           mkdir xcframework-slices/lipos/
 
-          lipo -create $MACOS_FRAMEWORK_ARM64 $MACOS_FRAMEWORK_X86_64 \
-          $SIMULATOR_FRAMEWORK_ARM64 $SIMULATOR_FRAMEWORK_X86_64 \
-          $TVOS_SIMULATOR_FRAMEWORK_ARM64 $TVOS_SIMULATOR_FRAMEWORK_X86_64 \
-           -output ./xcframework-slices/lipos/x86_64-arm64_lipo.a
-          
-          echo X86_64_ARM64_LIPO="./xcframework-slices/lipos/x86_64-arm64_lipo.a" >> $GITHUB_ENV
-          
-          #lipo -create $SIMULATOR_FRAMEWORK_ARM64 $SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/ios_simulator_lipo.a
-          #echo SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/ios_simulator_lipo.a" >> $GITHUB_ENV
+          # Merge iOS Simulator (arm64 + x86_64)
+          lipo -create $SIMULATOR_FRAMEWORK_ARM64 $SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/ios_simulator_lipo.a
+          echo SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/ios_simulator_lipo.a" >> $GITHUB_ENV
 
-          #lipo -create $TVOS_SIMULATOR_FRAMEWORK_ARM64 $TVOS_SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/tvos_simulator_lipo.a
-          #echo "TVOS_SIMULATOR_FRAMEWORK=./xcframework-slices/lipos/tvos_simulator_lipo.a" >> $GITHUB_ENV
+          # Merge macOS (arm64 + x86_64)
+          lipo -create $MACOS_FRAMEWORK_ARM64 $MACOS_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/macos_lipo.a
+          echo MACOS_FRAMEWORK="./xcframework-slices/lipos/macos_lipo.a" >> $GITHUB_ENV
 
-          #rm -rf /tmp/xcframework-slices
-          #cp -r xcframework-slices /tmp/xcframework-slices
+          # Merge tvOS Simulator (arm64 + x86_64)
+          lipo -create $TVOS_SIMULATOR_FRAMEWORK_ARM64 $TVOS_SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/tvos_simulator_lipo.a
+          echo TVOS_SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/tvos_simulator_lipo.a" >> $GITHUB_ENV
 
-          ls -lah xcframework-slices
-          find xcframework-slices -type d
-          find xcframework-slices -type f -name "*.a"
-
-          if [ -z "$IOS_FRAMEWORK" ]; then
-            echo "iOS Framework $IOS_FRAMEWORK does not exist"
-            exit 1
-          fi
-
-          if [ -z "$SIMULATOR_FRAMEWORK" ]; then
-            echo "iOS Sim Framework $SIMULATOR_FRAMEWORK does not exist"
-            exit 1
-          fi
-          
-          #mkdir /tmp/raw-artifacts
-          #cp -r "$IOS_FRAMEWORK" "$MACOS_FRAMEWORK" "$SIMULATOR_FRAMEWORK" "$TVOS_FRAMEWORK" "$TVOS_SIMULATOR_FRAMEWORK" /tmp/debug-artifacts/
+          # Merge visionOS Simulator (arm64 + x86_64)
+          #lipo -create $VISIONOS_SIMULATOR_FRAMEWORK_ARM64 $VISIONOS_SIMULATOR_FRAMEWORK_X86_64 -output ./xcframework-slices/lipos/visionos_simulator_lipo.a
+          #echo VISIONOS_SIMULATOR_FRAMEWORK="./xcframework-slices/lipos/visionos_simulator_lipo.a" >> $GITHUB_ENV
           
       - name: Upload Raw xcframework Artifacts
         uses: actions/upload-artifact@v4
@@ -720,9 +703,9 @@ jobs:
         run: |
           echo "IOS: $IOS_FRAMEWORK"
           echo "IOS_SIM (lipo): $SIMULATOR_FRAMEWORK"
+          echo "TVOS: $TVOS_FRAMEWORK"
           echo "TVOS SIM (lipo): $TVOS_SIMULATOR_FRAMEWORK"
           echo "MACOS (lipo): $MACOS_FRAMEWORK"
-          echo "X86_64_ARM64_LIPO: $X86_64_ARM64_LIPO"
           
           XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
           
@@ -736,10 +719,10 @@ jobs:
           }
           
           add_library_if_exists "$IOS_FRAMEWORK"
-          add_library_if_exists "$X86_64_ARM64_LIPO"
-          #add_library_if_exists "$MACOS_FRAMEWORK"
+          add_library_if_exists "$SIMULATOR_FRAMEWORK"
           add_library_if_exists "$TVOS_FRAMEWORK"
-          #add_library_if_exists "$TVOS_SIMULATOR_FRAMEWORK"
+          add_library_if_exists "$TVOS_SIMULATOR_FRAMEWORK"
+          add_library_if_exists "$MACOS_FRAMEWORK"
           
           XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
           
