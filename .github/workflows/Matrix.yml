@@ -818,7 +818,7 @@ jobs:
           # fi
 
 
-          EMP_DIR="temp_lipo"
+          TEMP_DIR="./temp_lipo"
           mkdir -p "$TEMP_DIR"
 
           # macOS (combine arm64 and x86_64)
