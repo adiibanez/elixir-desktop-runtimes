@@ -817,14 +817,34 @@ jobs:
           #     mv "$TVOS_SIM_X86_64_SLICE_DIR/liberlang_tvos.a" "$TVOS_SIM_X86_64_SLICE_DIR/liberlang.a"
           # fi
 
+
+          EMP_DIR="temp_lipo"
+          mkdir -p "$TEMP_DIR"
+
+          # macOS (combine arm64 and x86_64)
+          MACOS_LIPO="$TEMP_DIR/liberlang_macos.a"
+          lipo -create "$MACOS_ARM64_LIB" "$MACOS_X86_64_LIB" -output "$MACOS_LIPO"
+
+          # iOS Simulator (combine arm64 and x86_64)
+          IOS_SIM_LIPO="$TEMP_DIR/liberlang_ios_sim.a"
+          lipo -create "$IOS_SIM_ARM64_LIB" "$IOS_SIM_X86_64_LIB" -output "$IOS_SIM_LIPO"
+
+          # tvOS Simulator (combine arm64 and x86_64) - Fix the directory names here!
+          TVOS_SIM_LIPO="$TEMP_DIR/liberlang_tvos_sim.a"
+          lipo -create "$TVOS_SIM_ARM64_LIB" "$TVOS_SIM_X86_64_LIB" -output "$TVOS_SIM_LIPO"
+
           # --- Build the xcodebuild Command ---
           XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
 
-          add_library_if_exists "$MACOS_ARM64_LIB"
-          add_library_if_exists "$MACOS_X86_64_LIB"
+          add_library_if_exists "$MACOS_LIPO"
+          add_library_if_exists "$IOS_SIM_LIPO"
           add_library_if_exists "$IOS_ARM64_LIB"
-          add_library_if_exists "$IOS_SIM_ARM64_LIB"
-          add_library_if_exists "$IOS_SIM_X86_64_LIB"
+
+          # add_library_if_exists "$MACOS_ARM64_LIB"
+          # add_library_if_exists "$MACOS_X86_64_LIB"
+          # add_library_if_exists "$IOS_ARM64_LIB"
+          # add_library_if_exists "$IOS_SIM_ARM64_LIB"
+          # add_library_if_exists "$IOS_SIM_X86_64_LIB"
           #add_library_if_exists "$TVOS_ARM64_LIB"
           #add_library_if_exists "$TVOS_SIM_ARM64_LIB"
           #add_library_if_exists "$TVOS_SIM_X86_64_LIB"
