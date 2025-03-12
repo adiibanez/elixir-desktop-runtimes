@@ -122,7 +122,7 @@ build_xrossim_libs()
 build_ios_libs()
 {
 	if [[ ! -d $BUILD_DIR/build/lib.ios ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.ios"--openssldir="$BUILD_DIR/build/ssl" no-shared no-dso no-hw no-engine ios64-xcrun -fembed-bitcode -mios-version-min=13.4
+		./Configure --prefix="$BUILD_DIR/build/openssl.ios" --openssldir="$BUILD_DIR/build/ssl" no-shared no-dso no-hw no-engine ios64-xcrun -fembed-bitcode -mios-version-min=13.4
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -221,10 +221,6 @@ case "$BUILD_ARCH" in
 esac
 
 echo "✅ Build for '$BUILD_ARCH' completed successfully."
-
-find $BUILD_DIR/build/ -name "libcrypto.a"
-find $BUILD_DIR/build -name "libcrypto.a" -exec lipo -info {} \;
-
 #mkdir $BUILD_DIR/frameworks
 
 #cp -R $BUILD_DIR/build/include $BUILD_DIR/frameworks/Headers
