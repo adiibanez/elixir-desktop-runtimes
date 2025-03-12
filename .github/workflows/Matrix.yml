@@ -648,26 +648,26 @@ jobs:
           # echo "VISIONOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos/liberlang.xcframework/ios-arm64/liberlang.a" >> $GITHUB_ENV
           # echo "VISIONOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos_sim/liberlang.xcframework/ios-x86_64-simulator/liberlang.a" >> $GITHUB_ENV
 
-      - name: Create Combined xcframework
+      - name: Collect Combined xcframework artifacts and lipo
         shell: bash
         run: |
 
           find xcframework-slices -name "*.a"
 
-          lipo -create $MACOS_FRAMEWORK_ARM64 $MACOS_FRAMEWORK_X86_64 -output /tmp/macos_lipo.a
-          MACOS_FRAMEWORK=/tmp/macos_lipo.a
+          lipo -create $MACOS_FRAMEWORK_ARM64 $MACOS_FRAMEWORK_X86_64 -output macos_lipo.a
+          echo MACOS_FRAMEWORK=macos_lipo.a >> $GITHUB_ENV
 
-          lipo -create $SIMULATOR_FRAMEWORK_ARM64 $SIMULATOR_FRAMEWORK_X86_64 -output /tmp/ios_simulator_lipo.a
-          SIMULATOR_FRAMEWORK=/tmp/ios_simulator_lipo.a
+          lipo -create $SIMULATOR_FRAMEWORK_ARM64 $SIMULATOR_FRAMEWORK_X86_64 -output ios_simulator_lipo.a
+          echo SIMULATOR_FRAMEWORK=ios_simulator_lipo.a >> $GITHUB_ENV
 
-          lipo -create $TVOS_SIMULATOR_FRAMEWORK_ARM64 $TVOS_SIMULATOR_FRAMEWORK_X86_64 -output /tmp/tvos_simulator_lipo.a
-          TVOS_SIMULATOR_FRAMEWORK=/tmp/tvos_simulator_lipo.a
+          lipo -create $TVOS_SIMULATOR_FRAMEWORK_ARM64 $TVOS_SIMULATOR_FRAMEWORK_X86_64 -output tvos_simulator_lipo.a
+          echo TVOS_SIMULATOR_FRAMEWORK=tvos_simulator_lipo.a >> $GITHUB_ENV
 
           FRAMEWORK_NAME=liberlang
-          OUTPUT_XCFRAMEWORK=${FRAMEWORK_NAME}.xcframework
+          echo OUTPUT_XCFRAMEWORK=${FRAMEWORK_NAME}.xcframework >> $GITHUB_ENV
 
-          rm -rf /tmp/xcframework-slices
-          cp -r xcframework-slices /tmp/xcframework-slices
+          #rm -rf /tmp/xcframework-slices
+          #cp -r xcframework-slices /tmp/xcframework-slices
 
           ls -lah xcframework-slices
           find xcframework-slices -type d
@@ -682,6 +682,22 @@ jobs:
             echo "iOS Sim Framework $SIMULATOR_FRAMEWORK does not exist"
             exit 1
           fi
+          
+          mkdir /tmp/raw-artifacts
+          cp $IOS_FRAMEWORK $MACOS_FRAMEWORK $SIMULATOR_FRAMEWORK $TVOS_FRAMEWORK $TVOS_SIMULATOR_FRAMEWORK /tmp/debug-artifacts/
+          
+      - name: Upload Raw xcframework Artifacts
+        uses: actions/upload-artifact@v4
+        if: always() && steps.assemble-xcframework.outcome != 'success'
+        with:
+          name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-raw-lib-artifacts
+          path: /tmp/raw-artifacts/
+          
+      - name: Assemble xcframework
+          id: assemble-xcframework
+          shell: bash
+          continue-on-error: true
+          run: |
 
           echo $IOS_FRAMEWORK
           echo $SIMULATOR_FRAMEWORK
@@ -703,14 +719,7 @@ jobs:
 
           rm -rf /tmp/xcframwork_output
           cp -r $OUTPUT_XCFRAMEWORK /tmp/xcframwork_output/
-
-          # -framework "$WATCHOS_FRAMEWORK" \
-          # -framework "$WATCHOS_SIMULATOR_FRAMEWORK" \
-          # -framework "$TVOS_FRAMEWORK" \
-          # -framework "$TVOS_SIMULATOR_FRAMEWORK" \
-          # -framework "$VISIONOS_FRAMEWORK" \
-          # -framework "$VISIONOS_SIMULATOR_FRAMEWORK" \
-
+          
           mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
           mv $OUTPUT_XCFRAMEWORK liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
 
@@ -725,6 +734,7 @@ jobs:
           
       - name: Upload Combined xcframework Artifact
         uses: actions/upload-artifact@v4
+        if: steps.assemble-xcframework.outcome == 'success'
         with:
           name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
           path: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
