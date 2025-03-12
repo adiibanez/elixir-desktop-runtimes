@@ -60,15 +60,14 @@ jobs:
 
           # homebrew setting: no-ssl3 no-ssl3-method no-zlib
           # - {id: "macos_arm64", name: "macOS ARM64", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-x86_64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
-          # - {id: "macos", name: "macOS", sdk: macosx, arch: arm64, openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-arm64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
-          #  -fembed-bitcode
+          - {id: "macos", name: "macOS", sdk: macosx, arch: arm64, arch_type: macos, openssl_prefix: "_build/ios-openssl/build/openssl.macos", openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-arm64", otp_arch: "aarch64-apple-darwin", xcomp: "aarch64-apple-darwin"}
           # ios: , xcomp: "arm64-ios"
           - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
           - {id: "ios_sim", name: "iOS Simulator", sdk: iphonesimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator" }
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-apple-multi-sdk"}
-          # - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "arm64-apple-multi-sdk"}
+          - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          - {id: "tvos_sim", name: "tvOS Simulator", sdk: appletvsimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator"}
           # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "visionos", name: "visionOS", sdk: xros, arch: arm64, openssl_arch: "xros-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
@@ -224,6 +223,7 @@ jobs:
       # save even if later jobs fail
       - name: Cache ASDF and Toolchains
         uses: actions/cache/save@v4
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
         id: asdf-cache-save
         with:
           path: ~/.asdf
@@ -357,17 +357,17 @@ jobs:
           # XCOMP_ARCH="${{matrix.platform.arch}}" \
           # ARCH=${{ matrix.platform.arch }} \
           
-          INCLUDE_PATH="$OPENSSL_PREFIX/include" \
-          LIB_PATH="$OPENSSL_PREFIX/lib" \
-          LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
+          #INCLUDE_PATH="$OPENSSL_PREFIX/include" \
+          #LIB_PATH="$OPENSSL_PREFIX/lib" \
+          #LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
+          #LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           ERL_FLAGS="-smp disable" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
-          LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
           --xcomp-conf=xcomp/erl-xcomp-${{matrix.platform.xcomp}}.conf \
           --disable-dynamic-ssl-lib \
-          --with-ssl=${{ env.OPENSSL_PREFIX }} \
+          --with-ssl="${{ env.OPENSSL_PREFIX }}" \
           --enable-static-nifs="$STATIC_NIFS"
           
           # ${{ matrix.platform.xcomp }}
@@ -682,14 +682,14 @@ jobs:
           mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
           mv $OUTPUT_XCFRAMEWORK liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
 
+      - name: Check Architecture
+        continue-on-error: true
+        run: |
+          #ls -lah liberlang.xframework
+          #du -sh liberlang.xframework
+          #lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}" || 1
           cd scripts
-          LIB_ARM=$IOS_FRAMEWORK LIB_X86=LIB_ARM=$IOS_FRAMEWORK ./tester.sh
-          
-      # - name: Check Architecture
-      #   run: |
-      #     ls -lah liberlang.xframework
-      #     du -sh liberlang.xframework
-      #     #lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}" || 1
+          LIB_ARM=$IOS_FRAMEWORK LIB_X86=$SIMULATOR_FRAMEWORK ./tester.sh
           
       - name: Upload Combined xcframework Artifact
         uses: actions/upload-artifact@v4
