@@ -22,6 +22,7 @@ runs:
           openssl-${{inputs.version }}
         key: openssl-source-cache-${{inputs.version }}
     - name: Download and Extract OpenSSL
+      shell: bash
       if: steps.openssl-cache.outputs.cache-hit != 'true'
       id: openssl-download
       run: |
