@@ -777,6 +777,17 @@ jobs:
           ELX_VERSION="${{matrix.erlixir.elixir-version}}"
           BASE_SLICE_DIR="xcframework-slices"
           OUTPUT_XCFRAMEWORK="liberlang.xcframework"
+          
+          XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
+      
+          add_library_if_exists() {
+            if [ -f "$1" ]; then
+              echo "✅ Including: $1"
+              XCFRAMEWORK_CMD+=" -library $1"
+            else
+              echo "⚠️ Skipping missing library: $1"
+            fi
+          }
 
           # --- Construct Paths to .a Files (using consistent naming) ---
           MACOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a"
@@ -789,21 +800,22 @@ jobs:
           TVOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang.a" # After renaming
 
           # --- Create the XCFramework ---
-          xcodebuild -create-xcframework \
-            -library "$MACOS_ARM64_LIB" \
-            -library "$MACOS_X86_64_LIB" \
-            -library "$IOS_ARM64_LIB" \
-            -library "$IOS_SIM_ARM64_LIB" \
-            -library "$IOS_SIM_X86_64_LIB" \
-            -library "$TVOS_ARM64_LIB" \
-            -library "$TVOS_SIM_ARM64_LIB" \
-            -library "$TVOS_SIM_X86_64_LIB" \
-            -output "$OUTPUT_XCFRAMEWORK"
 
-          if [ $? -ne 0 ]; then
-            echo "Error: xcodebuild failed."
-            exit 1
-          fi
+          add_library_if_exists "$MACOS_ARM64_LIB"
+          add_library_if_exists "$MACOS_X86_64_LIB"
+          add_library_if_exists "$IOS_ARM64_LIB"
+          add_library_if_exists "$IOS_SIM_ARM64_LIB"
+          add_library_if_exists "$IOS_SIM_X86_64_LIB"
+          
+          XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
+          
+          echo "🚀 Running: $XCFRAMEWORK_CMD"
+          eval "$XCFRAMEWORK_CMD"
+            
+          # -library "$TVOS_ARM64_LIB" \
+          # -library "$TVOS_SIM_ARM64_LIB" \
+          # -library "$TVOS_SIM_X86_64_LIB" \
+          #
           
           mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
           mv -f liberlang.xcframework liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
