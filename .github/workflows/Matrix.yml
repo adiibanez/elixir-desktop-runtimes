@@ -508,12 +508,21 @@ jobs:
           cd rustler_btleplug
           mix deps.get
           cd native/btleplug_client
-          # RUSTFLAGS='-C target-feature=+crt-static' 
-          cargo build --target=${{matrix.platform.rust_target}}
+          #RUSTFLAGS='-C target-feature=+crt-static' 
+          RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+          LIB_NAME=`find . -name "*.a" | head -1`
+          ls -lah $LIB_NAME
+
+          ar -t $LIB_NAME
+
+          #ar -d `find . -name "*.a" | head -1` unneeded.o
+          #ls -lah unneeded.o
+
+          strip -x $LIB_NAME
+          ls -lah $LIB_NAME
 
           cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
           cd ${{github.workspace}}
-
 
           # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
           # cd wasmex
