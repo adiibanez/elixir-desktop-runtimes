@@ -488,8 +488,6 @@ jobs:
           export MAKEFLAGS="-j10 -O"
           export OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}
 
-
-
           debug_lib()
           {
             if [[ -f $1 ]]; then
@@ -527,7 +525,7 @@ jobs:
           # cd ${{github.workspace}}/_build/nifs/
 
           git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
-          v0.0.15-alpha
+          # v0.0.15-alpha
           cd rustler_btleplug
           mix deps.get
           cd native/btleplug_client
