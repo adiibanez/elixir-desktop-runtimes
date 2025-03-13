@@ -667,7 +667,7 @@ jobs:
           LIBS=`find ${{ github.workspace }}/_build/libs -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf "%s ", $1} END { print "" }'`
           echo $LIBS
 
-          OUTPUT_LIB=liberlang_combined.a
+          OUTPUT_LIB=${{github.workspace}}/liberlang_combined.a
           libtool -static -o $OUTPUT_LIB $LIBS
 
           echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
