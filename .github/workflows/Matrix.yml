@@ -584,6 +584,8 @@ jobs:
 
           cd liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
 
+          rm -rf liberlang.xcframework
+
           xcodebuild -create-xcframework \
             -output liberlang.xcframework \
             $LIBS
