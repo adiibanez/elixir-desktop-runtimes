@@ -513,6 +513,9 @@ jobs:
           LIB_NAME=`find . -name "*.a" | head -1`
           ls -lah $LIB_NAME
 
+          file $LIB_NAME
+          lipo -info $LIB_NAME
+
           ar -t $LIB_NAME
 
           #ar -d `find . -name "*.a" | head -1` unneeded.o
@@ -611,7 +614,7 @@ jobs:
           --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
           --disable-dynamic-ssl-lib \
           --with-ssl="${{ env.OPENSSL_PREFIX }}" \
-          --enable-static-nifs="$STATIC_NIFS"
+          --enable-static-nifs="$STATIC_NIFS" -v
 
           ./otp_build boot -a
           ./otp_build release -a
