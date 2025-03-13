@@ -170,7 +170,7 @@ jobs:
           # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "visionos", name: "visionOS", sdk: xros, arch: arm64, openssl_arch: "xros-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "visionos_sim", name: "visionOS Simulator", sdk: xrsimulator, arch: arm64, openssl_arch: "xrossimulator-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-iossimulator"}
+          # - {id: "visionos_sim_arm64", name: "visionOS Simulator", sdk: xrsimulator, arch: arm64, openssl_arch: "xrossimulator-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-iossimulator"}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -716,72 +716,22 @@ jobs:
           rm -f $OUTPUT_LIB
           libtool -static -o $OUTPUT_LIB $LIBS
 
+
+          mkdir ${{ matrix.platform.id }}
+          mv $OUTPUT_LIB ${{ matrix.platform.id }}
+
       - name: Check output lib
         shell: bash
         continue-on-error: true
         run: |
-          file ${{ github.workspace }}/_build/liberlang.a
-          lipo -info ${{ github.workspace }}/_build/liberlang.a
+          file ${{ github.workspace }}/_build/${{ matrix.platform.id }}/liberlang.a
+          lipo -info ${{ github.workspace }}/_build/${{ matrix.platform.id }}/liberlang.a
 
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
         with:
           name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
-          #path: _build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a
-          path: _build/liberlang.a
-
-      # - name: Download liberlang  ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     pattern: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-*
-      #     #name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-liberlang
-      #     path: _build/libs
-      #     merge-multiple: true
-
-      # - name: Download Libs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     pattern: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-*
-      #     path: _build/libs
-      #     merge-multiple: true
-
-      # - name: Build liberlang.xcframework Slice for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-      #   shell: bash
-      #   id: build-xcframework-slice
-      #   run: |
-      #     ls -lah ./
-      #     ls -lah _build/libs
-      #     INCLUDE_PATTERN=".a"
-
-      #     echo LOOKUP_LIBS for liberlang.xcframework Slice
-      #     #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
-
-      #     find ${{ github.workspace }}/_build/libs -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
-      #     LIBS=`find ${{ github.workspace }}/_build/libs -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf "%s ", $1} END { print "" }'`
-      #     echo $LIBS
-
-      #     OUTPUT_LIB=${{github.workspace}}/liberlang_combined.a
-      #     libtool -static -o $OUTPUT_LIB $LIBS
-
-      #     echo "Building liberlang.xcframework slice for ${{ matrix.platform.name }}"
-      #     mkdir liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
-
-      #     cd liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
-
-      #     # rm -rf liberlang.xcframework
-
-      #     xcodebuild -create-xcframework \
-      #       -output liberlang.xcframework \
-      #       $OUTPUT_LIB
-
-      #     echo "xcframework_slice_path=liberlang_xcframework_slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}" >> "$GITHUB_OUTPUT"
-
-      # - name: Upload liberlang.xcframework Slice Artifact for ${{ matrix.platform.name }}
-      #   uses: actions/upload-artifact@v4
-      #   id: upload-xcframework-slice
-      #   with:
-      #     name: liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
-      #     path: ${{ steps.build-xcframework-slice.outputs.xcframework_slice_path }}
+          path: _build/${{ matrix.platform.id }}/liberlang.a
 
   combine_xcframework:
     # if: false
@@ -810,29 +760,66 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: xcframework-slices
-          pattern: liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-*
+          pattern: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-*
           # merge-multiple: true
 
-      - name: Setup Combined xcframework env
-
+      - name: Create Combined xcframework
+        id: assemble-xcframework
         shell: bash
         run: |
-
           find xcframework-slices -name "*.a"
 
-          echo "MACOS_FRAMEWORK_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_arm64/liberlang.a" >> $GITHUB_ENV
-          echo "MACOS_FRAMEWORK_X86_64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_x86_64/macos-x86_64/liberlang.a" >> $GITHUB_ENV
-          echo "IOS_FRAMEWORK=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios/liberlang.a" >> $GITHUB_ENV
-          echo "SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_arm64/liberlang.a" >> $GITHUB_ENV
-          echo "SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_x86_64/liberlang.a" >> $GITHUB_ENV
-          echo "TVOS_FRAMEWORK=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang_tvos.a" >> $GITHUB_ENV
-          echo "TVOS_SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.a" >> $GITHUB_ENV
-          echo "TVOS_SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.a" >> $GITHUB_ENV
+          echo "MACOS_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_arm64/macos_arm64/liberlang.a" >> $GITHUB_ENV
+          echo "MACOS_LIB_X86_64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_x86_64/macos-x86_64/liberlang.a" >> $GITHUB_ENV
+          echo "IOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios/ios/liberlang.a" >> $GITHUB_ENV
+          echo "SIMULATOR_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_arm64/ios_sim_arm64/liberlang.a" >> $GITHUB_ENV
+          echo "SIMULATOR_LIB_X86_64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_x86_64/ios_sim_x86_64/liberlang.a" >> $GITHUB_ENV
+          echo "TVOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/tvos/liberlang.a" >> $GITHUB_ENV
+          echo "TVOS_SIMULATOR_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/tvos_sim_arm64/liberlang.a" >> $GITHUB_ENV
+          echo "TVOS_SIMULATOR_LIB_X86_64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/tvos_sim_x86_64/liberlang.a" >> $GITHUB_ENV
 
-          # echo "WATCHOS_FRAMEWORK=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos/liberlang.a" >> $GITHUB_ENV
-          # echo "WATCHOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos_sim/liberlang.a" >> $GITHUB_ENV
-          # echo "VISIONOS_FRAMEWORK=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos/liberlang.a" >> $GITHUB_ENV
-          # echo "VISIONOS_SIMULATOR_FRAMEWORK=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos_sim/liberlang.a" >> $GITHUB_ENV
+          # echo "WATCHOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos/watchos/liberlang.a" >> $GITHUB_ENV
+          # echo "WATCHOS_SIMULATOR_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos_sim/watchos_sim/liberlang.a" >> $GITHUB_ENV
+          echo "VISIONOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos/visionos/liberlang.a" >> $GITHUB_ENV
+          echo "VISIONOS_SIMULATOR_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos_sim/visionos_sim/liberlang.a" >> $GITHUB_ENV
+
+          TEMP_DIR="temp_lipo"
+          mkdir -p "$TEMP_DIR"
+
+          MACOS_LIPO="$TEMP_DIR/liberlang_macos.a"
+          lipo -create "$MACOS_LIB_ARM64" "$MACOS_LIB_X86_64" -output "$MACOS_LIPO"
+
+          IOS_SIM_LIPO="$TEMP_DIR/liberlang_ios_sims.a"
+          lipo -create "$SIMULATOR_LIB_ARM64" "$SIMULATOR_LIB_X86_64" -output "$IOS_SIM_LIPO"
+
+          TVOS_SIM_LIPO="$TEMP_DIR/liberlang_tvos_sims.a"
+          lipo -create "$TVOS_SIMULATOR_LIB_ARM64" "$TVOS_SIMULATOR_LIB_X86_64" -output "$TVOS_SIM_LIPO"
+
+          XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
+      
+          add_library_if_exists() {
+            if [ -f "$1" ]; then
+              echo "✅ Including: $1"
+              XCFRAMEWORK_CMD+=" -library $1"
+            else
+              echo "⚠️ Skipping missing library: $1"
+            fi
+          }
+
+          add_library_if_exists $MACOS_LIPO
+          add_library_if_exists $IOS_LIB
+          add_library_if_exists $IOS_SIM_LIPO
+          add_library_if_exists $TVOS_LIB
+          add_library_if_exists $TVOS_SIM_LIPO
+          
+          XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
+      
+          echo "🚀 Running: $XCFRAMEWORK_CMD"
+          eval "$XCFRAMEWORK_CMD"
+
+          mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+          mv -f liberlang.xcframework liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
+      
 
       # - name: Check Architecture
       #   if: false
@@ -844,9 +831,9 @@ jobs:
       #     cd scripts
       #     LIB_ARM=$IOS_FRAMEWORK LIB_X86=$SIMULATOR_FRAMEWORK ./tester.sh
 
-      # - name: Upload Combined xcframework Artifact
-      #   uses: actions/upload-artifact@v4
-      #   if: steps.assemble-xcframework.outcome == 'success'
-      #   with:
-      #     name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-      #     path: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+      - name: Upload Combined xcframework Artifact
+        uses: actions/upload-artifact@v4
+        if: steps.assemble-xcframework.outcome == 'success'
+        with:
+          name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+          path: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
