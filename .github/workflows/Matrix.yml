@@ -491,13 +491,12 @@ jobs:
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
           mkdir -p _build/nifs/
-          cd _build/nifs/
 
-          git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
-          cd exqlite
-          mix deps.get
-          STATIC_ERLANG_NIF_LIBNAME=exqlite mix release
-          cd ${{github.workspace}}/_build/nifs/
+          # git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
+          # cd exqlite
+          # mix deps.get
+          # STATIC_ERLANG_NIF_LIBNAME=exqlite mix release
+
 
           # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
           # cd libsecp256k1
@@ -510,7 +509,10 @@ jobs:
           mix deps.get
           cd native/btleplug_client
           RUSTFLAGS='-C target-feature=+crt-static' STATIC_ERLANG_NIF_LIBNAME=btleplug_client cargo build --target=${{matrix.platform.rust_target}}
-          cd ${{github.workspace}}/_build/nifs/
+
+          cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
+          cd ${{github.workspace}}
+
 
           # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
           # cd wasmex
@@ -535,18 +537,28 @@ jobs:
       #     path: |
       #       _build/nifs/**/**.a
 
+      - name: Test job
+        shell: bash
+        run: |
+          cd _build/nifs
+          # find ~+ -type f -name "*.a"
+          find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }'
+          NIF_LIBS=$(find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }')
+          echo $NIF_LIBS
+
       - name: Build OTP Round 2
-        id: otp-setup
+        id: otp-setup-round2
         # if: false
         # if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          ulimit -n 65536
-
           # include only .a in release directories
-          NIF_LIBS=`find ${{github.workspace}}/_build/nifs -type f -name "*.a" | grep release | awk '{printf ",%s", $1} END { print "" }'`
+          echo "Round 2"
+          NIF_LIBS=$(find ${{github.workspace}}/_build/nifs -type f -name "*.a" | grep -v "deps/" | awk '{printf ",%s", $1} END { print "" }')
+          echo "Round 2.1"
           DEFAULT_STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
-          STATIC_NIFS=$DEFAULT_STATIC_NIFS$NIF_LIBS
+          echo "Round 2.2"
+          STATIC_NIFS="$DEFAULT_STATIC_NIFS$NIF_LIBS"
           echo $STATIC_NIFS
 
           export OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}}
