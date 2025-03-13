@@ -464,11 +464,11 @@ jobs:
           RUSTFLAGS: '-C target-feature=+crt-static'
         run: |
           echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
-          mkfile=`find _build/otp_builder/erts/ -name "vsn.mk"`
-          erts_version=`sed -nE 's/VSN *= *([0-9.]+)/\1/p' $mkfile`
+          MK_FILE=`find _build/otp_builder/erts/ -name "vsn.mk"`
+          ERTS_VERSION="`sed -nE 's/VSN *= *([0-9.]+)/\1/p' $MK_FILE`"
 
           ERLANG_PATH="_build/otp_builder/release/${{matrix.platform.otp_arch}}/include"
-          ERTS_INCLUDE_DIR="_build/otp_builder/release/${{matrix.platform.otp_arch}}/erts-$(erts_version)/include"
+          ERTS_INCLUDE_DIR="_build/otp_builder/release/${{matrix.platform.otp_arch}}/erts-$ERTS_VERSION/include"
           SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path`
           CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch ${{ matrix.platform.arch }}"
           CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++"
