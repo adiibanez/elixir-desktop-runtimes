@@ -508,7 +508,8 @@ jobs:
           cd rustler_btleplug
           mix deps.get
           cd native/btleplug_client
-          RUSTFLAGS='-C target-feature=+crt-static' STATIC_ERLANG_NIF_LIBNAME=btleplug_client cargo build --target=${{matrix.platform.rust_target}}
+          # RUSTFLAGS='-C target-feature=+crt-static' 
+          STATIC_ERLANG_NIF_LIBNAME=btleplug_client cargo build --target=${{matrix.platform.rust_target}}
 
           cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
           cd ${{github.workspace}}
