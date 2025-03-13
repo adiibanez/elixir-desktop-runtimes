@@ -367,7 +367,7 @@ jobs:
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
-          XCOMP_ARCH="${{matrix.platform.arch}}" \
+          XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
