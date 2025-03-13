@@ -536,9 +536,10 @@ jobs:
         run: |
           ulimit -n 65536
 
-          NIF_LIBS=`find _build/nifs/ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }'`
+          # include only .a in release directories
+          NIF_LIBS=`find ${{github.workspace}}/_build/nifs -type f -name "*.a" | grep release | awk '{printf ",%s", $1} END { print "" }'`
           DEFAULT_STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
-          STATIC_NIFS="$DEFAULT_STATIC_NIFS,$NIF_LIBS"
+          STATIC_NIFS=$DEFAULT_STATIC_NIFS$NIF_LIBS
           echo $STATIC_NIFS
 
           export OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}}
