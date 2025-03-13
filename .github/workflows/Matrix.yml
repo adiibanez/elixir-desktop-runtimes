@@ -558,10 +558,7 @@ jobs:
           echo "Round 2.1"
           DEFAULT_STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
           echo "Round 2.2"
-          STATIC_NIFS="$DEFAULT_STATIC_NIFS
-          # $NIF_LIBS"
-          echo $STATIC_NIFS
-          # exit 1
+          STATIC_NIFS="$DEFAULT_STATIC_NIFS$NIF_LIBS"
 
           export OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}}
 
