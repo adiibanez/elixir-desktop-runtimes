@@ -599,9 +599,12 @@ jobs:
           #./test_compiler
           file test_compiler
 
+          #LDFLAGS="-isysroot $SDKROOT -framework CoreBluetooth -framework CoreFoundation -framework Foundation -framework objc"
+
+
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           ERL_FLAGS="-smp disable" \
-          LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto" \
+          LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -framework CoreBluetooth -framework CoreFoundation -framework Foundation -framework objc" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
