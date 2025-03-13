@@ -536,15 +536,15 @@ jobs:
           cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
           cd ${{github.workspace}}
 
-          git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
-          cd wasmex
-          mix deps.get
-          cd native/wasmex
-          RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
-          LIB_NAME=`find . -name "*.a" | head -1`
-          debug_lib $LIB_NAME
-          cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-          cd ${{github.workspace}}
+          # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
+          # cd wasmex
+          # mix deps.get
+          # cd native/wasmex
+          # RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+          # LIB_NAME=`find . -name "*.a" | head -1`
+          # debug_lib $LIB_NAME
+          # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
+          # cd ${{github.workspace}}
 
           # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
           # cd explorer
