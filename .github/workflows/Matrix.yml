@@ -601,16 +601,18 @@ jobs:
 
           #LDFLAGS="-isysroot $SDKROOT -framework CoreBluetooth -framework CoreFoundation -framework Foundation -framework objc"
 
+          ls -l $(xcrun --sdk iphoneos --show-sdk-path)/usr/lib/libobjc.tbd
+
 
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           ERL_FLAGS="-smp disable" \
-          LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -framework CoreBluetooth -framework CoreFoundation -framework Foundation -framework objc" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -framework CoreBluetooth -framework CoreFoundation -framework Foundation -framework objc" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
@@ -619,8 +621,8 @@ jobs:
           --with-ssl="${{ env.OPENSSL_PREFIX }}" \
           --enable-static-nifs="$STATIC_NIFS" -v
 
-          ./otp_build boot -a
-          ./otp_build release -a
+          ./otp_build boot -a -v
+          ./otp_build release -a -v
 
           find . -type d -name release
 
