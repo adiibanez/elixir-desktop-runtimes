@@ -486,68 +486,68 @@ jobs:
           #path: _build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a
           path: _build/liberlang.a
       
-  #     - name: Set up Rust Toolchain (Nightly)
-  #       uses: dtolnay/rust-toolchain@nightly
-  #       with:
-  #         targets: ${{ matrix.platform.rust_target }}
+      - name: Set up Rust Toolchain (Nightly)
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: ${{ matrix.platform.rust_target }}
 
-  #     - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-  #       shell: bash
-  #       env: 
-  #         RUSTLER_BTLEPLUG_BUILD: 1
-  #         WASMEX_BUILD: 1
-  #         RUST_TARGET: ${{ matrix.platform.otp_arch }}
-  #         RUSTFLAGS: "-C target-feature=+crt-static"
-  #       run: |
-  #         echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
+      - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+        shell: bash
+        env: 
+          RUSTLER_BTLEPLUG_BUILD: 1
+          WASMEX_BUILD: 1
+          RUST_TARGET: ${{ matrix.platform.otp_arch }}
+          RUSTFLAGS: "-C target-feature=+crt-static"
+        run: |
+          echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
 
-  #         export SDKROOT="$(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)"
-  #         export CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch arm64"
-  #         export CFLAGS="-mios-version-min=11.0 -fno-common -Os -D__IOS__=yes"
+          export SDKROOT="$(xcrun --sdk ${{ matrix.platform.sdk }} --show-sdk-path)"
+          export CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch arm64"
+          # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
-  #         mkdir -p _build/nifs/
-  #         cd _build/nifs/
+          mkdir -p _build/nifs/
+          cd _build/nifs/
 
-  #         # git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
-  #         # cd exqlite
-  #         # mix deps.get
-  #         # mix release
-  #         # cd ..
+          # git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
+          # cd exqlite
+          # mix deps.get
+          # mix release
+          # cd ..
 
-  #         # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
-  #         # cd libsecp256k1
-  #         # mix deps.get
-  #         # mix release
-  #         # cd ..
+          # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
+          # cd libsecp256k1
+          # mix deps.get
+          # mix release
+          # cd ..
 
-  #         git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
-  #         cd rustler_btleplug
-  #         mix deps.get
-  #         mix release
-  #         cd ..
+          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
+          cd rustler_btleplug
+          mix deps.get
+          mix release
+          cd ..
 
-  #         # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
-  #         # cd wasmex
-  #         # mix deps.get
-  #         # mix release
-  #         # cd ..
+          # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
+          # cd wasmex
+          # mix deps.get
+          # mix release
+          # cd ..
 
-  #         # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
-  #         # cd explorer
-  #         # mix deps.get
-  #         # mix release
-  #         # cd ..
+          # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
+          # cd explorer
+          # mix deps.get
+          # mix release
+          # cd ..
 
-  #         cd ${{ github.workspace }}
+          cd ${{ github.workspace }}
 
-  #         find _build/nifs -type f -name "*.a"
+          find _build/nifs -type f -name "*.a"
 
-  #     - name: Upload Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}} ELX-${{matrix.erlixir.elixir-version}}
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-nifs
-  #         path: |
-  #           _build/nifs/**/**.a
+      - name: Upload Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}} ELX-${{matrix.erlixir.elixir-version}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-nifs
+          path: |
+            _build/nifs/**/**.a
 
       - name: Download liberlang  ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         uses: actions/download-artifact@v4
@@ -573,7 +573,7 @@ jobs:
           INCLUDE_PATTERN=".a"
           
           echo LOOKUP_LIBS for liberlang.xcframework Slice
-          find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
+          #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
           
           find ${{ github.workspace }}/_build/libs -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " ls -alh " $1}' | sh
           LIBS=`find ${{ github.workspace }}/_build/libs -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{printf " -library %s", $1} END { print "" }'`
@@ -626,6 +626,8 @@ jobs:
         shell: bash
         run: |
 
+          find xcframework-slices -name "*.a"
+
           # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a
           # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-tvos_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a
           # xcframework-slices/liberlang-xcframework-slice-OTP-27.3-ELX-1.18.2-ios_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a
@@ -654,11 +656,11 @@ jobs:
           # mv xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang.a \
           # xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang_tvos.a
           
-          echo "MACOS_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a" >> $GITHUB_ENV
-          echo "MACOS_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_x86_64/liberlang.xcframework/macos-x86_64/liberlang.a" >> $GITHUB_ENV
-          echo "IOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios/liberlang.xcframework/ios-arm64/liberlang.a" >> $GITHUB_ENV
-          echo "SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a" >> $GITHUB_ENV
-          echo "SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a" >> $GITHUB_ENV
+          # echo "MACOS_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a" >> $GITHUB_ENV
+          # echo "MACOS_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_x86_64/liberlang.xcframework/macos-x86_64/liberlang.a" >> $GITHUB_ENV
+          # echo "IOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios/liberlang.xcframework/ios-arm64/liberlang.a" >> $GITHUB_ENV
+          # echo "SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a" >> $GITHUB_ENV
+          # echo "SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a" >> $GITHUB_ENV
           # echo "TVOS_FRAMEWORK=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang_tvos.a" >> $GITHUB_ENV
           # echo "TVOS_SIMULATOR_FRAMEWORK_ARM64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang_tvos.a" >> $GITHUB_ENV
           # echo "TVOS_SIMULATOR_FRAMEWORK_X86_64=xcframework-slices/liberlang-xcframework-slice-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang_tvos.a" >> $GITHUB_ENV
@@ -771,116 +773,116 @@ jobs:
       #     mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
       #     echo mv -f liberlang.xcframework liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
       
-      - name: Assemble xcframework
-        shell: bash
-        run: |
-          # set -e  # Exit immediately if any command fails
+      # - name: Assemble xcframework
+      #   shell: bash
+      #   run: |
+      #     # set -e  # Exit immediately if any command fails
 
-          OTP_VERSION="${{matrix.erlixir.otp-version}}"
-          ELX_VERSION="${{matrix.erlixir.elixir-version}}"
-          BASE_SLICE_DIR="xcframework-slices"
-          OUTPUT_XCFRAMEWORK="liberlang.xcframework"
+      #     OTP_VERSION="${{matrix.erlixir.otp-version}}"
+      #     ELX_VERSION="${{matrix.erlixir.elixir-version}}"
+      #     BASE_SLICE_DIR="xcframework-slices"
+      #     OUTPUT_XCFRAMEWORK="liberlang.xcframework"
 
-          # --- Function to add libraries if they exist ---
-          add_library_if_exists() {
-            if [ -f "$1" ]; then
-              echo "✅ Including: $1"
-              XCFRAMEWORK_CMD+=" -library \"$1\"" # Quote the path!
-            else
-              echo "⚠️ Skipping missing library: $1"
-            fi
-          }
+      #     # --- Function to add libraries if they exist ---
+      #     add_library_if_exists() {
+      #       if [ -f "$1" ]; then
+      #         echo "✅ Including: $1"
+      #         XCFRAMEWORK_CMD+=" -library \"$1\"" # Quote the path!
+      #       else
+      #         echo "⚠️ Skipping missing library: $1"
+      #       fi
+      #     }
 
-          # --- Construct Paths to .a Files ---
-          MACOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a"
-          MACOS_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-macos_x86_64/liberlang.xcframework/macos-x86_64/liberlang.a"
-          IOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios/liberlang.xcframework/ios-arm64/liberlang.a"
-          IOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a"
-          IOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a"
-          # TVOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang.a"
-          # TVOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang.a"
-          # TVOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang.a"
+      #     # --- Construct Paths to .a Files ---
+      #     MACOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-macos_arm64/liberlang.xcframework/macos-arm64/liberlang.a"
+      #     MACOS_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-macos_x86_64/liberlang.xcframework/macos-x86_64/liberlang.a"
+      #     IOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios/liberlang.xcframework/ios-arm64/liberlang.a"
+      #     IOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios_sim_arm64/liberlang.xcframework/ios-arm64-simulator/liberlang.a"
+      #     IOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-ios_sim_x86_64/liberlang.xcframework/ios-x86_64-simulator/liberlang.a"
+      #     # TVOS_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64/liberlang.a"
+      #     # TVOS_SIM_ARM64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator/liberlang.a"
+      #     # TVOS_SIM_X86_64_LIB="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator/liberlang.a"
 
-          # # --- Rename tvOS Libraries (for consistency) ---
-          # # Do this *before* building the command, and check for existence.
-          # TVOS_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64"
-          # TVOS_SIM_ARM64_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator"
-          # TVOS_SIM_X86_64_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator"
+      #     # # --- Rename tvOS Libraries (for consistency) ---
+      #     # # Do this *before* building the command, and check for existence.
+      #     # TVOS_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos/liberlang.xcframework/tvos_ios-arm64"
+      #     # TVOS_SIM_ARM64_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_arm64/liberlang.xcframework/tvos_ios-arm64-simulator"
+      #     # TVOS_SIM_X86_64_SLICE_DIR="$BASE_SLICE_DIR/liberlang-xcframework-slice-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}-tvos_sim_x86_64/liberlang.xcframework/tvos_ios-x86_64-simulator"
 
-          # if [ -f "$TVOS_SLICE_DIR/liberlang_tvos.a" ]; then
-          #     mv "$TVOS_SLICE_DIR/liberlang_tvos.a" "$TVOS_SLICE_DIR/liberlang.a"
-          # fi
-          # if [ -f "$TVOS_SIM_ARM64_SLICE_DIR/liberlang_tvos.a" ]; then
-          #     mv "$TVOS_SIM_ARM64_SLICE_DIR/liberlang_tvos.a" "$TVOS_SIM_ARM64_SLICE_DIR/liberlang.a"
-          # fi
-          # if [ -f "$TVOS_SIM_X86_64_SLICE_DIR/liberlang_tvos.a" ]; then
-          #     mv "$TVOS_SIM_X86_64_SLICE_DIR/liberlang_tvos.a" "$TVOS_SIM_X86_64_SLICE_DIR/liberlang.a"
-          # fi
+      #     # if [ -f "$TVOS_SLICE_DIR/liberlang_tvos.a" ]; then
+      #     #     mv "$TVOS_SLICE_DIR/liberlang_tvos.a" "$TVOS_SLICE_DIR/liberlang.a"
+      #     # fi
+      #     # if [ -f "$TVOS_SIM_ARM64_SLICE_DIR/liberlang_tvos.a" ]; then
+      #     #     mv "$TVOS_SIM_ARM64_SLICE_DIR/liberlang_tvos.a" "$TVOS_SIM_ARM64_SLICE_DIR/liberlang.a"
+      #     # fi
+      #     # if [ -f "$TVOS_SIM_X86_64_SLICE_DIR/liberlang_tvos.a" ]; then
+      #     #     mv "$TVOS_SIM_X86_64_SLICE_DIR/liberlang_tvos.a" "$TVOS_SIM_X86_64_SLICE_DIR/liberlang.a"
+      #     # fi
 
 
-          TEMP_DIR="./temp_lipo"
-          mkdir -p "$TEMP_DIR"
+      #     TEMP_DIR="./temp_lipo"
+      #     mkdir -p "$TEMP_DIR"
 
-          # macOS (combine arm64 and x86_64)
-          MACOS_LIPO="$TEMP_DIR/liberlang_macos.a"
-          lipo -create "$MACOS_ARM64_LIB" "$MACOS_X86_64_LIB" -output "$MACOS_LIPO"
+      #     # macOS (combine arm64 and x86_64)
+      #     MACOS_LIPO="$TEMP_DIR/liberlang_macos.a"
+      #     lipo -create "$MACOS_ARM64_LIB" "$MACOS_X86_64_LIB" -output "$MACOS_LIPO"
 
-          # iOS Simulator (combine arm64 and x86_64)
-          IOS_SIM_LIPO="$TEMP_DIR/liberlang_ios_sim.a"
-          lipo -create "$IOS_SIM_ARM64_LIB" "$IOS_SIM_X86_64_LIB" -output "$IOS_SIM_LIPO"
+      #     # iOS Simulator (combine arm64 and x86_64)
+      #     IOS_SIM_LIPO="$TEMP_DIR/liberlang_ios_sim.a"
+      #     lipo -create "$IOS_SIM_ARM64_LIB" "$IOS_SIM_X86_64_LIB" -output "$IOS_SIM_LIPO"
 
-          # tvOS Simulator (combine arm64 and x86_64) - Fix the directory names here!
-          TVOS_SIM_LIPO="$TEMP_DIR/liberlang_tvos_sim.a"
-          lipo -create "$TVOS_SIM_ARM64_LIB" "$TVOS_SIM_X86_64_LIB" -output "$TVOS_SIM_LIPO"
+      #     # tvOS Simulator (combine arm64 and x86_64) - Fix the directory names here!
+      #     TVOS_SIM_LIPO="$TEMP_DIR/liberlang_tvos_sim.a"
+      #     lipo -create "$TVOS_SIM_ARM64_LIB" "$TVOS_SIM_X86_64_LIB" -output "$TVOS_SIM_LIPO"
 
-          # --- Build the xcodebuild Command ---
-          XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
+      #     # --- Build the xcodebuild Command ---
+      #     XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
 
-          add_library_if_exists "$MACOS_LIPO"
-          add_library_if_exists "$IOS_SIM_LIPO"
-          add_library_if_exists "$IOS_ARM64_LIB"
+      #     add_library_if_exists "$MACOS_LIPO"
+      #     add_library_if_exists "$IOS_SIM_LIPO"
+      #     add_library_if_exists "$IOS_ARM64_LIB"
 
-          # add_library_if_exists "$MACOS_ARM64_LIB"
-          # add_library_if_exists "$MACOS_X86_64_LIB"
-          # add_library_if_exists "$IOS_ARM64_LIB"
-          # add_library_if_exists "$IOS_SIM_ARM64_LIB"
-          # add_library_if_exists "$IOS_SIM_X86_64_LIB"
-          #add_library_if_exists "$TVOS_ARM64_LIB"
-          #add_library_if_exists "$TVOS_SIM_ARM64_LIB"
-          #add_library_if_exists "$TVOS_SIM_X86_64_LIB"
+      #     # add_library_if_exists "$MACOS_ARM64_LIB"
+      #     # add_library_if_exists "$MACOS_X86_64_LIB"
+      #     # add_library_if_exists "$IOS_ARM64_LIB"
+      #     # add_library_if_exists "$IOS_SIM_ARM64_LIB"
+      #     # add_library_if_exists "$IOS_SIM_X86_64_LIB"
+      #     #add_library_if_exists "$TVOS_ARM64_LIB"
+      #     #add_library_if_exists "$TVOS_SIM_ARM64_LIB"
+      #     #add_library_if_exists "$TVOS_SIM_X86_64_LIB"
 
-          XCFRAMEWORK_CMD+=" -output \"$OUTPUT_XCFRAMEWORK\"" # Quote the output path
+      #     XCFRAMEWORK_CMD+=" -output \"$OUTPUT_XCFRAMEWORK\"" # Quote the output path
 
-          # --- Run the Command ---
-          echo "🚀 Running: $XCFRAMEWORK_CMD"
-          eval "$XCFRAMEWORK_CMD"
+      #     # --- Run the Command ---
+      #     echo "🚀 Running: $XCFRAMEWORK_CMD"
+      #     eval "$XCFRAMEWORK_CMD"
 
-          if [ $? -ne 0 ]; then  # Check for errors!
-            echo "Error: xcodebuild failed."
-            exit 1
-          fi
+      #     if [ $? -ne 0 ]; then  # Check for errors!
+      #       echo "Error: xcodebuild failed."
+      #       exit 1
+      #     fi
 
-          # --- Move XCFramework to a Versioned Directory ---
-          # This is good practice for organization.
-          VERSIONED_DIR="liberlang-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}"
-          mkdir -p "$VERSIONED_DIR"
-          mv "$OUTPUT_XCFRAMEWORK" "$VERSIONED_DIR/"
+      #     # --- Move XCFramework to a Versioned Directory ---
+      #     # This is good practice for organization.
+      #     VERSIONED_DIR="liberlang-OTP-${OTP_VERSION}-ELX-${ELX_VERSION}"
+      #     mkdir -p "$VERSIONED_DIR"
+      #     mv "$OUTPUT_XCFRAMEWORK" "$VERSIONED_DIR/"
 
-          echo "XCFramework created successfully: $VERSIONED_DIR/$OUTPUT_XCFRAMEWORK"
+      #     echo "XCFramework created successfully: $VERSIONED_DIR/$OUTPUT_XCFRAMEWORK"
 
-      - name: Check Architecture
-        if: false
-        continue-on-error: true
-        run: |
-          #ls -lah liberlang.xframework
-          #du -sh liberlang.xframework
-          #lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}" || 1
-          cd scripts
-          LIB_ARM=$IOS_FRAMEWORK LIB_X86=$SIMULATOR_FRAMEWORK ./tester.sh
+      # - name: Check Architecture
+      #   if: false
+      #   continue-on-error: true
+      #   run: |
+      #     #ls -lah liberlang.xframework
+      #     #du -sh liberlang.xframework
+      #     #lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}" || 1
+      #     cd scripts
+      #     LIB_ARM=$IOS_FRAMEWORK LIB_X86=$SIMULATOR_FRAMEWORK ./tester.sh
           
-      - name: Upload Combined xcframework Artifact
-        uses: actions/upload-artifact@v4
-        if: steps.assemble-xcframework.outcome == 'success'
-        with:
-          name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-          path: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+      # - name: Upload Combined xcframework Artifact
+      #   uses: actions/upload-artifact@v4
+      #   if: steps.assemble-xcframework.outcome == 'success'
+      #   with:
+      #     name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+      #     path: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
