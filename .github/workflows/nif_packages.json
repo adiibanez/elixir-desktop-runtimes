@@ -1,0 +1,4 @@
+[
+  { "name": "NIF_Package_1", "config": "config1", "repos": ["repo1", "repo2"] },
+  { "name": "NIF_Package_2", "config": "config2", "repos": ["repo3"] }
+]

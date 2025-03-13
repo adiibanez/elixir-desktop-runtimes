@@ -8,26 +8,20 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
+      - name: Checkout repository  # IMPORTANT: Check out the repo
+        uses: actions/checkout@v4
       - name: Generate Matrix
         id: set-matrix
         run: |
-          # This is where you define your packages and their repositories.
-          # You could read this from a file, or generate it dynamically.
-          PACKAGES=$(cat << EOF
-          [
-            { "name": "NIF_Package_1", "config": "config1", "repos": ["repo1", "repo2"] },
-            { "name": "NIF_Package_2", "config": "config2", "repos": ["repo3"] }
-          ]
-          EOF
-          )
+          PACKAGES=$(cat .github/workflows/nif_packages.json)  # Read from the file
 
           # Transform the packages into a format suitable for the matrix.
           # We create a new array where each element represents a single
           # package/repository combination.
-          MATRIX=$(echo "$PACKAGES" | jq -c '.[] | .repos | .[] | {package: .name, repo: ., config: .config}')
+          MATRIX=$(echo "$PACKAGES" | jq -c '.[] | .repos | .[] | {package: (.name), repo: ., config: (.config)}') # Use parenthesis for clarity and safety
           MATRIX_ARRAY=$(echo "[$MATRIX]" | jq -s .) # Combine into a single array
 
-          echo "matrix=$(echo $MATRIX_ARRAY | jq -c .)" >> "$GITHUB_OUTPUT"
+          echo "matrix=$(echo "$MATRIX_ARRAY" | jq -c .)" >> "$GITHUB_OUTPUT"
 
   build-nifs:
     needs: generate-matrix

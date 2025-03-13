@@ -10,61 +10,55 @@ jobs:
   define-matrix:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}  # This is correct
     steps:
       - name: Set Platform & OTP Matrix
         id: set-matrix
         run: |
-            echo "matrix=$(jq -c . <<EOF
-            {
-            "platform": [
-                { "id": "ios", "name": "iOS", "sdk": "iphoneos", "arch": "arm64" },
-                { "id": "ios_sim_arm64", "name": "iOS Simulator arm64", "sdk": "iphonesimulator", "arch": "arm64" },
-                { "id": "ios_sim_x86_64", "name": "iOS Simulator x86_64", "sdk": "iphonesimulator", "arch": "x86_64" }
-            ],
-            "erlixir": [
-                {
-                "otp-version": 27.3,
-                "elixir-version": 1.18.2,
-                "use-git": true,
-                "git-repo": "adiibanez/otp",
-                "git-ref": "OTP-27.3-noiosminversion"
-                },
-                {
-                "otp-version": 26.3,
-                "elixir-version": 1.18.2,
-                "use-git": true,
-                "git-repo": "adiibanez/otp",
-                "git-ref": "OTP-27.3-noiosminversion"
-                }
-            ]
-            }
-            EOF
-            )" >> $GITHUB_ENV
+          MATRIX=$(cat .github/workflows/matrix.json) # Read the file
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
   build_openssl:
     needs: define-matrix
+    strategy:   # This is the CRITICAL change: Use the matrix strategy
+      matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
     uses: ./.github/workflows/build_openssl.yml
     with:
-      matrix: ${{ needs.define-matrix.outputs.matrix }}
+      version: ${{ matrix.erlixir.otp-version }}     # Pass values from the matrix
+      # hash: ${{ matrix.erlixir.some_hash_value }}  # You'll need to define how to get the hash
+      base_arch: ${{ matrix.platform.arch }}
 
   build_otp_round_1:
-    needs: build_openssl
-    uses: ./.github/workflows/build_otp.yml
-    with:
-      matrix: ${{ needs.define-matrix.outputs.matrix }}
-      round: 1
+      needs: define-matrix # define-matrix! NOT build_openssl
+      uses: ./.github/workflows/build_otp.yml
+      strategy:  # Add strategy here too
+        matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+      with:
+        #Example of use:
+        otp_version: ${{ matrix.erlixir.otp-version }}
+        elixir_version: ${{ matrix.erlixir.elixir-version }}
+        platform_id: ${{ matrix.platform.id }}
+        platform_sdk: ${{ matrix.platform.sdk }}
+        platform_arch: ${{ matrix.platform.arch }}
+        round: 1
 
   build_nifs:
     needs: build_otp_round_1
     uses: ./.github/workflows/build_nifs.yml
 
   build_otp_round_2:
-    needs: [build_otp_round_1, build_nifs]
-    uses: ./.github/workflows/build_otp.yml
-    with:
-      matrix: ${{ needs.define-matrix.outputs.matrix }}
-      round: 2
+      needs: [build_otp_round_1, build_nifs]
+      uses: ./.github/workflows/build_otp.yml
+      strategy:  # And here
+          matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+      with:
+          #Example of use (same as above):
+          otp_version: ${{ matrix.erlixir.otp-version }}
+          elixir_version: ${{ matrix.erlixir.elixir-version }}
+          platform_id: ${{ matrix.platform.id }}
+          platform_sdk: ${{ matrix.platform.sdk }}
+          platform_arch: ${{ matrix.platform.arch }}
+          round: 2
 
   final_combine:
     needs: build_otp_round_2

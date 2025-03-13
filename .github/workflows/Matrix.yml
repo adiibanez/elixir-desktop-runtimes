@@ -66,32 +66,32 @@ jobs:
         os: [macos-latest]
         platform:
           # macos homebrew formula openssl setting: no-ssl3 no-ssl3-method no-zlib https://github.com/Homebrew/homebrew-core/blob/32afa4406358ffb6b9d68d47692561fc5cc63ef6/Formula/o/openssl@3.rb
-          # - {
-          #     id: 'macos_arm64',
-          #     name: 'macOS arm64',
-          #     sdk: macosx,
-          #     arch: arm64,
-          #     base_arch: macos,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.macos.arm64',
-          #     openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
-          #     openssl_arch: 'darwin64-arm64',
-          #     otp_arch: 'aarch64-apple-darwin',
-          #     xcomp: 'aarch64-darwin',
-          #     rust_target: 'aarch64-apple-darwin'
-          #   }
-          # - {
-          #     id: 'macos_x86_64',
-          #     name: 'macOS x86_64',
-          #     sdk: macosx,
-          #     arch: x86_64,
-          #     base_arch: macos,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.macos.x86_64',
-          #     openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
-          #     openssl_arch: 'darwin64-x86_64',
-          #     otp_arch: 'x86_64-apple-darwin',
-          #     xcomp: 'x86_64-darwin',
-          #     rust_target: 'x86_64-apple-darwin'
-          #   }
+          - {
+              id: 'macos_arm64',
+              name: 'macOS arm64',
+              sdk: macosx,
+              arch: arm64,
+              base_arch: macos,
+              openssl_prefix: '_build/ios-openssl/build/openssl.macos.arm64',
+              openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
+              openssl_arch: 'darwin64-arm64',
+              otp_arch: 'aarch64-apple-darwin',
+              xcomp: 'aarch64-darwin',
+              rust_target: 'aarch64-apple-darwin'
+            }
+          - {
+              id: 'macos_x86_64',
+              name: 'macOS x86_64',
+              sdk: macosx,
+              arch: x86_64,
+              base_arch: macos,
+              openssl_prefix: '_build/ios-openssl/build/openssl.macos.x86_64',
+              openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
+              openssl_arch: 'darwin64-x86_64',
+              otp_arch: 'x86_64-apple-darwin',
+              xcomp: 'x86_64-darwin',
+              rust_target: 'x86_64-apple-darwin'
+            }
           - {
               id: 'ios',
               name: 'iOS',
@@ -131,42 +131,42 @@ jobs:
 
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {
-          #     id: 'tvos',
-          #     name: 'tvOS',
-          #     sdk: appletvos,
-          #     arch: arm64,
-          #     base_arch: ios,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.ios',
-          #     openssl_arch: 'ios64-xcrun',
-          #     otp_arch: 'aarch64-apple-ios',
-          #     xcomp: 'arm64-ios',
-          #     rust_target: 'aarch64-apple-tvos'
-          #   }
-          # - {
-          #     id: 'tvos_sim_arm64',
-          #     name: 'tvOS Simulator arm64',
-          #     sdk: appletvsimulator,
-          #     arch: arm64,
-          #     base_arch: ios_sim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
-          #     openssl_arch: 'iossimulator-arm64-xcrun',
-          #     otp_arch: 'aarch64-apple-iossimulator',
-          #     xcomp: 'arm64-iossimulator',
-          #     rust_target: 'aarch64-apple-tvos-sim'
-          #   }
-          # - {
-          #     id: 'tvos_sim_x86_64',
-          #     name: 'tvOS Simulator x86_64',
-          #     sdk: appletvsimulator,
-          #     arch: x86_64,
-          #     base_arch: ios_sim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.iossim.x86_64',
-          #     openssl_arch: 'iossimulator-x86_64-xcrun',
-          #     otp_arch: 'x86_64-apple-iossimulator',
-          #     xcomp: 'x86_64-iossimulator',
-          #     rust_target: 'x86_64-apple-tvos'
-          #   }
+          - {
+              id: 'tvos',
+              name: 'tvOS',
+              sdk: appletvos,
+              arch: arm64,
+              base_arch: ios,
+              openssl_prefix: '_build/ios-openssl/build/openssl.ios',
+              openssl_arch: 'ios64-xcrun',
+              otp_arch: 'aarch64-apple-ios',
+              xcomp: 'arm64-ios',
+              rust_target: 'aarch64-apple-tvos'
+            }
+          - {
+              id: 'tvos_sim_arm64',
+              name: 'tvOS Simulator arm64',
+              sdk: appletvsimulator,
+              arch: arm64,
+              base_arch: ios_sim,
+              openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
+              openssl_arch: 'iossimulator-arm64-xcrun',
+              otp_arch: 'aarch64-apple-iossimulator',
+              xcomp: 'arm64-iossimulator',
+              rust_target: 'aarch64-apple-tvos-sim'
+            }
+          - {
+              id: 'tvos_sim_x86_64',
+              name: 'tvOS Simulator x86_64',
+              sdk: appletvsimulator,
+              arch: x86_64,
+              base_arch: ios_sim,
+              openssl_prefix: '_build/ios-openssl/build/openssl.iossim.x86_64',
+              openssl_arch: 'iossimulator-x86_64-xcrun',
+              otp_arch: 'x86_64-apple-iossimulator',
+              xcomp: 'x86_64-iossimulator',
+              rust_target: 'x86_64-apple-tvos'
+            }
           # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "visionos", name: "visionOS", sdk: xros, arch: arm64, openssl_arch: "xros-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
@@ -801,19 +801,19 @@ jobs:
           XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
       
           add_library_if_exists() {
-            if [ -f "$1" ]; then
-              echo "✅ Including: $1"
-              XCFRAMEWORK_CMD+=" -library $1"
+            if [ -f "$2" ]; then
+              echo "✅ Including: $1 $2"
+              XCFRAMEWORK_CMD+=" -library $2"
             else
-              echo "⚠️ Skipping missing library: $1"
+              echo "⚠️ Skipping missing library: $1 $2"
             fi
           }
 
-          add_library_if_exists $MACOS_LIPO
-          add_library_if_exists $IOS_LIB
-          add_library_if_exists $IOS_SIM_LIPO
-          add_library_if_exists $TVOS_LIB
-          add_library_if_exists $TVOS_SIM_LIPO
+          add_library_if_exists macos $MACOS_LIPO
+          add_library_if_exists ios $IOS_LIB
+          add_library_if_exists ios_sim $IOS_SIM_LIPO
+          add_library_if_exists tvos $TVOS_LIB
+          add_library_if_exists tvos_sim $TVOS_SIM_LIPO
           
           XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
       
