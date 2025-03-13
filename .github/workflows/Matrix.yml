@@ -492,11 +492,10 @@ jobs:
 
           mkdir -p _build/nifs/
 
-          # git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
-          # cd exqlite
-          # mix deps.get
-          # STATIC_ERLANG_NIF_LIBNAME=exqlite mix release
-
+          git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
+          cd exqlite
+          mix deps.get
+          STATIC_ERLANG_NIF_LIBNAME=exqlite mix release
 
           # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
           # cd libsecp256k1
@@ -504,28 +503,28 @@ jobs:
           # mix release
           # cd ${{github.workspace}}/_build/nifs/
 
-          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
-          cd rustler_btleplug
-          mix deps.get
-          cd native/btleplug_client
-          #RUSTFLAGS='-C target-feature=+crt-static' 
-          RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
-          LIB_NAME=`find . -name "*.a" | head -1`
-          ls -lah $LIB_NAME
+          # git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
+          # cd rustler_btleplug
+          # mix deps.get
+          # cd native/btleplug_client
+          # #RUSTFLAGS='-C target-feature=+crt-static' 
+          # RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+          # LIB_NAME=`find . -name "*.a" | head -1`
+          # ls -lah $LIB_NAME
 
-          file $LIB_NAME
-          lipo -info $LIB_NAME
+          # file $LIB_NAME
+          # lipo -info $LIB_NAME
 
-          ar -t $LIB_NAME
+          # ar -t $LIB_NAME
 
-          #ar -d `find . -name "*.a" | head -1` unneeded.o
-          #ls -lah unneeded.o
+          # #ar -d `find . -name "*.a" | head -1` unneeded.o
+          # #ls -lah unneeded.o
 
-          strip -x $LIB_NAME
-          ls -lah $LIB_NAME
+          # strip -x $LIB_NAME
+          # ls -lah $LIB_NAME
 
-          cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-          cd ${{github.workspace}}
+          # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
+          # cd ${{github.workspace}}
 
           # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
           # cd wasmex
