@@ -624,8 +624,8 @@ jobs:
           --with-ssl="${{ env.OPENSSL_PREFIX }}" \
           --enable-static-nifs="$STATIC_NIFS" -v
 
-          ./otp_build boot -a -v
-          ./otp_build release -a -v
+          ./otp_build boot -a
+          ./otp_build release -a
 
           find . -type d -name release
 
