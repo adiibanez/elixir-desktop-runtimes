@@ -496,6 +496,10 @@ jobs:
           cd exqlite
           mix deps.get
           STATIC_ERLANG_NIF_LIBNAME=exqlite mix release
+          LIB_NAME=`find . -name "*.a" | head -1`
+          lipo -info $LIB_NAME
+          cp $LIB_NAME ${{github.workspace}}/_build/nifs/
+          cd ${{github.workspace}}
 
           # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
           # cd libsecp256k1
@@ -566,7 +570,7 @@ jobs:
         run: |
           # include only .a in release directories
           echo "Round 2"
-          NIF_LIBS=$(find ${{github.workspace}}/_build/nifs -type f -name "*.a" | grep -v "deps/" | awk '{printf ",%s", $1} END { print "" }')
+          NIF_LIBS=$(find ${{github.workspace}}/_build/nifs -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }')
           echo "Round 2.1"
           DEFAULT_STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
           echo "Round 2.2"
