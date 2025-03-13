@@ -60,8 +60,8 @@ jobs:
 
           # macos homebrew formula openssl setting: no-ssl3 no-ssl3-method no-zlib
           # - {id: "macos_arm64", name: "macOS ARM64", sdk: macosx, arch: x86_64, openssl_arch: "darwin64-x86_64", otp_arch: "aarch64-darwin", xcomp: "aarch64-darwin"}
-          - {id: "macos_arm64", name: "macOS arm64", sdk: macosx, arch: arm64, arch_type: macos, openssl_prefix: "_build/ios-openssl/build/openssl.macos.arm64", openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-arm64", otp_arch: "aarch64-apple-darwin", xcomp: "aarch64-darwin"}
-          - {id: "macos_x86_64", name: "macOS x86_64", sdk: macosx, arch: x86_64, arch_type: macos, openssl_prefix: "_build/ios-openssl/build/openssl.macos.x86_64", openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-x86_64", otp_arch: "x86_64-apple-darwin", xcomp: "x86_64-darwin"}
+          # - {id: "macos_arm64", name: "macOS arm64", sdk: macosx, arch: arm64, arch_type: macos, openssl_prefix: "_build/ios-openssl/build/openssl.macos.arm64", openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-arm64", otp_arch: "aarch64-apple-darwin", xcomp: "aarch64-darwin"}
+          # - {id: "macos_x86_64", name: "macOS x86_64", sdk: macosx, arch: x86_64, arch_type: macos, openssl_prefix: "_build/ios-openssl/build/openssl.macos.x86_64", openssl_opts: "no-ssl3 no-ssl3-method no-zlib", openssl_arch: "darwin64-x86_64", otp_arch: "x86_64-apple-darwin", xcomp: "x86_64-darwin"}
           # ios: , xcomp: "arm64-ios"
           - {id: "ios", name: "iOS", sdk: iphoneos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios" , xcomp: "arm64-ios"}
           - {id: "ios_sim_arm64", name: "iOS Simulator arm64", sdk: iphonesimulator, arch: arm64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.arm64", openssl_arch: "iossimulator-arm64-xcrun", otp_arch: "aarch64-apple-iossimulator", xcomp: "arm64-iossimulator" }
@@ -69,9 +69,9 @@ jobs:
           
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          - {id: "tvos_sim_arm64", name: "tvOS Simulator arm64", sdk: appletvsimulator, arch: arm64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.arm64", openssl_arch: "iossimulator-arm64-xcrun", otp_arch: "aarch64-apple-iossimulator", xcomp: "arm64-iossimulator"}
-          - {id: "tvos_sim_x86_64", name: "tvOS Simulator x86_64", sdk: appletvsimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator"}
+          # - {id: "tvos", name: "tvOS", sdk: appletvos, arch: arm64, arch_type: ios, openssl_prefix: "_build/ios-openssl/build/openssl.ios", openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          # - {id: "tvos_sim_arm64", name: "tvOS Simulator arm64", sdk: appletvsimulator, arch: arm64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.arm64", openssl_arch: "iossimulator-arm64-xcrun", otp_arch: "aarch64-apple-iossimulator", xcomp: "arm64-iossimulator"}
+          # - {id: "tvos_sim_x86_64", name: "tvOS Simulator x86_64", sdk: appletvsimulator, arch: x86_64, arch_type: ios_sim, openssl_prefix: "_build/ios-openssl/build/openssl.iossim.x86_64", openssl_arch: "iossimulator-x86_64-xcrun", otp_arch: "x86_64-apple-iossimulator", xcomp: "x86_64-iossimulator"}
           # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {id: "visionos", name: "visionOS", sdk: xros, arch: arm64, openssl_arch: "xros-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
@@ -357,7 +357,7 @@ jobs:
           # XCOMP_SDK="${{matrix.platform.sdk}}" \
           # XCOMP_ARCH="${{matrix.platform.arch}}" \
           # ARCH=${{ matrix.platform.arch }} \
-          
+          # --xcomp-conf=xcomp/erl-xcomp-${{matrix.platform.xcomp}}.conf \
           
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           ERL_FLAGS="-smp disable" \
@@ -365,10 +365,13 @@ jobs:
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
+          XCOMP_HOST=${{matrix.platform.otp_arch}} \
+          XCOMP_SDK="${{matrix.platform.sdk}}" \
+          XCOMP_ARCH="${{matrix.platform.arch}}" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
-          --xcomp-conf=xcomp/erl-xcomp-${{matrix.platform.xcomp}}.conf \
+          --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
           --disable-dynamic-ssl-lib \
           --with-ssl="${{ env.OPENSSL_PREFIX }}" \
           --enable-static-nifs="$STATIC_NIFS"
