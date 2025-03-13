@@ -488,6 +488,25 @@ jobs:
           export MAKEFLAGS="-j10 -O"
           export OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}
 
+
+
+          debug_lib()
+          {
+            if [[ -f $1 ]]; then
+              file $1
+              lipo -info $1
+
+              ar -t $1
+              echo BEFORE stripping
+              ls -lah $1
+              strip -x $1
+              echo AFTER stripping
+              ls -lah $1
+            else 
+              echo "LIB $1 doesn't exist"
+            fi
+          }
+
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
           mkdir -p _build/nifs/
@@ -507,28 +526,18 @@ jobs:
           # mix release
           # cd ${{github.workspace}}/_build/nifs/
 
-          # git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
-          # cd rustler_btleplug
-          # mix deps.get
-          # cd native/btleplug_client
-          # #RUSTFLAGS='-C target-feature=+crt-static' 
-          # RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
-          # LIB_NAME=`find . -name "*.a" | head -1`
-          # ls -lah $LIB_NAME
+          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
+          cd rustler_btleplug
+          mix deps.get
+          cd native/btleplug_client
+          #RUSTFLAGS='-C target-feature=+crt-static' 
+          RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+          LIB_NAME=`find . -name "*.a" | head -1`
 
-          # file $LIB_NAME
-          # lipo -info $LIB_NAME
+          debug_lib $LIB_NAME
+          cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
 
-          # ar -t $LIB_NAME
-
-          # #ar -d `find . -name "*.a" | head -1` unneeded.o
-          # #ls -lah unneeded.o
-
-          # strip -x $LIB_NAME
-          # ls -lah $LIB_NAME
-
-          # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-          # cd ${{github.workspace}}
+          cd ${{github.workspace}}
 
           # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
           # cd wasmex
