@@ -77,6 +77,7 @@ jobs:
           #     openssl_arch: 'darwin64-arm64',
           #     otp_arch: 'aarch64-apple-darwin',
           #     xcomp: 'aarch64-darwin',
+          #     rust_target: 'aarch64-apple-darwin'
           #   }
           # - {
           #     id: 'macos_x86_64',
@@ -89,6 +90,7 @@ jobs:
           #     openssl_arch: 'darwin64-x86_64',
           #     otp_arch: 'x86_64-apple-darwin',
           #     xcomp: 'x86_64-darwin',
+          #     rust_target: 'x86_64-apple-darwin'
           #   }
           - {
               id: 'ios',
@@ -100,6 +102,7 @@ jobs:
               openssl_arch: 'ios64-xcrun',
               otp_arch: 'aarch64-apple-ios',
               xcomp: 'arm64-ios',
+              rust_target: 'aarch64-apple-ios',
             }
           # - {
           #     id: 'ios_sim_arm64',
@@ -111,6 +114,7 @@ jobs:
           #     openssl_arch: 'iossimulator-arm64-xcrun',
           #     otp_arch: 'aarch64-apple-iossimulator',
           #     xcomp: 'arm64-iossimulator',
+          #     rust_target: 'aarch64-apple-ios-sim'
           #   }
           # - {
           #     id: 'ios_sim_x86_64',
@@ -122,6 +126,7 @@ jobs:
           #     openssl_arch: 'iossimulator-x86_64-xcrun',
           #     otp_arch: 'x86_64-apple-iossimulator',
           #     xcomp: 'x86_64-iossimulator',
+          #     rust_target: 'x86_64-apple-ios'
           #   }
 
           # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
@@ -136,6 +141,7 @@ jobs:
           #     openssl_arch: 'ios64-xcrun',
           #     otp_arch: 'aarch64-apple-ios',
           #     xcomp: 'arm64-ios',
+          #     rust_target: 'aarch64-apple-tvos'
           #   }
           # - {
           #     id: 'tvos_sim_arm64',
@@ -147,6 +153,7 @@ jobs:
           #     openssl_arch: 'iossimulator-arm64-xcrun',
           #     otp_arch: 'aarch64-apple-iossimulator',
           #     xcomp: 'arm64-iossimulator',
+          #     rust_target: 'aarch64-apple-tvos-sim'
           #   }
           # - {
           #     id: 'tvos_sim_x86_64',
@@ -158,6 +165,7 @@ jobs:
           #     openssl_arch: 'iossimulator-x86_64-xcrun',
           #     otp_arch: 'x86_64-apple-iossimulator',
           #     xcomp: 'x86_64-iossimulator',
+          #     rust_target: 'x86_64-apple-tvos'
           #   }
           # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
@@ -460,27 +468,25 @@ jobs:
         env:
           RUSTLER_BTLEPLUG_BUILD: 1
           WASMEX_BUILD: 1
-          RUST_TARGET: ${{ matrix.platform.otp_arch }}
-          RUSTFLAGS: '-C target-feature=+crt-static'
         run: |
           echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
-          MK_FILE=`find _build/otp_builder/erts/ -name "vsn.mk"`
-          ERTS_VERSION="`sed -nE 's/VSN *= *([0-9.]+)/\1/p' $MK_FILE`"
+          export MK_FILE=`find _build/otp_builder/erts/ -name "vsn.mk"`
+          export ERTS_VERSION="`sed -nE 's/VSN *= *([0-9.]+)/\1/p' $MK_FILE`"
 
-          ERLANG_PATH="_build/otp_builder/release/${{matrix.platform.otp_arch}}/include"
-          ERTS_INCLUDE_DIR="_build/otp_builder/release/${{matrix.platform.otp_arch}}/erts-$ERTS_VERSION/include"
-          SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path`
-          CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch ${{ matrix.platform.arch }}"
-          CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++"
-          LD="xcrun -sdk ${{ matrix.platform.sdk }} ld"
-          LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v"
-          DED_LD=$LD
-          DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v"
-          RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib"
-          AR="xcrun -sdk ${{ matrix.platform.sdk }} ar"
-          ARCH=${{ matrix.platform.openssl_arch }}
-          MAKEFLAGS="-j10 -O"
-          OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}
+          export ERLANG_PATH="_build/otp_builder/release/${{matrix.platform.otp_arch}}/include"
+          export ERTS_INCLUDE_DIR="_build/otp_builder/release/${{matrix.platform.otp_arch}}/erts-$ERTS_VERSION/include"
+          export SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path`
+          export CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch ${{ matrix.platform.arch }}"
+          export CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++"
+          export LD="xcrun -sdk ${{ matrix.platform.sdk }} ld"
+          export LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v"
+          export DED_LD=$LD
+          export DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v"
+          export RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib"
+          export AR="xcrun -sdk ${{ matrix.platform.sdk }} ar"
+          export ARCH=${{ matrix.platform.openssl_arch }}
+          export MAKEFLAGS="-j10 -O"
+          export OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}
 
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
@@ -502,8 +508,9 @@ jobs:
           git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
           cd rustler_btleplug
           mix deps.get
-          STATIC_ERLANG_NIF_LIBNAME=btleplug_client mix release
-          cd ..
+          cd native/btle_client
+          RUSTFLAGS='-C target-feature=+crt-static' STATIC_ERLANG_NIF_LIBNAME=btleplug_client cargo build --target=${{matrix.platform.rust_target}}
+          cd ${{github.workspace}}
 
           # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
           # cd wasmex
