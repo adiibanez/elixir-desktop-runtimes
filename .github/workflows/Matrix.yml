@@ -616,7 +616,6 @@ jobs:
 
           ls -l $(xcrun --sdk iphoneos --show-sdk-path)/usr/lib/libobjc.tbd
 
-
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           ERL_FLAGS="-smp disable" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
@@ -780,14 +779,20 @@ jobs:
           TEMP_DIR="temp_lipo"
           mkdir -p "$TEMP_DIR"
 
-          MACOS_LIPO="$TEMP_DIR/liberlang_macos.a"
-          lipo -create "$MACOS_LIB_ARM64" "$MACOS_LIB_X86_64" -output "$MACOS_LIPO"
+          if [ -f "$MACOS_LIB_ARM64" ] && [ -f "$MACOS_LIB_X86_64" ]; then
+            MACOS_LIPO="$TEMP_DIR/liberlang_macos.a"
+            lipo -create "$MACOS_LIB_ARM64" "$MACOS_LIB_X86_64" -output "$MACOS_LIPO"
+          fi
 
-          IOS_SIM_LIPO="$TEMP_DIR/liberlang_ios_sims.a"
-          lipo -create "$SIMULATOR_LIB_ARM64" "$SIMULATOR_LIB_X86_64" -output "$IOS_SIM_LIPO"
+          if [ -f "$SIMULATOR_LIB_ARM64" ] && [ -f "$SIMULATOR_LIB_X86_64" ]; then
+            IOS_SIM_LIPO="$TEMP_DIR/liberlang_ios_sims.a"
+            lipo -create "$SIMULATOR_LIB_ARM64" "$SIMULATOR_LIB_X86_64" -output "$IOS_SIM_LIPO"
+          fi
 
-          TVOS_SIM_LIPO="$TEMP_DIR/liberlang_tvos_sims.a"
-          lipo -create "$TVOS_SIMULATOR_LIB_ARM64" "$TVOS_SIMULATOR_LIB_X86_64" -output "$TVOS_SIM_LIPO"
+          if [ -f "$TVOS_SIMULATOR_LIB_ARM64" ] && [ -f "$TVOS_SIMULATOR_LIB_X86_64" ]; then
+            TVOS_SIM_LIPO="$TEMP_DIR/liberlang_tvos_sims.a"
+            lipo -create "$TVOS_SIMULATOR_LIB_ARM64" "$TVOS_SIMULATOR_LIB_X86_64" -output "$TVOS_SIM_LIPO"
+          fi
 
           XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
       
