@@ -104,18 +104,18 @@ jobs:
               xcomp: 'arm64-ios',
               rust_target: 'aarch64-apple-ios',
             }
-          # - {
-          #     id: 'ios_sim_arm64',
-          #     name: 'iOS Simulator arm64',
-          #     sdk: iphonesimulator,
-          #     arch: arm64,
-          #     base_arch: ios_sim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
-          #     openssl_arch: 'iossimulator-arm64-xcrun',
-          #     otp_arch: 'aarch64-apple-iossimulator',
-          #     xcomp: 'arm64-iossimulator',
-          #     rust_target: 'aarch64-apple-ios-sim'
-          #   }
+          - {
+              id: 'ios_sim_arm64',
+              name: 'iOS Simulator arm64',
+              sdk: iphonesimulator,
+              arch: arm64,
+              base_arch: ios_sim,
+              openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
+              openssl_arch: 'iossimulator-arm64-xcrun',
+              otp_arch: 'aarch64-apple-iossimulator',
+              xcomp: 'arm64-iossimulator',
+              rust_target: 'aarch64-apple-ios-sim',
+            }
           # - {
           #     id: 'ios_sim_x86_64',
           #     name: 'iOS Simulator x86_64',
