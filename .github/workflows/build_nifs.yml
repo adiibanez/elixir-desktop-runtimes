@@ -1,0 +1,52 @@
+name: Build Native NIFs
+on:
+  workflow_call:
+
+jobs:
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Generate Matrix
+        id: set-matrix
+        run: |
+          # This is where you define your packages and their repositories.
+          # You could read this from a file, or generate it dynamically.
+          PACKAGES=$(cat << EOF
+          [
+            { "name": "NIF_Package_1", "config": "config1", "repos": ["repo1", "repo2"] },
+            { "name": "NIF_Package_2", "config": "config2", "repos": ["repo3"] }
+          ]
+          EOF
+          )
+
+          # Transform the packages into a format suitable for the matrix.
+          # We create a new array where each element represents a single
+          # package/repository combination.
+          MATRIX=$(echo "$PACKAGES" | jq -c '.[] | .repos | .[] | {package: .name, repo: ., config: .config}')
+          MATRIX_ARRAY=$(echo "[$MATRIX]" | jq -s .) # Combine into a single array
+
+          echo "matrix=$(echo $MATRIX_ARRAY | jq -c .)" >> "$GITHUB_OUTPUT"
+
+  build-nifs:
+    needs: generate-matrix
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build NIFs for ${{ matrix.package }} - ${{ matrix.repo }}
+        run: |
+          echo "Building NIF package ${{ matrix.package }} for repo ${{ matrix.repo }} with config ${{ matrix.config }}"
+          mkdir -p "_build/nifs/${{ matrix.package }}/${{ matrix.repo }}"
+          echo "Building NIF package ${{ matrix.package }} for repo ${{ matrix.repo }} with config ${{ matrix.config }}" > "_build/nifs/${{ matrix.package }}/${{ matrix.repo }}/msg.txt"
+
+      - name: Upload NIF Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nif-${{ matrix.package }}-${{ matrix.repo }}
+          path: "_build/nifs/${{ matrix.package }}/${{ matrix.repo }}"

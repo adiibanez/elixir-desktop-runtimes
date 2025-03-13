@@ -2,15 +2,16 @@ name: Build iOS Openssl
 description: ios specific openssl
 
 inputs:
-  version: # the variable you can use in place of a matrix
+  version:
     required: true
-    type: string
+    description: The OpenSSL version to build. # Add description
   hash:
     required: true
-    type: string
+    description: The SHA256 hash of the OpenSSL source tarball. # Add description
   base_arch:
     required: true
-    type: string
+    description: The base architecture to build for (e.g., arm64, x86_64). # Add description
+
 runs:
   using: 'composite'
   steps:
@@ -19,21 +20,22 @@ runs:
       id: openssl-cache
       with:
         path: |
-          openssl-${{inputs.version }}
-        key: openssl-source-cache-${{inputs.version }}
+          openssl-${{ inputs.version }}
+        key: openssl-source-cache-${{ inputs.version }}
+
     - name: Download and Extract OpenSSL
       shell: bash
       if: steps.openssl-cache.outputs.cache-hit != 'true'
       id: openssl-download
       run: |
-        wget "https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz"
-        # echo "$OPENSSL_HASH  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c
-        tar xzf openssl-$OPENSSL_VERSION.tar.gz
-        ls -lah ${{github.workspace}}/openssl-$OPENSSL_VERSION
+        wget "https://www.openssl.org/source/openssl-${{ inputs.version }}.tar.gz"
+        # echo "${{ inputs.hash }}  openssl-${{ inputs.version }}.tar.gz" | sha256sum -c  # Corrected hash check (see below)
+        tar xzf openssl-${{ inputs.version }}.tar.gz
+        ls -lah ${{ github.workspace }}/openssl-${{ inputs.version }}
 
-        echo "OPENSSL_VERSION=$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
-        echo "OPENSSL_HASH=$OPENSSL_HASH" >> "$GITHUB_OUTPUT"
-        echo "OPENSSL_PATH=$PWD/openssl-$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
+        echo "OPENSSL_VERSION=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+        echo "OPENSSL_HASH=${{ inputs.hash }}" >> "$GITHUB_OUTPUT" # No need to set again
+        echo "OPENSSL_PATH=${{ github.workspace }}/openssl-${{ inputs.version }}" >> "$GITHUB_OUTPUT"
 
     - name: Cache Openssl iOS builds
       uses: actions/cache@v4
@@ -41,7 +43,7 @@ runs:
       with:
         path: |
           _build/ios-openssl
-        key: openssl-ios-build-cache-${{inputs.version }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+        key: openssl-ios-build-cache-${{ inputs.version }}-${{ runner.os }}-${{ inputs.base_arch }}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
     - name: Build iOS OpenSSL
       if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
@@ -49,28 +51,29 @@ runs:
       shell: bash
       run: |
         mkdir -p _build/ios-openssl
-        cd openssl-${{inputs.version }}
-        OPENSSL_VERSION=${{inputs.version }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{inputs.base_arch}}
+        cd openssl-${{ inputs.version }}
+        OPENSSL_VERSION=${{ inputs.version }} BUILD_DIR=${{ github.workspace }}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{ inputs.base_arch }}
 
     - name: Check libs
       shell: bash
       env:
-        BUILD_DIR: ${{github.workspace}}/_build/ios-openssl
+        BUILD_DIR: ${{ github.workspace }}/_build/ios-openssl
       run: |
-        find $BUILD_DIR -name "*.a"
-        find $BUILD_DIR -name "*.a" -exec lipo -info {} \;
+        find "$BUILD_DIR" -name "*.a"
+        find "$BUILD_DIR" -name "*.a" -exec lipo -info {} \;
 
-    - name: Extract logs for ${{ matrix.platform.name }}
+    - name: Extract logs for ${{ inputs.base_arch }} # removed matrix (since it's not used here)
       if: always() && steps.build-openssl.outcome != 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: debug-logs-openssl-ios-build-${{inputs.version }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+        name: debug-logs-openssl-ios-build-${{ inputs.version }}-${{ runner.os }}-${{ inputs.base_arch }}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
         path: '**/*.log'
 
-    - name: Cache Openssl iOS builds
-      uses: actions/cache/save@v4
+    - name: Cache Openssl iOS builds (Save)
+      uses: actions/cache/save@v4 # Use the save-only action
       id: openssl-ios-build-cache-save
+      if: always() # Always save the cache, even on failure (important!)
       with:
         path: |
           _build/ios-openssl
-        key: openssl-ios-build-cache-${{inputs.version }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+        key: openssl-ios-build-cache-${{ inputs.version }}-${{ runner.os }}-${{ inputs.base_arch }}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}

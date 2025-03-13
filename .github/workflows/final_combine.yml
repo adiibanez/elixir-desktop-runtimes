@@ -1,0 +1,30 @@
+name: Combine OTP Builds
+on:
+  workflow_call:
+
+jobs:
+  final_combine:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download OTP Round 2 Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: _build/final/
+
+      - name: Final Combination Step
+        run: |
+          MSG="Combining all OTP builds..."
+          mkdir -p _build/final/
+          echo $MSG > _build/final/msg.txt
+          echo $MSG
+          
+          # Add combination logic here
+
+      - name: Upload Final Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-otp-build
+          path: _build/final/

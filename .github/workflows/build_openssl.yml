@@ -1,0 +1,30 @@
+name: Build OpenSSL
+on:
+  workflow_call:
+    inputs:
+      matrix:
+        required: true
+        type: string
+
+jobs:
+  build-openssl:
+    runs-on: macos-latest
+    strategy:
+      matrix: ${{ fromJson(inputs.matrix).platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build OpenSSL
+        run: |
+          MSG="Building OpenSSL for ${{ matrix.platform.name }}"
+          mkdir -p _build/otp/
+          echo $MSG > _build/otp/msg.txt
+          echo $MSG
+          # Add OpenSSL build commands here
+
+      - name: Upload OpenSSL Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openssl-${{ matrix.platform.id }}
+          path: _build/ios-openssl/build/

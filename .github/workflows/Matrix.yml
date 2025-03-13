@@ -756,8 +756,7 @@ jobs:
           pattern: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-*
           # merge-multiple: true
 
-      - name: Create Combined xcframework
-        id: assemble-xcframework
+      - name: Setup xcframework env
         shell: bash
         run: |
           find xcframework-slices -name "*.a"
@@ -775,6 +774,11 @@ jobs:
           # echo "WATCHOS_SIMULATOR_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos_sim/liberlang.a" >> $GITHUB_ENV
           echo "VISIONOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos/liberlang.a" >> $GITHUB_ENV
           echo "VISIONOS_SIMULATOR_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos_sim/liberlang.a" >> $GITHUB_ENV
+
+      - name: Create Combined xcframework
+        id: assemble-xcframework
+        shell: bash
+        run: |
 
           TEMP_DIR="temp_lipo"
           mkdir -p "$TEMP_DIR"

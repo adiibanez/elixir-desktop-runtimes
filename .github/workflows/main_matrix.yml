@@ -1,0 +1,71 @@
+name: Dummy Apple OTP Build Pipeline
+
+on:
+  push:
+    # branches:
+    #   - main
+  pull_request:
+
+jobs:
+  define-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set Platform & OTP Matrix
+        id: set-matrix
+        run: |
+            echo "matrix=$(jq -c . <<EOF
+            {
+            "platform": [
+                { "id": "ios", "name": "iOS", "sdk": "iphoneos", "arch": "arm64" },
+                { "id": "ios_sim_arm64", "name": "iOS Simulator arm64", "sdk": "iphonesimulator", "arch": "arm64" },
+                { "id": "ios_sim_x86_64", "name": "iOS Simulator x86_64", "sdk": "iphonesimulator", "arch": "x86_64" }
+            ],
+            "erlixir": [
+                {
+                "otp-version": 27.3,
+                "elixir-version": 1.18.2,
+                "use-git": true,
+                "git-repo": "adiibanez/otp",
+                "git-ref": "OTP-27.3-noiosminversion"
+                },
+                {
+                "otp-version": 26.3,
+                "elixir-version": 1.18.2,
+                "use-git": true,
+                "git-repo": "adiibanez/otp",
+                "git-ref": "OTP-27.3-noiosminversion"
+                }
+            ]
+            }
+            EOF
+            )" >> $GITHUB_ENV
+
+  build_openssl:
+    needs: define-matrix
+    uses: ./.github/workflows/build_openssl.yml
+    with:
+      matrix: ${{ needs.define-matrix.outputs.matrix }}
+
+  build_otp_round_1:
+    needs: build_openssl
+    uses: ./.github/workflows/build_otp.yml
+    with:
+      matrix: ${{ needs.define-matrix.outputs.matrix }}
+      round: 1
+
+  build_nifs:
+    needs: build_otp_round_1
+    uses: ./.github/workflows/build_nifs.yml
+
+  build_otp_round_2:
+    needs: [build_otp_round_1, build_nifs]
+    uses: ./.github/workflows/build_otp.yml
+    with:
+      matrix: ${{ needs.define-matrix.outputs.matrix }}
+      round: 2
+
+  final_combine:
+    needs: build_otp_round_2
+    uses: ./.github/workflows/final_combine.yml
