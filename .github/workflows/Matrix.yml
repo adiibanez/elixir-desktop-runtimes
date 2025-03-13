@@ -484,7 +484,7 @@ jobs:
           export DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v"
           export RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib"
           export AR="xcrun -sdk ${{ matrix.platform.sdk }} ar"
-          export ARCH=${{ matrix.platform.openssl_arch }}
+          export ARCH=${{ matrix.platform.arch }}
           export MAKEFLAGS="-j10 -O"
           export OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}
 
@@ -493,38 +493,38 @@ jobs:
           mkdir -p _build/nifs/
           cd _build/nifs/
 
-          # git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
-          # cd exqlite
-          # mix deps.get
-          # STATIC_ERLANG_NIF_LIBNAME=exqlite mix release
-          # cd ..
+          git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
+          cd exqlite
+          mix deps.get
+          STATIC_ERLANG_NIF_LIBNAME=exqlite mix release
+          cd ${{github.workspace}}/_build/nifs/
 
           # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
           # cd libsecp256k1
           # mix deps.get
           # mix release
-          # cd ..
+          # cd ${{github.workspace}}/_build/nifs/
 
           git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch v0.0.15-alpha
           cd rustler_btleplug
           mix deps.get
-          cd native/btle_client
+          cd native/btleplug_client
           RUSTFLAGS='-C target-feature=+crt-static' STATIC_ERLANG_NIF_LIBNAME=btleplug_client cargo build --target=${{matrix.platform.rust_target}}
-          cd ${{github.workspace}}
+          cd ${{github.workspace}}/_build/nifs/
 
           # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
           # cd wasmex
           # mix deps.get
           # mix release
-          # cd ..
+          # cd ${{github.workspace}}/_build/nifs/
 
           # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
           # cd explorer
           # mix deps.get
           # mix release
-          # cd ..
+          # cd ${{github.workspace}}/_build/nifs/
 
-          cd ${{ github.workspace }}
+          cd cd ${{github.workspace}}
 
           find _build/nifs -type f -name "*.a"
 
