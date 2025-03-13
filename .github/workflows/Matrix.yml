@@ -71,7 +71,7 @@ jobs:
           #     name: 'macOS arm64',
           #     sdk: macosx,
           #     arch: arm64,
-          #     arch_type: macos,
+          #     base_arch: macos,
           #     openssl_prefix: '_build/ios-openssl/build/openssl.macos.arm64',
           #     openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
           #     openssl_arch: 'darwin64-arm64',
@@ -83,7 +83,7 @@ jobs:
           #     name: 'macOS x86_64',
           #     sdk: macosx,
           #     arch: x86_64,
-          #     arch_type: macos,
+          #     base_arch: macos,
           #     openssl_prefix: '_build/ios-openssl/build/openssl.macos.x86_64',
           #     openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
           #     openssl_arch: 'darwin64-x86_64',
@@ -95,7 +95,7 @@ jobs:
               name: 'iOS',
               sdk: iphoneos,
               arch: arm64,
-              arch_type: ios,
+              base_arch: ios,
               openssl_prefix: '_build/ios-openssl/build/openssl.ios',
               openssl_arch: 'ios64-xcrun',
               otp_arch: 'aarch64-apple-ios',
@@ -106,7 +106,7 @@ jobs:
               name: 'iOS Simulator arm64',
               sdk: iphonesimulator,
               arch: arm64,
-              arch_type: ios_sim,
+              base_arch: ios_sim,
               openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
               openssl_arch: 'iossimulator-arm64-xcrun',
               otp_arch: 'aarch64-apple-iossimulator',
@@ -117,7 +117,7 @@ jobs:
               name: 'iOS Simulator x86_64',
               sdk: iphonesimulator,
               arch: x86_64,
-              arch_type: ios_sim,
+              base_arch: ios_sim,
               openssl_prefix: '_build/ios-openssl/build/openssl.iossim.x86_64',
               openssl_arch: 'iossimulator-x86_64-xcrun',
               otp_arch: 'x86_64-apple-iossimulator',
@@ -131,7 +131,7 @@ jobs:
           #     name: 'tvOS',
           #     sdk: appletvos,
           #     arch: arm64,
-          #     arch_type: ios,
+          #     base_arch: ios,
           #     openssl_prefix: '_build/ios-openssl/build/openssl.ios',
           #     openssl_arch: 'ios64-xcrun',
           #     otp_arch: 'aarch64-apple-ios',
@@ -142,7 +142,7 @@ jobs:
           #     name: 'tvOS Simulator arm64',
           #     sdk: appletvsimulator,
           #     arch: arm64,
-          #     arch_type: ios_sim,
+          #     base_arch: ios_sim,
           #     openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
           #     openssl_arch: 'iossimulator-arm64-xcrun',
           #     otp_arch: 'aarch64-apple-iossimulator',
@@ -153,7 +153,7 @@ jobs:
           #     name: 'tvOS Simulator x86_64',
           #     sdk: appletvsimulator,
           #     arch: x86_64,
-          #     arch_type: ios_sim,
+          #     base_arch: ios_sim,
           #     openssl_prefix: '_build/ios-openssl/build/openssl.iossim.x86_64',
           #     openssl_arch: 'iossimulator-x86_64-xcrun',
           #     otp_arch: 'x86_64-apple-iossimulator',
@@ -192,7 +192,7 @@ jobs:
         with:
           path: |
             _build/ios-openssl
-          key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{matrix.platform.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+          key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{matrix.platform.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
       # - name: Build iOS OpenSSL
       #   if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
@@ -200,7 +200,7 @@ jobs:
       #   run: |
       #     mkdir -p _build/ios-openssl
       #     cd openssl-${{ env.OPENSSL_VERSION }}
-      #     OPENSSL_VERSION=${{ env.OPENSSL_VERSION }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{matrix.platform.arch_type}}
+      #     OPENSSL_VERSION=${{ env.OPENSSL_VERSION }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{matrix.platform.base_arch}}
 
       - name: build_openssl_ios
         uses: ./.github/actions/openssl-ios
@@ -208,7 +208,7 @@ jobs:
         with:
           version: ${{env.OPENSSL_VERSION }}
           hash: ${{env.OPENSSL_HASH}}
-          arch_type: ${{matrix.platform.arch_type }}
+          base_arch: ${{matrix.platform.base_arch }}
 
       - name: Check libs
         shell: bash
@@ -225,7 +225,7 @@ jobs:
         with:
           path: |
             _build/ios-openssl
-          key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{matrix.platform.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+          key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{matrix.platform.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
       - name: Openssl Env
         shell: bash
@@ -464,13 +464,10 @@ jobs:
           RUSTFLAGS: '-C target-feature=+crt-static'
         run: |
           echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
-
-          content=$(cat `find _build/otp_builder/erts/ -name "vsn.mk")
+          content=$(cat `find _build/otp_builder/erts/ -name "vsn.mk"`)
           erts_version=$(echo "$content" | grep -oP 'VSN *= *\K[0-9.]+' )
-
           ERLANG_PATH="_build/otp_builder/release/${{matrix.platform.otp_arch}}/include"
           ERTS_INCLUDE_DIR="_build/otp_builder/release/${{matrix.platform.otp_arch}}/erts-$(erts_version)/include"
-
           SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path`
           CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch ${{ matrix.platform.arch }}"
           CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++"

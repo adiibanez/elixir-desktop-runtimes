@@ -8,11 +8,11 @@ inputs:
   hash:
     required: true
     type: string
-  arch_type:
+  base_arch:
     required: true
     type: string
-runs: 
-  using: "composite"
+runs:
+  using: 'composite'
   steps:
     - name: Cache Openssl source
       uses: actions/cache@v4
@@ -41,7 +41,7 @@ runs:
       with:
         path: |
           _build/ios-openssl
-        key: openssl-ios-build-cache-${{inputs.version }}-${{ runner.os }}-${{inputs.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+        key: openssl-ios-build-cache-${{inputs.version }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
     - name: Build iOS OpenSSL
       if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
@@ -50,11 +50,11 @@ runs:
       run: |
         mkdir -p _build/ios-openssl
         cd openssl-${{inputs.version }}
-        OPENSSL_VERSION=${{inputs.version }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{inputs.arch_type}}
+        OPENSSL_VERSION=${{inputs.version }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{inputs.base_arch}}
 
     - name: Check libs
       shell: bash
-      env: 
+      env:
         BUILD_DIR: ${{github.workspace}}/_build/ios-openssl
       run: |
         find $BUILD_DIR -name "*.a"
@@ -64,8 +64,8 @@ runs:
       if: always() && steps.build-openssl.outcome != 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: debug-logs-openssl-ios-build-${{inputs.version }}-${{ runner.os }}-${{inputs.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
-        path: "**/*.log"
+        name: debug-logs-openssl-ios-build-${{inputs.version }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+        path: '**/*.log'
 
     - name: Cache Openssl iOS builds
       uses: actions/cache/save@v4
@@ -73,5 +73,4 @@ runs:
       with:
         path: |
           _build/ios-openssl
-        key: openssl-ios-build-cache-${{inputs.version }}-${{ runner.os }}-${{inputs.arch_type}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
-
+        key: openssl-ios-build-cache-${{inputs.version }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
