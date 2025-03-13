@@ -524,7 +524,7 @@ jobs:
           # mix release
           # cd ${{github.workspace}}/_build/nifs/
 
-          cd cd ${{github.workspace}}
+          cd ${{github.workspace}}
 
           find _build/nifs -type f -name "*.a"
 
