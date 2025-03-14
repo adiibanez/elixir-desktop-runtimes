@@ -31,94 +31,23 @@ jobs:
 
   build_openssl:
     needs: define-matrix
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Cache Openssl source
-        uses: actions/cache@v4
-        id: openssl-cache
-        with:
-          path: |
-            openssl-${{ matrix.erlixir.otp-version }}
-          key: openssl-source-cache-${{ matrix.erlixir.otp-version }}
-
-      - name: Download and Extract OpenSSL
-        shell: bash
-        if: steps.openssl-cache.outputs.cache-hit != 'true'
-        id: openssl-download
-        run: |
-          wget "https://www.openssl.org/source/openssl-${{ matrix.erlixir.otp-version }}.tar.gz"
-          echo "${{ matrix.erlixir.hash }}  openssl-${{ matrix.erlixir.otp-version }}.tar.gz" | sha256sum -c
-          tar xzf openssl-${{ matrix.erlixir.otp-version }}.tar.gz
-          ls -lah ${{ github.workspace }}/openssl-${{ matrix.erlixir.otp-version }}
-          echo "OPENSSL_PATH=${{ github.workspace }}/openssl-${{ matrix.erlixir.otp-version }}" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Openssl iOS builds
-        uses: actions/cache@v4
-        id: openssl-ios-build-cache
-        with:
-          path: |
-            _build/ios-openssl
-          key: openssl-ios-build-cache-${{ matrix.erlixir.otp-version }}-${{ runner.os }}-${{ matrix.platform.arch }}-${{ hashFiles('.github/actions/openssl-ios/scripts/install_openssl_ios.sh') }}
-
-      - name: Build iOS OpenSSL
-        if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
-        id: build-openssl
-        shell: bash
-        run: |
-          mkdir -p _build/ios-openssl
-          cd openssl-${{ matrix.erlixir.otp-version }}
-          OPENSSL_VERSION=${{ matrix.erlixir.otp-version }} BUILD_DIR=${{ github.workspace }}/_build/ios-openssl ../../scripts/install_openssl_ios.sh ${{ matrix.platform.arch }}
-
-      - name: Check libs
-        shell: bash
-        continue-on-error: true
-        env:
-          BUILD_DIR: ${{ github.workspace }}/_build/ios-openssl
-        run: |
-          find "$BUILD_DIR" -name "*.a"
-          find "$BUILD_DIR" -name "*.a" -exec lipo -info {} \;
-
-      - name: Extract logs for ${{ matrix.platform.arch }}
-        if: always() && steps.build-openssl.outcome != 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-logs-openssl-ios-build-${{ matrix.erlixir.otp-version }}-${{ runner.os }}-${{ matrix.platform.arch }}-${{ hashFiles('.github/actions/openssl-ios/scripts/install_openssl_ios.sh') }}
-          path: '**/*.log'
-
-      - name: Cache Openssl iOS builds (Save)
-        uses: actions/cache/save@v4
-        id: openssl-ios-build-cache-save
-        if: always()
-        with:
-          path: |
-            _build/ios-openssl
-          key: openssl-ios-build-cache-${{ matrix.erlixir.otp-version }}-${{ runner.os }}-${{ matrix.platform.arch }}-${{ hashFiles('.github/actions/openssl-ios/scripts/install_openssl_ios.sh') }}
-
-      - name: Upload OpenSSL Artifact
-        uses: actions/upload-artifact@v4
-        with:
-            name: openssl-${{ matrix.platform.id }}
-            path: _build/ios-openssl/
+    uses: ./.github/workflows/build_openssl.yml
+    with:
+      matrix: ${{ needs.define-matrix.outputs.matrix }}
 
   build_otp_round_1:
-    needs: define-matrix
+    needs: [define-matrix, build_openssl]
     uses: ./.github/workflows/build_otp.yml
     with:
       matrix: ${{ needs.define-matrix.outputs.matrix }}
       round: 1
 
   build_nifs:
-    needs: build_otp_round_1
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Building NIFs (placeholder)"
-
+    needs: define-matrix
+    uses: ./.github/workflows/build_nifs.yml
+    with:
+      parent_matrix: ${{ needs.define-matrix.outputs.matrix }} 
+    
   build_otp_round_2:
     needs: [build_otp_round_1, build_nifs]
     uses: ./.github/workflows/build_otp.yml

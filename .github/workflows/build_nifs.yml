@@ -1,23 +1,27 @@
 name: Build Native NIFs
 on:
   workflow_call:
+    inputs:
+      parent_matrix:  # Receive the parent matrix as an input
+        required: true
+        type: string
   workflow_dispatch:
 
 jobs:
   generate-matrix:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      combined_matrix: ${{ steps.combine-matrices.outputs.matrix }} # Output the *combined* matrix
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: "Invalidate Cache (Dummy Step)"  # Force a new cache key
+      - name: "Invalidate Cache (Dummy Step)"
         uses: actions/cache@v4
         with:
-          path: .github/workflows  # Cache something
+          path: .github/workflows
           key: matrix-generation-${{ github.run_id }}
-      - name: Generate Matrix
-        id: set-matrix
+      - name: Generate NIF Matrix
+        id: generate-nif-matrix
         run: |
           if [ ! -f .github/workflows/nif_packages.json ]; then
             echo "Error: nif_packages.json not found!" >&2
@@ -26,33 +30,47 @@ jobs:
           PACKAGES=$(cat .github/workflows/nif_packages.json)
           MATRIX=$(echo "$PACKAGES" | jq -c '.[] | .repos | .[] | {package: (.name), repo: ., config: (.config)}')
           if [ $? -ne 0 ]; then
-            echo "Error: jq command failed!" >&2
+            echo "Error: jq command failed! (1)" >&2
             exit 1
           fi
           MATRIX_ARRAY=$(echo "[$MATRIX]" | jq -s .)
-           if [ $? -ne 0 ]; then
-            echo "Error: jq command failed!" >&2
+          if [ $? -ne 0 ]; then
+            echo "Error: jq command failed! (2)" >&2
             exit 1
           fi
-          echo "matrix=$(echo "$MATRIX_ARRAY" | jq -c .)" >> "$GITHUB_OUTPUT"
+          echo "nif_matrix=$(echo "$MATRIX_ARRAY" | jq -c .)" >> "$GITHUB_OUTPUT"
+
+      - name: Combine Matrices
+        id: combine-matrices
+        run: |
+          PARENT_MATRIX='${{ inputs.parent_matrix }}'
+          NIF_MATRIX=$(echo "${{ steps.generate-nif-matrix.outputs.nif_matrix }}")
+
+          # Combine the parent matrix and NIF matrix using jq.
+          COMBINED_MATRIX=$(echo "$PARENT_MATRIX" | jq --argjson nif "$NIF_MATRIX" -c '
+            .platform as $p | $nif | .[] | {platform: $p, package: .package, repo: .repo, config: .config}
+          ')
+          echo "matrix=$(echo "[$COMBINED_MATRIX]" | jq -s .)" >> "$GITHUB_OUTPUT"
 
   build-nifs:
     needs: generate-matrix
-    runs-on: macos-latest # Or your desired runner
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+        include: ${{ fromJson(needs.generate-matrix.outputs.combined_matrix) }}  # Use the combined matrix
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Build NIFs for ${{ matrix.package }} - ${{ matrix.repo }}
+
+      - name: Build NIFs for ${{ matrix.platform.name }} - ${{ matrix.package }} - ${{ matrix.repo }}
         run: |
-          echo "Building NIF package ${{ matrix.package }} for repo ${{ matrix.repo }} with config ${{ matrix.config }}"
-          mkdir -p "_build/nifs/${{ matrix.package }}/${{ matrix.repo }}"
-          echo "Building NIF package ${{ matrix.package }} for repo ${{ matrix.repo }} with config ${{ matrix.config }}" > "_build/nifs/${{ matrix.package }}/${{ matrix.repo }}/msg.txt"
+          echo "Building NIF package ${{ matrix.package }} for repo ${{ matrix.repo }} with config ${{ matrix.config }} (Platform: ${{ matrix.platform.name }})"
+          mkdir -p "_build/nifs/${{ matrix.platform.id }}/${{ matrix.package }}/${{ matrix.repo }}" # Include platform in path
+          echo "Building NIF package ${{ matrix.package }} for repo ${{ matrix.repo }} with config ${{ matrix.config }} (Platform: ${{ matrix.platform.name }})" > "_build/nifs/${{ matrix.platform.id }}/${{ matrix.package }}/${{ matrix.repo }}/msg.txt"
+
       - name: Upload NIF Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nif-${{ matrix.package }}-${{ matrix.repo }}
-          path: "_build/nifs/${{ matrix.package }}/${{ matrix.repo }}"
+          name: nif-${{ matrix.platform.id }}-${{ matrix.package }}-${{ matrix.repo }} # Include platform in artifact name
+          path: "_build/nifs/${{ matrix.platform.id }}/${{ matrix.package }}/${{ matrix.repo }}"

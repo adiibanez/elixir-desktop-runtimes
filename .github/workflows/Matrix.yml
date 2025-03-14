@@ -461,8 +461,18 @@ jobs:
           name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
           path: '**/*.log'
 
+      - name: Set IS_TVOS environment variable
+        run: |
+          if [[ ${{ matrix.platform.rust_target }} == *"tvos"* ]]; then
+            echo "IS_TVOS=true" >> "$GITHUB_ENV"
+          else
+            echo "IS_TVOS=false" >> "$GITHUB_ENV"
+          fi
+        shell: bash
+
       - name: Install Rust Nightly
         uses: dtolnay/rust-toolchain@master
+        if: env.IS_TVOS != 'true'
         with:
           toolchain: ${{ env.TOOLCHAIN }}
           targets: ${{ matrix.platform.rust_target }}
@@ -536,7 +546,7 @@ jobs:
           # cd ${{github.workspace}}/_build/nifs/
 
 
-          if [[ "${{ matrix.platform.rust_target }}" != *"tvos"* ]]; then
+          if [[ "${{ env.IS_TVOS }}" == "false" ]]; then
             # RUST_CONFIG=" -Zbuild-std"
           
             git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
