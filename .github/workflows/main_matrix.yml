@@ -14,21 +14,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Set Platform & OTP Matrix
-        id: define-matrix
+        id: set-matrix
         run: |
-          MATRIX=$(cat .github/workflows/matrix.json)
+          # Method 1: Use jq to ensure valid JSON and remove whitespace (Recommended)
+          MATRIX=$(jq -c . .github/workflows/matrix.json)
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+          # Method 2: Use tr to remove whitespace (Less Robust)
+          # MATRIX=$(cat .github/workflows/matrix.json | tr -d '[:space:]')
+          # echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+          # Method 3: Use a multi-line string with a delimiter (Most Robust, but verbose)
+          # cat << EOF >> "$GITHUB_OUTPUT"
+          # matrix=$(cat .github/workflows/matrix.json)
+          # EOF
 
   build_openssl:
     needs: define-matrix
-    runs-on: macos-latest  # This is now a regular job
+    runs-on: macos-latest
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # --- Steps from the composite action, adapted for the matrix ---
       - name: Cache Openssl source
         uses: actions/cache@v4
         id: openssl-cache
@@ -63,7 +72,6 @@ jobs:
         run: |
           mkdir -p _build/ios-openssl
           cd openssl-${{ matrix.erlixir.otp-version }}
-          # Note: We directly use matrix variables here, no need for inputs
           OPENSSL_VERSION=${{ matrix.erlixir.otp-version }} BUILD_DIR=${{ github.workspace }}/_build/ios-openssl ../../scripts/install_openssl_ios.sh ${{ matrix.platform.arch }}
 
       - name: Check libs
@@ -90,7 +98,7 @@ jobs:
             _build/ios-openssl
           key: openssl-ios-build-cache-${{ matrix.erlixir.otp-version }}-${{ runner.os }}-${{ matrix.platform.arch }}-${{ hashFiles('.github/actions/openssl-ios/scripts/install_openssl_ios.sh') }}
 
-      - name: Upload OpenSSL Artifact # artifact name coherent with donwload name.
+      - name: Upload OpenSSL Artifact
         uses: actions/upload-artifact@v4
         with:
             name: openssl-${{ matrix.platform.id }}

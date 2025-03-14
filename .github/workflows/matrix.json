@@ -10,14 +10,16 @@
       "elixir-version": "1.18.2",
       "use-git": true,
       "git-repo": "adiibanez/otp",
-      "git-ref": "OTP-27.3-noiosminversion"
+      "git-ref": "OTP-27.3-noiosminversion",
+      "hash": "examplehash27.3"
     },
     {
       "otp-version": "26.3",
       "elixir-version": "1.18.2",
       "use-git": true,
       "git-repo": "adiibanez/otp",
-      "git-ref": "OTP-27.3-noiosminversion"
+      "git-ref": "OTP-27.3-noiosminversion",
+      "hash": "examplehash26.3"
     }
   ]
 }

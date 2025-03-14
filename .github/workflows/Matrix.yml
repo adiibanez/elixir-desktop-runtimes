@@ -451,23 +451,17 @@ jobs:
           ls -lah _build/otp_builder
 
       - name: Show libs for ${{ matrix.platform.name }}
-        if: always() && steps.otp-setup.outcome != 'success'
+        if: always() && steps.otp-setup-round1.outcome != 'success'
         shell: bash
         run: |
           find _build/otp_builder -name "*.a"
 
       - name: Extract logs for ${{ matrix.platform.name }}
-        if: always() && steps.otp-setup.outcome != 'success'
+        if: always() && steps.otp-setup-round1.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
           name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
           path: '**/*.log'
-
-      # - name: Upload liberlang.a libs Artifact for ${{ matrix.platform.name }}
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: debug-libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-liberlang
-      #     path: /tmp/otp_libs/*
 
       - name: Install Rust Nightly
         uses: dtolnay/rust-toolchain@master
@@ -525,6 +519,13 @@ jobs:
 
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
+          if [[ ${{ matrix.platform.rust_target }} == *"tvos"* ]]; then
+            RUST_CONFIG=" -Zbuild-std"
+          else
+            # echo "IS_TVOS=false" >> "$GITHUB_ENV"
+            RUST_CONFIG=""
+          fi
+
           mkdir -p _build/nifs/
 
           git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
@@ -548,7 +549,7 @@ jobs:
           mix deps.get
           cd native/btleplug_client
           #RUSTFLAGS='-C target-feature=+crt-static' 
-          RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+          RUSTFLAGS="-C target-feature=-crt-static" cargo build$RUST_CONFIG --release --target=${{matrix.platform.rust_target}}
           LIB_NAME=`find . -name "*.a" | head -1`
           debug_lib $LIB_NAME
           cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
@@ -558,7 +559,7 @@ jobs:
           # cd wasmex
           # mix deps.get
           # cd native/wasmex
-          # RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+          # RUSTFLAGS="-C target-feature=-crt-static" cargo build$RUST_CONFIG --release --target=${{matrix.platform.rust_target}}
           # LIB_NAME=`find . -name "*.a" | head -1`
           # debug_lib $LIB_NAME
           # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
