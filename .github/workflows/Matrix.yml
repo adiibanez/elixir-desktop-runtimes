@@ -519,13 +519,7 @@ jobs:
 
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
-          if [[ ${{ matrix.platform.rust_target }} == *"tvos"* ]]; then
-            RUST_CONFIG=" -Zbuild-std"
-          else
-            # echo "IS_TVOS=false" >> "$GITHUB_ENV"
-            RUST_CONFIG=""
-          fi
-
+          
           mkdir -p _build/nifs/
 
           git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
@@ -543,33 +537,42 @@ jobs:
           # mix release
           # cd ${{github.workspace}}/_build/nifs/
 
-          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
-          # v0.0.15-alpha
-          cd rustler_btleplug
-          mix deps.get
-          cd native/btleplug_client
-          #RUSTFLAGS='-C target-feature=+crt-static' 
-          RUSTFLAGS="-C target-feature=-crt-static" cargo build$RUST_CONFIG --release --target=${{matrix.platform.rust_target}}
-          LIB_NAME=`find . -name "*.a" | head -1`
-          debug_lib $LIB_NAME
-          cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-          cd ${{github.workspace}}
 
-          # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
-          # cd wasmex
-          # mix deps.get
-          # cd native/wasmex
-          # RUSTFLAGS="-C target-feature=-crt-static" cargo build$RUST_CONFIG --release --target=${{matrix.platform.rust_target}}
-          # LIB_NAME=`find . -name "*.a" | head -1`
-          # debug_lib $LIB_NAME
-          # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-          # cd ${{github.workspace}}
+          if [[ ${{ matrix.platform.rust_target }} != *"tvos"* ]]; then
+            # RUST_CONFIG=" -Zbuild-std"
+          
+            git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
+            # v0.0.15-alpha
+            cd rustler_btleplug
+            mix deps.get
+            cd native/btleplug_client
+            #RUSTFLAGS='-C target-feature=+crt-static' 
+            RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+            LIB_NAME=`find . -name "*.a" | head -1`
+            debug_lib $LIB_NAME
+            cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
+            cd ${{github.workspace}}
 
-          # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
-          # cd explorer
-          # mix deps.get
-          # mix release
-          # cd ${{github.workspace}}/_build/nifs/
+            # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
+            # cd wasmex
+            # mix deps.get
+            # cd native/wasmex
+            # RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+            # LIB_NAME=`find . -name "*.a" | head -1`
+            # debug_lib $LIB_NAME
+            # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
+            # cd ${{github.workspace}}
+
+            # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
+            # cd explorer
+            # mix deps.get
+            # mix release
+            # cd ${{github.workspace}}/_build/nifs/
+
+          else
+            echo "Is TVOS, skipping rustler builds due to std-lib not available per default"
+          fi
+
 
           cd ${{github.workspace}}
 

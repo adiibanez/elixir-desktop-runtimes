@@ -27,6 +27,7 @@ jobs:
     needs: generate-matrix
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
         include: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:

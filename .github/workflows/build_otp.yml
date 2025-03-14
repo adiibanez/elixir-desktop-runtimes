@@ -15,18 +15,13 @@ jobs:
   build-otp:
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
         platform: ${{ fromJson(inputs.matrix).platform }}
         erlixir: ${{ fromJson(inputs.matrix).erlixir }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Download OpenSSL Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: openssl-${{ matrix.platform.id }} #openssl-ios-sim-arm64
-          path: _build/ios-openssl/build/
 
       - name: Build OTP Round ${{ inputs.round }}
         run: |

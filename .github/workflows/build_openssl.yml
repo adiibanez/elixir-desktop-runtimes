@@ -10,6 +10,7 @@ jobs:
   build-openssl:
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix: ${{ fromJson(inputs.matrix).platform }}
     steps:
       - name: Checkout repository

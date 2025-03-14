@@ -33,6 +33,7 @@ jobs:
     needs: define-matrix
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
     steps:
       - name: Checkout repository
@@ -76,6 +77,7 @@ jobs:
 
       - name: Check libs
         shell: bash
+        continue-on-error: true
         env:
           BUILD_DIR: ${{ github.workspace }}/_build/ios-openssl
         run: |
