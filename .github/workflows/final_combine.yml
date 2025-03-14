@@ -1,10 +1,17 @@
 name: Combine OTP Builds
 on:
   workflow_call:
+    inputs:
+      matrix:
+        required: true
+        type: string
 
 jobs:
   final_combine:
     runs-on: macos-latest
+    strategy:
+      matrix: 
+        erlixir: ${{ fromJson(inputs.matrix).erlixir }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -12,19 +19,18 @@ jobs:
       - name: Download OTP Round 2 Artifacts
         uses: actions/download-artifact@v4
         with:
-          path: _build/final/
+          path: _build/
 
       - name: Final Combination Step
         run: |
-          MSG="Combining all OTP builds..."
-          mkdir -p _build/final/
-          echo $MSG > _build/final/msg.txt
-          echo $MSG
-          
-          # Add combination logic here
+          MSG="Building ${{ github.workflow }}" 
+          mkdir -p _build/${{matrix.erlixir.otp-version}}_${{ github.workflow }}
+          echo $MSG > _build/${{matrix.erlixir.otp-version}}_${{ github.workflow }}/artifact.txt
+          echo `find _build/ -type f`
+          echo `find _build/ -type f` > _build/${{matrix.erlixir.otp-version}}_${{ github.workflow }}/artifact_list.txt
 
       - name: Upload Final Build
         uses: actions/upload-artifact@v4
         with:
-          name: final-otp-build
-          path: _build/final/
+          name: ${{matrix.erlixir.otp-version}}_${{ github.workflow }}
+          path: _build/${{matrix.erlixir.otp-version}}_${{ github.workflow }}/

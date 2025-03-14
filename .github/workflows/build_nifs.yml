@@ -2,52 +2,32 @@ name: Build Native NIFs
 on:
   workflow_call:
     inputs:
-      platform_id:
-        required: true
-        type: string
-      platform_name:
-        required: true
-        type: string
-      platform_sdk:
-        required: true
-        type: string
-      platform_arch:
-        required: true
-        type: string
-      platform_rust_target:
-        required: true
-        type: string
-      otp_version:
-        required: true
-        type: string
-      elixir_version:
-        required: true
-        type: string
-      nif_package_name:
-        required: true
-        type: string
-      nif_package_config:
-        required: true
-        type: string
-      nif_repo:
+      matrix:
         required: true
         type: string
 
 jobs:
   build-nifs:
-    runs-on: macos-latest # You can define it here, if all builds run on the same OS
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        platform: ${{ fromJson(inputs.matrix).platform }}
+        erlixir: ${{ fromJson(inputs.matrix).erlixir }}
+        include: 
+            - { nif_package_name: "NIF_Package_1", repo_count: 2, config: "config1" }
+            - { nif_package_name: "NIF_Package_2", repo_count: 1, config: "config2" }
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build NIFs
+      - name: Build NIFs ${{matrix.platform.id}} ${{ matrix.package.name }} ${{matrix.erlixir.otp-version}} ${{matrix.nif_package_name}}
         run: |
-          echo "Building NIF package ${{ inputs.nif_package_name }} for repo ${{ inputs.nif_repo }} with config ${{ inputs.nif_package_config }} (Platform: ${{ inputs.platform_name }})"
-          mkdir -p "_build/nifs/${{ inputs.platform_id }}/${{ inputs.nif_package_name }}/${{ inputs.nif_repo }}"
-          echo "Building NIF package ${{ inputs.nif_package_name }} for repo ${{ inputs.nif_repo }} with config ${{ inputs.nif_package_config }} (Platform: ${{ inputs.platform_name }})" > "_build/nifs/${{ inputs.platform_id }}/${{ inputs.nif_package_name }}/${{ inputs.nif_repo }}/msg.txt"
+          MSG="Building ${{matrix.platform.id}} ${{ github.workflow }} ${{matrix.erlixir.otp-version}} ${{matrix.nif_package_name}}" 
+          mkdir -p _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{matrix.nif_package_name}}
+          echo $MSG > _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{matrix.nif_package_name}}/artifact.txt
 
       - name: Upload NIF Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nif-${{ inputs.platform_id }}-${{ inputs.nif_package_name }}-${{ inputs.nif_repo }}
-          path: "_build/nifs/${{ inputs.platform_id }}/${{ inputs.nif_package_name }}/${{ inputs.nif_repo }}"
+          name: ${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{matrix.nif_package_name}}
+          path: _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{matrix.nif_package_name}}/

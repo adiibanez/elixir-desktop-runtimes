@@ -4,11 +4,9 @@ on:
     inputs:
       matrix:
         required: true
-        description: The entire matrix JSON as a string.
         type: string
       round:
         required: true
-        description: The build round (1 or 2).
         type: number
 
 jobs:
@@ -16,28 +14,23 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        include: ${{ fromJson(inputs.matrix).include }} # CORRECTED: Use 'include'
+        platform: ${{ fromJson(inputs.matrix).platform }}
+        erlixir: ${{ fromJson(inputs.matrix).erlixir }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # - name: Download OpenSSL Artifact
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: openssl-${{ matrix.platform_id }} # Corrected: Use matrix.platform_id
-      #     path: _build/ios-openssl/build/
-
       - name: Build OTP Round ${{ inputs.round }}
         run: |
-          MSG="Building OTP Round ${{ inputs.round }} for ${{ matrix.platform_name }} with OTP ${{ matrix.otp_version }}" # Corrected
-          mkdir -p _build/otp/
-          echo $MSG > _build/otp/msg.txt"
-          echo $MSG
+          MSG="Building ${{matrix.platform.id}} ${{ github.workflow }} ${{matrix.erlixir.otp-version}} ${{inputs.round}}" 
+          mkdir -p _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}
+          echo $MSG > _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}/artifact.txt
 
-          # Add OTP build commands here
+          name: ${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}
+          path: _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}/
 
       - name: Upload OTP Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: otp${{ inputs.round }}-${{ matrix.platform_id }}-${{ matrix.otp_version }} # Corrected
-          path: "_build/otp/"
+          name: ${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}
+          path: _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}/
