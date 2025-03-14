@@ -1,6 +1,7 @@
 name: Build Native NIFs
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   generate-matrix:
@@ -8,24 +9,36 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Checkout repository  # IMPORTANT: Check out the repo
+      - name: Checkout repository
         uses: actions/checkout@v4
+      - name: "Invalidate Cache (Dummy Step)"  # Force a new cache key
+        uses: actions/cache@v4
+        with:
+          path: .github/workflows  # Cache something
+          key: matrix-generation-${{ github.run_id }}
       - name: Generate Matrix
         id: set-matrix
         run: |
-          PACKAGES=$(cat .github/workflows/nif_packages.json)  # Read from the file
-
-          # Transform the packages into a format suitable for the matrix.
-          # We create a new array where each element represents a single
-          # package/repository combination.
-          MATRIX=$(echo "$PACKAGES" | jq -c '.[] | .repos | .[] | {package: (.name), repo: ., config: (.config)}') # Use parenthesis for clarity and safety
-          MATRIX_ARRAY=$(echo "[$MATRIX]" | jq -s .) # Combine into a single array
-
+          if [ ! -f .github/workflows/nif_packages.json ]; then
+            echo "Error: nif_packages.json not found!" >&2
+            exit 1
+          fi
+          PACKAGES=$(cat .github/workflows/nif_packages.json)
+          MATRIX=$(echo "$PACKAGES" | jq -c '.[] | .repos | .[] | {package: (.name), repo: ., config: (.config)}')
+          if [ $? -ne 0 ]; then
+            echo "Error: jq command failed!" >&2
+            exit 1
+          fi
+          MATRIX_ARRAY=$(echo "[$MATRIX]" | jq -s .)
+           if [ $? -ne 0 ]; then
+            echo "Error: jq command failed!" >&2
+            exit 1
+          fi
           echo "matrix=$(echo "$MATRIX_ARRAY" | jq -c .)" >> "$GITHUB_OUTPUT"
 
   build-nifs:
     needs: generate-matrix
-    runs-on: macos-latest
+    runs-on: macos-latest # Or your desired runner
     strategy:
       fail-fast: false
       matrix:
@@ -33,13 +46,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Build NIFs for ${{ matrix.package }} - ${{ matrix.repo }}
         run: |
           echo "Building NIF package ${{ matrix.package }} for repo ${{ matrix.repo }} with config ${{ matrix.config }}"
           mkdir -p "_build/nifs/${{ matrix.package }}/${{ matrix.repo }}"
           echo "Building NIF package ${{ matrix.package }} for repo ${{ matrix.repo }} with config ${{ matrix.config }}" > "_build/nifs/${{ matrix.package }}/${{ matrix.repo }}/msg.txt"
-
       - name: Upload NIF Artifact
         uses: actions/upload-artifact@v4
         with:

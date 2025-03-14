@@ -19,8 +19,8 @@ jobs:
       - name: Build OpenSSL
         run: |
           MSG="Building OpenSSL for ${{ matrix.platform.name }}"
-          mkdir -p _build/otp/
-          echo $MSG > _build/otp/msg.txt
+          mkdir -p _build/ios-openssl/
+          echo $MSG > _build/ios-openssl/msg.txt
           echo $MSG
           # Add OpenSSL build commands here
 
