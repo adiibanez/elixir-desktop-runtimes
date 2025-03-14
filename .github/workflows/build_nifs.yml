@@ -23,6 +23,7 @@ jobs:
       - name: Generate NIF Matrix
         id: generate-nif-matrix
         run: |
+          echo "building nif matrix"
           if [ ! -f .github/workflows/nif_packages.json ]; then
             echo "Error: nif_packages.json not found!" >&2
             exit 1
