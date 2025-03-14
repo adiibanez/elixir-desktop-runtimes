@@ -9,17 +9,17 @@ on:
 jobs:
   build-openssl:
     runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(inputs.matrix).platform }}  # Use 'include'
     steps:
+      - name: Debug - Print Matrix Input
+        run: |
+          echo "Matrix input: ${{ inputs.matrix }}"
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Build OpenSSL
         run: |
-          MSG="Building OpenSSL for ${{ matrix.name }}"
+          MSG="Building OpenSSL for ${{ matrix.platform_name }}"
           mkdir -p _build/ios-openssl/
           echo $MSG > _build/ios-openssl/msg.txt
           echo $MSG
@@ -27,5 +27,5 @@ jobs:
       - name: Upload OpenSSL Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: openssl-${{ matrix.id }}
+          name: openssl-${{ matrix.platform_id }}
           path: _build/ios-openssl/
