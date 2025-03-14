@@ -651,7 +651,7 @@ jobs:
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
@@ -738,8 +738,6 @@ jobs:
 
           OUTPUT_LIB="${{ github.workspace }}/_build/liberlang.a"
 
-          # ${{ github.workspace }}/_build/otp_builder/bin/${{matrix.platform.otp_arch}}/libbeam.a
-
           rm -f $OUTPUT_LIB
           libtool -static -o $OUTPUT_LIB $LIBS
 
@@ -747,8 +745,8 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
-          file ${{ github.workspace }}/_build/${{ matrix.platform.id }}/liberlang.a
-          lipo -info ${{ github.workspace }}/_build/${{ matrix.platform.id }}/liberlang.a
+          file ${{ github.workspace }}/_build/liberlang.a
+          lipo -info ${{ github.workspace }}/_build/liberlang.a
 
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
