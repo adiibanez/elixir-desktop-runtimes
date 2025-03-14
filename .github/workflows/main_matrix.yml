@@ -1,11 +1,9 @@
 name: Apple OTP Build Pipeline
-
 on:
   push:
     branches:
       - dummy-ci
   pull_request:
-
 jobs:
   define-matrix:
     runs-on: macos-latest
@@ -14,20 +12,16 @@ jobs:
     steps:
       # - name: Install yq (if missing)
       #   run: brew install jq yq
-
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Convert matrix.yml to JSON
         id: set-matrix
         run: |
           yq -o=json '.' .github/matrix_config.yml | jq -c > matrix.json
           cat matrix.json
           echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
-
       - name: Debug Output
         run: cat matrix.json
-
   # test_matrix: # Keep this for easy testing/debugging
   #   runs-on: macos-latest
   #   needs: define-matrix
@@ -40,7 +34,6 @@ jobs:
   #       shell: bash
   #       run: |
   #         echo "Platform ID: ${{ matrix.platform.platform_id }}, OTP Version: ${{ matrix.erlixir['otp_version'] }}"
-
   debug_matrix:
     runs-on: macos-latest
     steps:
@@ -48,7 +41,6 @@ jobs:
         shell: bash
         run: |
           echo ${{ needs.define-matrix.outputs.matrix }}
-
   build_openssl: # This is the job that uses the matrix
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
@@ -64,7 +56,6 @@ jobs:
       openssl_prefix: ${{matrix.platform.openssl_prefix}}
       openssl_opts: ${{matrix.platform.openssl_opts}}
       openssl_arch: ${{matrix.platform.openssl_arch}}
-
   build_otp_round_1:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
@@ -75,15 +66,17 @@ jobs:
       platform_id: ${{ matrix.platform.platform_id}}
       otp_version: ${{ matrix.erlixir.otp_version}}
       elixir_version: ${{ matrix.erlixir.elixir_version}}
+      use_git: ${{ matrix.platform.use_git}}
+      git_repo: ${{ matrix.platform.git_repo}}
+      git_ref: ${{ matrix.platform.git_ref}}
       name: ${{ matrix.platform.name}}
       sdk: ${{ matrix.platform.sdk}}
-      arch: ${{matrix.platform.arch}}
-      erl_opts: ${{matrix.platform.erl_opts}}
-      erl_opts_description: ${{matrix.platform.erl_opts_description}}
-      openssl_prefix: ${{matrix.platform.openssl_prefix}}
-      otp_arch: ${{matrix.platform.otp_arch}}
-      xcomp: ${{matrix.platform.xcomp}}
-
+      openssl_prefix: ${{ matrix.platform.openssl_prefix}}
+      arch: ${{ matrix.platform.arch}}
+      erl_opts: ${{ matrix.platform.erl_opts}}
+      erl_opts_description: ${{ matrix.platform.erl_opts_description}}
+      otp_arch: ${{ matrix.platform.otp_arch}}
+      xcomp: ${{ matrix.platform.xcomp}}
   build_nifs:
     needs: [define-matrix, build_otp_round_1]
     uses: ./.github/workflows/build_nifs.yml
@@ -98,7 +91,6 @@ jobs:
       openssl_prefix: ${{matrix.platform.openssl_prefix}}
       arch: ${{matrix.platform.arch}}
       otp_arch: ${{matrix.platform.otp_arch}}
-
   build_otp_round_2:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
@@ -109,6 +101,9 @@ jobs:
       platform_id: ${{ matrix.platform.platform_id}}
       otp_version: ${{ matrix.erlixir.otp_version}}
       elixir_version: ${{ matrix.erlixir.elixir_version}}
+      use_git: ${{ matrix.platform.use_git}}
+      git_repo: ${{ matrix.platform.git_repo}}
+      git_ref: ${{ matrix.platform.git_ref}}
       name: ${{ matrix.platform.name}}
       sdk: ${{ matrix.platform.sdk}}
       openssl_prefix: ${{matrix.platform.openssl_prefix}}
@@ -117,11 +112,9 @@ jobs:
       erl_opts_description: ${{matrix.platform.erl_opts_description}}
       otp_arch: ${{matrix.platform.otp_arch}}
       xcomp: ${{matrix.platform.xcomp}}
-
   final_combine:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-    
     needs: [build_otp_round_2, build_nifs]
     uses: ./.github/workflows/final_combine.yml
     with:
