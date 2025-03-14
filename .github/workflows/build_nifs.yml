@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: "Invalidate Cache (Dummy Step)"  # Keeping this for now, but you can remove it once everything is stable
+      - name: "Invalidate Cache (Dummy Step)"
         uses: actions/cache@v4
         with:
           path: .github/workflows
@@ -37,7 +37,7 @@ jobs:
             exit 1
           fi
 
-          # *** THIS IS THE ACTUAL, CORRECT JQ COMMAND ***
+          # *** FINALLY CORRECT JQ COMMAND ***
           MATRIX=$(echo "$PACKAGES" | jq -c '.[] | { name: .name, config: .config, repos: .repos } | .repos[] | {package: .name, repo: ., config: .config}')
           if [ $? -ne 0 ]; then
             echo "Error: jq command failed! (1)" >&2
