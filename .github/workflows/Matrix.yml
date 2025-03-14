@@ -708,6 +708,9 @@ jobs:
 
           LIBS="`cat /tmp/libs.txt` ${{env.OPENSSL_PREFIX}}/lib/libcrypto.a"
 
+          NIF_LIBS=$(find ${{github.workspace}}/_build/nifs -type f -name "*.a" | awk '{printf " %s", $1} END { print "" }')
+          LIBS+="$NIF_LIBS"
+
           cd _build/otp_builder
           # find . -name libbeam.a
           # cd ${{ github.workspace }}
