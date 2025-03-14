@@ -4,9 +4,11 @@ on:
     inputs:
       matrix:
         required: true
-        type: string
+        description: The entire matrix JSON as a string.
+        type: string  # Correct: type is string for reusable workflows
       round:
         required: true
+        description: The build round (1 or 2).
         type: number
 
 jobs:
@@ -23,7 +25,7 @@ jobs:
       - name: Download OpenSSL Artifact
         uses: actions/download-artifact@v4
         with:
-          name: openssl-${{ matrix.platform.id }}
+          name: openssl-${{ matrix.platform.id }} #openssl-ios-sim-arm64
           path: _build/ios-openssl/build/
 
       - name: Build OTP Round ${{ inputs.round }}

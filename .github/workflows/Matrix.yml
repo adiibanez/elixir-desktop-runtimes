@@ -8,6 +8,17 @@ on:
 env:
   OPENSSL_VERSION: '3.4.0'
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
+  TOOLCHAIN: nightly
+  CARGO_MAKE_TOOLCHAIN: nightly
+  # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
+  CARGO_CACHE_PATH: |
+    ~/.cargo/.crates.toml
+    ~/.cargo/.crates2.json
+    ~/.cargo/bin/
+    ~/.cargo/registry/index/
+    ~/.cargo/registry/cache/
+    ~/.cargo/git/db/
+
 jobs:
   build_setup:
     name: Setup Dependencies
@@ -458,10 +469,17 @@ jobs:
       #     name: debug-libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-liberlang
       #     path: /tmp/otp_libs/*
 
-      - name: Set up Rust Toolchain (Nightly)
-        uses: dtolnay/rust-toolchain@nightly
+      - name: Install Rust Nightly
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: ${{ env.TOOLCHAIN }}
           targets: ${{ matrix.platform.rust_target }}
+
+      - name: Rust Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CARGO_CACHE_PATH }}
+          key: cargo-${{ github.workflow }}-${{ github.job }}-${{runner.os}}-${{runner.arch}}
 
       - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         shell: bash
