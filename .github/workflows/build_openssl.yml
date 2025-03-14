@@ -3,7 +3,6 @@ name: Build OpenSSL
 on:
   workflow_call:
     inputs:
-      # Define ALL the inputs that correspond to the `with` values in main.yml
       openssl_version:
         required: true
         type: string
