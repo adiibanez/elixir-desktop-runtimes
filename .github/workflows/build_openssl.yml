@@ -1,37 +1,59 @@
 name: Build OpenSSL
+
 on:
   workflow_call:
     inputs:
-      matrix_json:
+      # Define ALL the inputs that correspond to the `with` values in main.yml
+      id:
+        required: true
+        type: string
+      name:
+        required: true
+        type: string
+      sdk:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+      base_arch:
+        required: true
+        type: string
+      openssl_prefix:
+        required: true
+        type: string
+      openssl_opts:
+        required: true
+        type: string
+      openssl_arch:
         required: true
         type: string
 
 jobs:
-  build-openssl:
+  build_openssl:
     runs-on: macos-latest
-    strategy:
-      matrix: ${{ fromJson(inputs.matrix_json).platform }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Openssl Text matrix
+      - name: Display Inputs (for debugging)
+        shell: bash
         run: |
-          echo ${{ inputs.matrix_json }}
-          # echo ${{ env.OPENSSL_VERSION }} ${{ matrix.id }}
+          echo "Platform ID: ${{ inputs.id }}"
 
-      # - name: Build OpenSSL ${{ env.OPENSSL_VERSION }} ${{ matrix.platform_id }}
-      #   run: |
-      #     MSG="Building ${{matrix.platform_id}} ${{ github.workflow }}"
-      #     mkdir -p _build/${{matrix.platform_id}}_${{ github.workflow }}
-      #     echo $MSG > _build/${{matrix.platform_id}}_${{ github.workflow }}/artifact.txt
+      - name: Configure OpenSSL
+        shell: bash
+        run: |
+          echo "Configuring OpenSSL for ${{inputs.arch}}..."
 
-      #     name: ${{matrix.platform_id}}_${{ github.workflow }}
-      #     path: _build/${{matrix.platform_id}}_${{ github.workflow }}/
-
-      # - name: Upload OpenSSL Artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: ${{matrix.platform_id}}_${{ github.workflow }}
-      #     path: _build/${{matrix.platform_id}}_${{ github.workflow }}/
+      # Example artifact creation/upload
+      - name: Create Dummy Artifact
+        shell: bash
+        run: |
+          mkdir -p _build/${{ inputs.id }}_${{ env.OPENSSL_VERSION}}
+          echo "This is a dummy artifact for ${inputs.id} and (unused) OTP Version ${{ env.OPENSSL_VERSION }}" > _build/${{ inputs.id }}/artifact.txt
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.id }}_${{ env.OPENSSL_VERSION }}_openssl
+          path: _build/${{ inputs.id }}_${{ env.OPENSSL_VERSION }}/

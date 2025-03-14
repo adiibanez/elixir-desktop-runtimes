@@ -1,0 +1,15 @@
+name: Build OpenSSL (Minimal)
+
+on:
+  workflow_call:
+    inputs:
+      matrix_json:
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Echo Test
+        run: echo "Workflow called successfully! ${{inputs.matrix_json}}"
