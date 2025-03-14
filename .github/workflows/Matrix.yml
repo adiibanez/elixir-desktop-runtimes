@@ -155,63 +155,63 @@ jobs:
           #     otp_arch: 'aarch64-apple-ios',
           #     rust_target: 'aarch64-apple-watchos-sim',
           #   }
-          - {
-              id: 'tvos',
-              name: 'tvOS',
-              sdk: appletvos,
-              arch: arm64,
-              base_arch: tvos,
-              openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
-              openssl_arch: 'tvos-xcrun',
-              otp_arch: 'aarch64-apple-tvos',
-              rust_target: 'aarch64-apple-tvos',
-            }
-          - {
-              id: 'tvos_sim_arm64',
-              name: 'tvOS Simulator arm64',
-              sdk: appletvsimulator,
-              arch: arm64,
-              base_arch: tvos_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.arm64',
-              openssl_arch: 'tvossimulator-xcrun',
-              otp_arch: 'aarch64-apple-tvossimulator',
-              rust_target: 'aarch64-apple-tvos-sim',
-            }
-          - {
-              id: 'tvos_sim_x86_64',
-              name: 'tvOS Simulator x86_64',
-              sdk: appletvsimulator,
-              arch: x86_64,
-              base_arch: tvos_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.x86_64',
-              openssl_arch: 'tvossimulator-x86_64-xcrun',
-              otp_arch: 'x86_64-apple-tvos',
-              rust_target: 'x86_64-apple-tvos',
-            }
-          # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          - {
-              id: 'visionos',
-              name: 'visionOS',
-              sdk: xros,
-              arch: arm64,
-              base_arch: xros,
-              openssl_prefix: '_build/ios-openssl/build/openssl.xros',
-              openssl_arch: 'xros-xcrun',
-              otp_arch: 'aarch64-apple-visionos',
-              rust_target: 'aarch64-apple-visionos',
-            }
-          - {
-              id: 'visionos_sim_arm64',
-              name: 'visionOS Simulator arm64',
-              sdk: xrsimulator,
-              arch: arm64,
-              base_arch: xrossim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
-              openssl_arch: 'xrossimulator-xcrun',
-              otp_arch: 'aarch64-apple-visionos-sim',
-              rust_target: 'aarch64-apple-visionos-sim',
-            }
+          # - {
+          #     id: 'tvos',
+          #     name: 'tvOS',
+          #     sdk: appletvos,
+          #     arch: arm64,
+          #     base_arch: tvos,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
+          #     openssl_arch: 'tvos-xcrun',
+          #     otp_arch: 'aarch64-apple-tvos',
+          #     rust_target: 'aarch64-apple-tvos',
+          #   }
+          # - {
+          #     id: 'tvos_sim_arm64',
+          #     name: 'tvOS Simulator arm64',
+          #     sdk: appletvsimulator,
+          #     arch: arm64,
+          #     base_arch: tvos_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.arm64',
+          #     openssl_arch: 'tvossimulator-xcrun',
+          #     otp_arch: 'aarch64-apple-tvossimulator',
+          #     rust_target: 'aarch64-apple-tvos-sim',
+          #   }
+          # - {
+          #     id: 'tvos_sim_x86_64',
+          #     name: 'tvOS Simulator x86_64',
+          #     sdk: appletvsimulator,
+          #     arch: x86_64,
+          #     base_arch: tvos_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.x86_64',
+          #     openssl_arch: 'tvossimulator-x86_64-xcrun',
+          #     otp_arch: 'x86_64-apple-tvos',
+          #     rust_target: 'x86_64-apple-tvos',
+          #   }
+          # # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          # # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          # - {
+          #     id: 'visionos',
+          #     name: 'visionOS',
+          #     sdk: xros,
+          #     arch: arm64,
+          #     base_arch: xros,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xros',
+          #     openssl_arch: 'xros-xcrun',
+          #     otp_arch: 'aarch64-apple-visionos',
+          #     rust_target: 'aarch64-apple-visionos',
+          #   }
+          # - {
+          #     id: 'visionos_sim_arm64',
+          #     name: 'visionOS Simulator arm64',
+          #     sdk: xrsimulator,
+          #     arch: arm64,
+          #     base_arch: xrossim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
+          #     openssl_arch: 'xrossimulator-xcrun',
+          #     otp_arch: 'aarch64-apple-visionos-sim',
+          #     rust_target: 'aarch64-apple-visionos-sim',
+          #   }
           # - {
           #     id: 'visionos_sim_x86_64',
           #     name: 'visionOS Simulator x86_64',
@@ -481,12 +481,14 @@ jobs:
           ls -lah _build/otp_builder
 
       - name: Show libs for ${{ matrix.platform.name }}
+        continue-on-error: true
         if: always() && steps.otp-setup-round1.outcome != 'success'
         shell: bash
         run: |
           find _build/otp_builder -name "*.a"
 
       - name: Extract logs for ${{ matrix.platform.name }}
+        continue-on-error: true
         if: always() && steps.otp-setup-round1.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
@@ -522,7 +524,7 @@ jobs:
       #     key: cargo-${{ github.workflow }}-${{ github.job }}-${{runner.os}}-${{runner.arch}}
 
       - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-        if: false
+        # if: false
         shell: bash
         env:
           RUSTLER_BTLEPLUG_BUILD: 1
@@ -585,38 +587,38 @@ jobs:
 
 
           # # can't build tier 3 targets at the moment, no rustler for tvos / visionos :( 
-          # if [[ "${{ env.IS_3RD_TIER_TARGET }}" != "true" ]]; then
-          #   echo "Nothing to do"
-          #   # RUST_CONFIG=" -Zbuild-std"
+          if [[ "${{ env.IS_3RD_TIER_TARGET }}" != "true" ]]; then
+            echo "Nothing to do"
+            # RUST_CONFIG=" -Zbuild-std"
 
-          #   # git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
-          #   # # v0.0.15-alpha
-          #   # cd rustler_btleplug
-          #   # mix deps.get
-          #   # cd native/btleplug_client
-          #   # #RUSTFLAGS='-C target-feature=+crt-static' 
-          #   # RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
-          #   # LIB_NAME=`find . -name "*.a" | head -1`
-          #   # debug_lib $LIB_NAME
-          #   # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-          #   # cd ${{github.workspace}}
+            git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
+            # v0.0.15-alpha
+            cd rustler_btleplug
+            mix deps.get
+            cd native/btleplug_client
+            #RUSTFLAGS='-C target-feature=+crt-static' 
+            RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+            LIB_NAME=`find . -name "*.a" | head -1`
+            debug_lib $LIB_NAME
+            cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
+            cd ${{github.workspace}}
 
-          #   # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
-          #   # cd wasmex
-          #   # mix deps.get
-          #   # cd native/wasmex
-          #   # RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
-          #   # LIB_NAME=`find . -name "*.a" | head -1`
-          #   # debug_lib $LIB_NAME
-          #   # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-          #   # cd ${{github.workspace}}
+            # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
+            # cd wasmex
+            # mix deps.get
+            # cd native/wasmex
+            # RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+            # LIB_NAME=`find . -name "*.a" | head -1`
+            # debug_lib $LIB_NAME
+            # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
+            # cd ${{github.workspace}}
 
-          #   # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
-          #   # cd explorer
-          #   # mix deps.get
-          #   # mix release
-          #   # cd ${{github.workspace}}/_build/nifs/
-          # fi
+            # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
+            # cd explorer
+            # mix deps.get
+            # mix release
+            # cd ${{github.workspace}}/_build/nifs/
+          fi
 
           cd ${{github.workspace}}
 
@@ -641,7 +643,7 @@ jobs:
 
       - name: Build OTP Round 2
         id: otp-setup-round2
-        if: false
+        # if: false
         # if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
