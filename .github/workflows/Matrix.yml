@@ -212,16 +212,16 @@ jobs:
               openssl_arch: 'xrossimulator-xcrun',
               otp_arch: 'aarch64-apple-ios',
             }
-          - {
-              id: 'visionos_sim_x86_64',
-              name: 'visionOS Simulator x86_64',
-              sdk: xrsimulator,
-              arch: x86_64,
-              base_arch: xrossim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
-              openssl_arch: 'xrossimulator-xcrun',
-              otp_arch: 'x86_64-apple-ios',
-            }
+          # - {
+          #     id: 'visionos_sim_x86_64',
+          #     name: 'visionOS Simulator x86_64',
+          #     sdk: xrsimulator,
+          #     arch: x86_64,
+          #     base_arch: xrossim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
+          #     openssl_arch: 'xrossimulator-xcrun',
+          #     otp_arch: 'x86_64-apple-ios',
+          #   }
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
