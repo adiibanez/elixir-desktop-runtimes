@@ -23,7 +23,16 @@ on:
       arch:
         required: true
         type: string
+      erl_opts:
+        required: false
+        type: string
+      erl_opts_description:
+        required: false
+        type: string
       otp_arch:
+        required: true
+        type: string
+      openssl_prefix: 
         required: true
         type: string
       xcomp:
@@ -45,6 +54,172 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Configure erl options
+        if: ${{ inputs.erl_opts }} != ''
+        run: |
+          # echo KERL_CONFIGURE_OPTIONS="${{inputs.erl_opts}}" >> "$GITHUB_ENV"
+          # used for hashing cache key
+          echo "${{inputs.erl_opts}}" > .kerl_configuration_options
+      - name: Setup asdf .tool-versions
+        id: asdf-setup
+        run: |
+          echo "" > .tool-versions
+          echo "erlang ${{inputs.otp_version}}" >> .tool-versions
+          echo "elixir ${{inputs.elixir_version}}" >> .tool-versions
+          echo PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH" >> "$GITHUB_ENV"
+      - name: Setup asdf
+        uses: asdf-vm/actions/setup@master
+      - name: asdf cache
+        id: asdf-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.asdf/
+          key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions', '.kerl_configuration_options') }}
+      - name: Install CD tools from .tool-versions
+        continue-on-error: true
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@master
+      - name: Test asdf tools
+        id: asdf-test
+        run: |
+          erl -version
+          elixir --version
+          mix --version
+      - name: Ensure mix dependencies
+        shell: bash
+        run: mix deps.get
+
+      # save even if later jobs fail
+      - name: Cache ASDF and Toolchains
+        uses: actions/cache/save@v4
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        id: asdf-cache-save
+        with:
+          path: ~/.asdf
+          key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+
+      - name: OTP Cache
+        uses: actions/cache@v3
+        id: otp-cache
+        with:
+          path: |
+            otp_src_${{inputs.otp_version}}
+            _build/otp_release_${{inputs.otp_version}}
+            _build/otp_builder
+          key: macos-otp-${{ inputs.platform_id }}-${{ inputs.otp_version }}-erl-opts-${{inputs.erl_opts_description }}
+      - name: Download OTP
+        shell: bash
+        if: steps.otp-cache.outputs.cache-hit != 'true'
+        run: |
+          USE_GIT="${{ inputs.use_git }}"
+
+          if [ -e otp_src_${{inputs.otp_version}} ]; then
+            exit 0
+            rm -rf otp_src_${{inputs.otp_version}}
+          fi
+
+          if [[ "$USE_GIT" == "true" ]]; then 
+            # --branch OTP-${{inputs.otp_version}}
+            git clone --depth 1 https://github.com/${{inputs.git_repo}} --branch ${{inputs.git_ref}} otp_src_${{inputs.otp_version}}
+          else 
+            curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{inputs.otp_version}}/otp_src_${{inputs.otp_version}}.tar.gz
+            tar -xzf otp_src_${{inputs.otp_version}}.tar.gz
+          fi
+
+      - name: Build OTP Round 1
+        id: otp-setup-round1
+        # if: false
+        if: steps.otp-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+
+          ulimit -n 65536
+          STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ inputs.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ inputs.otp_arch }}/crypto.a"
+          echo $STATIC_NIFS
+
+          mkdir -p _build
+
+          if [ -e _build/otp_builder ]; then
+              echo "Otp builder exists."
+          else
+              cp -r otp_src_${{inputs.otp_version}} _build/otp_builder
+          fi
+
+          ls -lah $OPENSSL_PREFIX/lib
+          echo $OPENSSL_PREFIX
+
+          if [ -e $OPENSSL_PREFIX ]; then
+              echo "Openssl $OPENSSL_PREFIX exists."
+              file "$OPENSSL_PREFIX/lib/libcrypto.a"
+              lipo -info "$OPENSSL_PREFIX/lib/libcrypto.a"
+              # otool -L "$OPENSSL_PREFIX/lib/libcrypto.a"
+          else
+              echo "Openssl $OPENSSL_PREFIX doesn't exists."
+              exit 1
+          fi
+
+          export OTP_PREFIX=${{github.workspace}}/_build/otp_${{inputs.otp_version}}
+
+          cp patch/erl-xcomp-*.conf _build/otp_builder/xcomp/
+          cd _build/otp_builder
+
+          # KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
+          # KERL_CONFIGURE_DISABLE_APPLICATIONS https://github.com/kerl/kerl/blob/master/kerl
+          # https://www.erlang.org/docs/19/applications
+
+          xcodebuild -showsdks
+          xcrun --sdk ${{inputs.sdk}} --show-sdk-path
+
+          # test sdk / compiler
+          echo 'int main() { return 0; }' > test_compiler.c
+          xcrun -sdk iphoneos cc -arch ${{inputs.arch}} -o test_compiler test_compiler.c
+          file test_compiler
+
+          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
+          ERL_FLAGS="-smp disable" \
+          LDFLAGS="-L${{inputs.openssl_prefix}}/lib -lcrypto" \
+          INCLUDE_PATH="$OPENSSL_PREFIX/include" \
+          LIB_PATH="$OPENSSL_PREFIX/lib" \
+          LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
+          XCOMP_HOST=${{inputs.otp_arch}} \
+          XCOMP_SDK="${{inputs.sdk}}" \
+          XCOMP_ARCH="-arch ${{inputs.arch}}" \
+          LIBS="${{ inputs.openssl_prefix }}/lib/libcrypto.a" \
+          OTP_PREFIX=${{github.workspace}}/_build/otp_${{inputs.otp_version}} \
+          RELEASE_LIBBEAM="yes" ./otp_build configure \
+          --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
+          --disable-dynamic-ssl-lib \
+          --with-ssl="${{ inputs.openssl_prefix }}" \
+          --enable-static-nifs="$STATIC_NIFS"
+
+          ./otp_build boot -a
+          ./otp_build release -a
+
+          find . -type d -name release
+
+          find ~+ -name libbeam.a
+          find ~+ -name asn1rt_nif.a
+          find ~+ -name crypto.a
+
+          cd ${{ github.workspace }}
+          ls -lah _build/otp_builder
+
+      - name: Show libs for ${{ inputs.name }}
+        continue-on-error: true
+        if: always() && steps.otp-setup-round1.outcome != 'success'
+        shell: bash
+        run: |
+          find _build/otp_builder -name "*.a"
+
+      - name: Extract logs for ${{ inputs.name }}
+        continue-on-error: true
+        if: always() && steps.otp-setup-round1.outcome != 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-logs-OTP-${{inputs.otp_version}}-ELX-${{inputs.elixir_version}}-${{ inputs.platform_id }}
+          path: '**/*.log'
+
+
       - name: Build OTP Round ${{ inputs.round }}
         run: |
           MSG="Building ${{inputs.platform_id}} ${{ env.NAME }} ${{inputs.otp_version}} ${{inputs.round}}" 
@@ -53,8 +228,8 @@ jobs:
           mkdir -p _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}
           echo $MSG > _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}/artifact.txt
 
-      - name: Upload OTP Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}
-          path: _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}/
+      # - name: Upload OTP Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}
+      #     path: _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}/

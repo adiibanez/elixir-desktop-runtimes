@@ -36,21 +36,64 @@ jobs:
   build_openssl:
     env: 
       NAME: "build_openssl"
+      OPENSSL_VERSION: ${{inputs.openssl_version}}
     runs-on: macos-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Display Inputs (for debugging)
-        shell: bash
+      - name: Cache Openssl source
+        uses: actions/cache@v4
+        id: openssl-cache
+        with:
+          path: |
+            openssl-${{ env.OPENSSL_VERSION }}
+          key: openssl-source-cache-${{ env.OPENSSL_VERSION }}
+      - name: Download and Extract OpenSSL
+        if: steps.openssl-cache.outputs.cache-hit != 'true'
+        id: openssl-download
         run: |
-          echo "Platform ID: ${{ inputs.platform_id }}"
-          echo ${{inputs.platform_id }}_${{ github.workflow }}_${{ inputs.openssl_version }}
+          wget "https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz"
+          # echo "$OPENSSL_HASH  openssl-$OPENSSL_VERSION.tar.gz" | sha256sum -c
+          tar xzf openssl-$OPENSSL_VERSION.tar.gz
+          ls -lah ${{github.workspace}}/openssl-$OPENSSL_VERSION
 
-      - name: Configure OpenSSL
+          echo "OPENSSL_VERSION=$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
+          echo "OPENSSL_HASH=$OPENSSL_HASH" >> "$GITHUB_OUTPUT"
+          echo "OPENSSL_PATH=$PWD/openssl-$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Openssl iOS builds
+        uses: actions/cache@v4
+        id: openssl-ios-build-cache
+        with:
+          path: |
+            _build/ios-openssl
+          key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+
+      - name: build_openssl_ios
+        uses: ./.github/actions/openssl-ios
+        if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
+        with:
+          version: ${{env.OPENSSL_VERSION }}
+          hash: ${{env.OPENSSL_HASH}}
+          base_arch: ${{inputs.base_arch }}
+
+      - name: Check libs
         shell: bash
+        env:
+          BUILD_DIR: ${{github.workspace}}/_build/ios-openssl
         run: |
-          echo "Configuring OpenSSL for ${{inputs.arch}}..."
+          find $BUILD_DIR -name "*.a"
+          find $BUILD_DIR -name "*.a" -exec lipo -info {} \;
+
+      - name: Cache Openssl iOS build restore
+        uses: actions/cache/restore@v4
+        if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
+        id: openssl-ios-build-cache-restore
+        with:
+          path: |
+            _build/ios-openssl
+          key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
       # Example artifact creation/upload
       - name: Create Dummy Artifact

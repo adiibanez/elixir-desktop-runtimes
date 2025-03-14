@@ -17,6 +17,9 @@ on:
       sdk:
         required: true
         type: string
+      openssl_prefix: 
+        required: true
+        type: string
       arch:
         required: true
         type: string

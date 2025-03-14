@@ -78,6 +78,9 @@ jobs:
       name: ${{ matrix.platform.name}}
       sdk: ${{ matrix.platform.sdk}}
       arch: ${{matrix.platform.arch}}
+      erl_opts: ${{matrix.platform.erl_opts}}
+      erl_opts_description: ${{matrix.platform.erl_opts_description}}
+      openssl_prefix: ${{matrix.platform.openssl_prefix}}
       otp_arch: ${{matrix.platform.otp_arch}}
       xcomp: ${{matrix.platform.xcomp}}
 
@@ -87,8 +90,15 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
     with:
-      parent_matrix: ${{ needs.define-matrix.outputs.matrix }} 
-    
+      platform_id: ${{ matrix.platform.platform_id}}
+      otp_version: ${{ matrix.erlixir.otp_version}}
+      elixir_version: ${{ matrix.erlixir.elixir_version}}
+      name: ${{ matrix.platform.name}}
+      sdk: ${{ matrix.platform.sdk}}
+      openssl_prefix: ${{matrix.platform.openssl_prefix}}
+      arch: ${{matrix.platform.arch}}
+      otp_arch: ${{matrix.platform.otp_arch}}
+
   build_otp_round_2:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
@@ -101,12 +111,19 @@ jobs:
       elixir_version: ${{ matrix.erlixir.elixir_version}}
       name: ${{ matrix.platform.name}}
       sdk: ${{ matrix.platform.sdk}}
+      openssl_prefix: ${{matrix.platform.openssl_prefix}}
       arch: ${{matrix.platform.arch}}
+      erl_opts: ${{matrix.platform.erl_opts}}
+      erl_opts_description: ${{matrix.platform.erl_opts_description}}
       otp_arch: ${{matrix.platform.otp_arch}}
       xcomp: ${{matrix.platform.xcomp}}
 
   final_combine:
-    needs: build_otp_round_2
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Final combine (placeholder)"
+    strategy:
+      matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+    
+    needs: [build_otp_round_2, build_nifs]
+    uses: ./.github/workflows/final_combine.yml
+    with:
+      otp_version: ${{ matrix.erlixir.otp_version}}
+      elixir_version: ${{ matrix.erlixir.elixir_version}}
