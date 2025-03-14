@@ -1,0 +1,112 @@
+{
+  "include": [
+    {
+      "platform_id": "ios",
+      "platform_name": "iOS",
+      "platform_sdk": "iphoneos",
+      "platform_arch": "arm64",
+      "platform_rust_target": "aarch64-apple-ios",
+      "otp_version": "27.3",
+      "elixir_version": "1.18.2",
+      "nif_package_name": "NIF_Package_1",
+      "nif_package_config": "config1",
+      "nif_repo": "repo1"
+    },
+    {
+      "platform_id": "ios",
+      "platform_name": "iOS",
+      "platform_sdk": "iphoneos",
+      "platform_arch": "arm64",
+      "platform_rust_target": "aarch64-apple-ios",
+      "otp_version": "27.3",
+      "elixir_version": "1.18.2",
+      "nif_package_name": "NIF_Package_1",
+      "nif_package_config": "config1",
+      "nif_repo": "repo2"
+    },
+    {
+      "platform_id": "ios",
+      "platform_name": "iOS",
+      "platform_sdk": "iphoneos",
+      "platform_arch": "arm64",
+      "platform_rust_target": "aarch64-apple-ios",
+      "otp_version": "27.3",
+      "elixir_version": "1.18.2",
+      "nif_package_name": "NIF_Package_2",
+      "nif_package_config": "config2",
+      "nif_repo": "repo3"
+    },
+    {
+      "platform_id": "ios_sim_arm64",
+      "platform_name": "iOS Simulator arm64",
+      "platform_sdk": "iphonesimulator",
+      "platform_arch": "arm64",
+      "platform_rust_target": "aarch64-apple-ios-sim",
+      "otp_version": "27.3",
+      "elixir_version": "1.18.2",
+      "nif_package_name": "NIF_Package_1",
+      "nif_package_config": "config1",
+      "nif_repo": "repo1"
+    },
+    {
+      "platform_id": "ios_sim_arm64",
+      "platform_name": "iOS Simulator arm64",
+      "platform_sdk": "iphonesimulator",
+      "platform_arch": "arm64",
+      "platform_rust_target": "aarch64-apple-ios-sim",
+      "otp_version": "27.3",
+      "elixir_version": "1.18.2",
+      "nif_package_name": "NIF_Package_1",
+      "nif_package_config": "config1",
+      "nif_repo": "repo2"
+    },
+    {
+      "platform_id": "ios_sim_arm64",
+      "platform_name": "iOS Simulator arm64",
+      "platform_sdk": "iphonesimulator",
+      "platform_arch": "arm64",
+      "platform_rust_target": "aarch64-apple-ios-sim",
+      "otp_version": "27.3",
+      "elixir_version": "1.18.2",
+      "nif_package_name": "NIF_Package_2",
+      "nif_package_config": "config2",
+      "nif_repo": "repo3"
+    },
+    {
+      "platform_id": "ios_sim_x86_64",
+      "platform_name": "iOS Simulator x86_64",
+      "platform_sdk": "iphonesimulator",
+      "platform_arch": "x86_64",
+      "platform_rust_target": "x86_64-apple-ios",
+      "otp_version": "27.3",
+      "elixir_version": "1.18.2",
+      "nif_package_name": "NIF_Package_1",
+      "nif_package_config": "config1",
+      "nif_repo": "repo1"
+    },
+    {
+      "platform_id": "ios_sim_x86_64",
+      "platform_name": "iOS Simulator x86_64",
+      "platform_sdk": "iphonesimulator",
+      "platform_arch": "x86_64",
+      "platform_rust_target": "x86_64-apple-ios",
+      "otp_version": "27.3",
+      "elixir_version": "1.18.2",
+      "nif_package_name": "NIF_Package_1",
+      "nif_package_config": "config1",
+      "nif_repo": "repo2"
+    },
+    {
+      "platform_id": "ios_sim_x86_64",
+      "platform_name": "iOS Simulator x86_64",
+      "platform_sdk": "iphonesimulator",
+      "platform_arch": "x86_64",
+      "platform_rust_target": "x86_64-apple-ios",
+      "otp_version": "27.3",
+      "elixir_version": "1.18.2",
+      "nif_package_name": "NIF_Package_2",
+      "nif_package_config": "config2",
+      "nif_repo": "repo3"
+    }
+  ]
+}

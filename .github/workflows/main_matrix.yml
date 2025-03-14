@@ -8,53 +8,58 @@ on:
   workflow_dispatch:
 
 jobs:
-  define-matrix:
+  load-matrix:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix: ${{ steps.read-matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set Platform & OTP Matrix
-        id: set-matrix
+      - name: Read Matrix from JSON
+        id: read-matrix
         run: |
-          # Method 1: Use jq to ensure valid JSON and remove whitespace (Recommended)
-          MATRIX=$(jq -c . .github/workflows/matrix.json)
+          MATRIX=$(jq -c . .github/workflows/matrix_config.json)  # Read and compact
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
-          # Method 2: Use tr to remove whitespace (Less Robust)
-          # MATRIX=$(cat .github/workflows/matrix.json | tr -d '[:space:]')
-          # echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
-
-          # Method 3: Use a multi-line string with a delimiter (Most Robust, but verbose)
-          # cat << EOF >> "$GITHUB_OUTPUT"
-          # matrix=$(cat .github/workflows/matrix.json)
-          # EOF
-
   build_openssl:
-    needs: [define-matrix]
+    needs: load-matrix
     uses: ./.github/workflows/build_openssl.yml
     with:
-      matrix: ${{ needs.define-matrix.outputs.matrix }}
+      matrix: ${{ needs.load-matrix.outputs.matrix }} # Still need this for openssl
 
   build_otp_round_1:
-    needs: [define-matrix, build_openssl]
+    needs: [load-matrix, build_openssl]
     uses: ./.github/workflows/build_otp.yml
     with:
-      matrix: ${{ needs.define-matrix.outputs.matrix }}
+      matrix: ${{ needs.load-matrix.outputs.matrix }}  # Pass entire matrix
       round: 1
 
   build_nifs:
-    needs: [define-matrix, build_otp_round_1]
-    uses: ./.github/workflows/build_nifs.yml
-    with:
-      parent_matrix: ${{ needs.define-matrix.outputs.matrix }} 
-    
+    needs: [load-matrix, build_otp_round_1]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.load-matrix.outputs.matrix) }} # Use matrix directly.
+    runs-on: macos-latest # Now here
+    steps:
+      - name: Call nifs workflow
+        uses: ./.github/workflows/build_nifs.yml
+        with:
+          platform_id: ${{ matrix.platform_id }}
+          platform_name: ${{ matrix.platform_name }}
+          platform_sdk: ${{ matrix.platform_sdk }}
+          platform_arch: ${{ matrix.platform_arch }}
+          platform_rust_target: ${{ matrix.platform_rust_target }}
+          otp_version: ${{ matrix.otp_version }}
+          elixir_version: ${{ matrix.elixir_version }}
+          nif_package_name: ${{ matrix.nif_package_name }}
+          nif_package_config: ${{ matrix.nif_package_config }}
+          nif_repo: ${{ matrix.nif_repo }}
+
   build_otp_round_2:
     needs: [build_otp_round_1, build_nifs]
     uses: ./.github/workflows/build_otp.yml
     with:
-      matrix: ${{ needs.define-matrix.outputs.matrix }}
+      matrix: ${{ needs.load-matrix.outputs.matrix }}  # Pass entire matrix
       round: 2
 
   final_combine:

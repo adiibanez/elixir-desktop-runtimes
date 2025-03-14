@@ -5,7 +5,7 @@ on:
       matrix:
         required: true
         description: The entire matrix JSON as a string.
-        type: string  # Correct: type is string for reusable workflows
+        type: string
       round:
         required: true
         description: The build round (1 or 2).
@@ -15,7 +15,6 @@ jobs:
   build-otp:
     runs-on: macos-latest
     strategy:
-      fail-fast: false
       matrix:
         platform: ${{ fromJson(inputs.matrix).platform }}
         erlixir: ${{ fromJson(inputs.matrix).erlixir }}
@@ -23,6 +22,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      
       - name: Build OTP Round ${{ inputs.round }}
         run: |
           MSG="Building OTP Round ${{ inputs.round }} for ${{ matrix.platform.name }} with OTP ${{ matrix.erlixir.otp-version }}"

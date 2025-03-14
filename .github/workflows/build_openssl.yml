@@ -12,14 +12,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(inputs.matrix).platform }}  # Use 'include' here
+        include: ${{ fromJson(inputs.matrix).platform }}  # Use 'include'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Build OpenSSL
         run: |
-          MSG="Building OpenSSL for ${{ matrix.name }}"  # Use matrix.name, not matrix.platform.name
+          MSG="Building OpenSSL for ${{ matrix.name }}"
           mkdir -p _build/ios-openssl/
           echo $MSG > _build/ios-openssl/msg.txt
           echo $MSG
@@ -27,5 +27,5 @@ jobs:
       - name: Upload OpenSSL Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: openssl-${{ matrix.id }}  # Use matrix.id
+          name: openssl-${{ matrix.id }}
           path: _build/ios-openssl/
