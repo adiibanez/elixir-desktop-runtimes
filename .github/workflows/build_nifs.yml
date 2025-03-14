@@ -2,32 +2,95 @@ name: Build Native NIFs
 on:
   workflow_call:
     inputs:
-      matrix:
+      otp_version:
+        required: true
+        type: string
+      elixir_version:
+        required: true
+        type: string
+      platform_id:
+        required: true
+        type: string
+      name:
+        required: true
+        type: string
+      sdk:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+      otp_arch:
         required: true
         type: string
 
 jobs:
   build-nifs:
+    env: 
+      NAME: "build-nifs"
     runs-on: macos-latest
     strategy:
       matrix:
-        platform: ${{ fromJson(inputs.matrix).platform }}
-        erlixir: ${{ fromJson(inputs.matrix).erlixir }}
-        include: 
-            - { nif_package_name: "NIF_Package_1", repo_count: 2, config: "config1" }
-            - { nif_package_name: "NIF_Package_2", repo_count: 1, config: "config2" }
+        repo:
+        - package: "NIF_Package_1"
+          name: "rustler_btleplug"
+          repo: "adiibanez/rustler_btleplug"
+          ldflag_config: "config1"
+          ref: "main"
+
+        - package: "NIF_Package_1"
+          name: "rustler_btleplug"
+          repo: "adiibanez/rustler_btleplug"
+          ldflag_config: "config1"
+          ref: "dev"
+
+        - package: "NIF_Package_1"
+          name: "rustler"
+          repo: "adiibanez/rustler"
+          ldflag_config: "config1"
+          ref: "dev"
+        
+        - package: "NIF_Package_1"
+          name: "wasmex"
+          repo: "adiibanez/wasmex"
+          ldflag_config: "config1"
+          ref: "dev"
+
+        - package: "NIF_Package_1"
+          name: "rustler_extra"
+          repo: "adiibanez/rustler_extra"
+          ldflag_config: "config2"
+          ref: "develop"
+
+        - package: "NIF_Package_2"
+          name: "rustler_something"
+          repo: "adiibanez/rustler_something"
+          ldflag_config: "config3"
+          ref: "release"
+        
+        - package: "NIF_Package_2"
+          name: "wasmex"
+          repo: "adiibanez/wasmex"
+          ldflag_config: "config1"
+          ref: "dev"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build NIFs ${{matrix.platform.id}} ${{ matrix.package.name }} ${{matrix.erlixir.otp-version}} ${{matrix.nif_package_name}}
+      - name: Print Package Information
         run: |
-          MSG="Building ${{matrix.platform.id}} ${{ github.workflow }} ${{matrix.erlixir.otp-version}} ${{matrix.nif_package_name}}" 
-          mkdir -p _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{matrix.nif_package_name}}
-          echo $MSG > _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{matrix.nif_package_name}}/artifact.txt
+          echo "Building package: ${{ matrix.repo.package }}"
+
+      - name: Build NIFs ${{inputs.platform_id}} ${{ matrix.repo.package }} ${{inputs.otp_version}} ${{matrix.repo.name}} ${{matrix.repo.repo }}
+        run: |
+          echo ${{matrix.repo.repo}}
+          MSG="Building ${{inputs.platform_id}} ${{ env.NAME }} ${{inputs.otp_version}} ${{matrix.repo.name}} ${{matrix.repo.repo}} ${{matrix.repo.ref}}" 
+          mkdir -p _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.repo.name}}_${{matrix.repo.repo }}
+          echo $MSG > _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.repo.name}}_${{matrix.repo.repo }}/artifact.txt
 
       - name: Upload NIF Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{matrix.nif_package_name}}
-          path: _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{matrix.nif_package_name}}/
+          name: ${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.repo.package}}
+          path: _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.repo.package}}/

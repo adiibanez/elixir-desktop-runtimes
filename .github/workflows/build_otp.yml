@@ -2,7 +2,10 @@ name: Build OTP
 on:
   workflow_call:
     inputs:
-      opt-version:
+      otp_version:
+        required: true
+        type: string
+      elixir_version:
         required: true
         type: string
       round:
@@ -35,6 +38,8 @@ on:
 
 jobs:
   build-otp:
+    env: 
+      NAME: "build-otp"
     runs-on: macos-latest
     steps:
       - name: Checkout repository
@@ -42,17 +47,14 @@ jobs:
 
       - name: Build OTP Round ${{ inputs.round }}
         run: |
-          MSG="Building ${{inputs.platform_id}} ${{ github.workflow }} ${{inputs.otp-version}} ${{inputs.round}}" 
+          MSG="Building ${{inputs.platform_id}} ${{ env.NAME }} ${{inputs.otp_version}} ${{inputs.round}}" 
 
-          echo "HERE _build/${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}"
-          mkdir -p _build/${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}
-          echo $MSG > _build/${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}/artifact.txt
-
-          name: ${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}
-          path: _build/${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}/
+          echo "HERE ${{env.NAME}} _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}"
+          mkdir -p _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}
+          echo $MSG > _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}/artifact.txt
 
       - name: Upload OTP Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}
-          path: _build/${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}/
+          name: ${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}
+          path: _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}/

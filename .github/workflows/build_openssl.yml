@@ -34,6 +34,8 @@ on:
 
 jobs:
   build_openssl:
+    env: 
+      NAME: "build_openssl"
     runs-on: macos-latest
     steps:
       - name: Checkout repository
@@ -54,12 +56,12 @@ jobs:
       - name: Create Dummy Artifact
         shell: bash
         run: |
-          mkdir -p _build/${{inputs.platform_id }}_${{ github.worfkflow }}_${{ inputs.openssl_version }}
+          mkdir -p _build/${{inputs.platform_id }}_${{ env.NAME }}_${{ inputs.openssl_version }}
           MSG="This is a dummy artifact for ${{inputs.platform_id }} ${{ inputs.openssl_version  }}"
           echo $MSG
-          echo $MSG > _build/${{inputs.platform_id }}_${{ github.worfkflow }}_${{ inputs.openssl_version }}/artifact.txt
+          echo $MSG > _build/${{inputs.platform_id }}_${{ env.NAME }}_${{ inputs.openssl_version }}/artifact.txt
       - name: upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{inputs.platform_id }}_${{ github.worfkflow }}_${{ inputs.openssl_version }}
-          path: _build/${{inputs.platform_id }}_${{ github.worfkflow }}_${{ inputs.openssl_version }}/
+          name: ${{inputs.platform_id }}_${{ env.NAME }}_${{ inputs.openssl_version }}
+          path: _build/${{inputs.platform_id }}_${{ env.NAME }}_${{ inputs.openssl_version }}/
