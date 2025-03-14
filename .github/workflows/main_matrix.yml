@@ -6,89 +6,69 @@ on:
       - dummy-ci
   pull_request:
 
-env: 
-  OPENSSL_VERSION: 3.4.0
 jobs:
   define-matrix:
     runs-on: macos-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Set Platform & OTP Matrix
+      # - name: Install yq (if missing)
+      #   run: brew install jq yq
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Convert matrix.yml to JSON
         id: set-matrix
         run: |
-          echo "matrix=$(jq -c . <<EOF
-          {
-            "erlixir": [
-              {
-                "otp-version": 27.3,
-                "elixir-version": 1.18.2,
-                "use-git": true,
-                "git-repo": "adiibanez/otp",
-                "git-ref": "OTP-27.3-noiosminversion"
-              }
-            ],
-            "os": ["macos-latest"],
-            "platform": [
-              {
-                "id": "macos_arm64",
-                "name": "macOS arm64",
-                "sdk": "macosx",
-                "arch": "arm64",
-                "base_arch": "macos",
-                "openssl_prefix": "_build/ios-openssl/build/openssl.macos.arm64",
-                "openssl_opts": "no-ssl3 no-ssl3-method no-zlib",
-                "openssl_arch": "darwin64-arm64",
-                "otp_arch": "aarch64-apple-darwin",
-                "xcomp": "aarch64-darwin",
-                "rust_target": "aarch64-apple-darwin"
-              },
-              {
-                "id": "macos_x86_64",
-                "name": "macOS x86_64",
-                "sdk": "macosx",
-                "arch": "x86_64",
-                "base_arch": "macos",
-                "openssl_prefix": "_build/ios-openssl/build/openssl.macos.x86_64",
-                "openssl_opts": "no-ssl3 no-ssl3-method no-zlib",
-                "openssl_arch": "darwin64-x86_64",
-                "otp_arch": "x86_64-apple-darwin",
-                "xcomp": "x86_64-darwin",
-                "rust_target": "x86_64-apple-darwin"
-              }
-            ]
-          }
-          EOF
-          )" >> $GITHUB_ENV
+          yq -o=json '.' .github/matrix_config.yml | jq -c > matrix.json
+          cat matrix.json
+          echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Debug Output
+        run: cat matrix.json
+
+  test_matrix:
+    runs-on: macos-latest
+    needs: define-matrix
+    strategy:
+      matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+
+    steps:
+      - name: Test
+        shell: bash
+        run: |
+          # echo ${{ needs.define-matrix.outputs.matrix }}
+          echo ${{matrix.platform.id}} ${{matrix.erlixir.otp-version}}
 
   build_openssl:
     needs: define-matrix
     uses: ./.github/workflows/build_openssl.yml
     with:
-      matrix: ${{ needs.define-matrix.outputs.matrix }}
+      matrix_json: '${{ needs.define-matrix.outputs.matrix }}'
 
-  build_otp_round_1:
-    needs: build_openssl
-    uses: ./.github/workflows/build_otp.yml
-    with:
-      matrix: ${{ needs.define-matrix.outputs.matrix }}
-      round: 1
+  # build_otp_round_1:
+  #   needs: build_openssl
+  #   uses: ./.github/workflows/build_otp.yml
+  #   with:
+  #     matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+  #     round: 1
 
-  build_nifs:
-    needs: build_otp_round_1
-    uses: ./.github/workflows/build_nifs.yml
-    with:
-      matrix: ${{ needs.define-matrix.outputs.matrix }}
+  # build_nifs:
+  #   needs: build_otp_round_1
+  #   uses: ./.github/workflows/build_nifs.yml
+  #   with:
+  #     matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
 
-  build_otp_round_2:
-    needs: [build_otp_round_1, build_nifs]
-    uses: ./.github/workflows/build_otp.yml
-    with:
-      matrix: ${{ needs.define-matrix.outputs.matrix }}
-      round: 2
+  # build_otp_round_2:
+  #   needs: [build_otp_round_1, build_nifs]
+  #   uses: ./.github/workflows/build_otp.yml
+  #   with:
+  #     matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+  #     round: 2
 
-  final_combine:
-    needs: [build_otp_round_2, build_nifs]
-    uses: ./.github/workflows/final_combine.yml
-    with:
-      matrix: ${{ needs.define-matrix.outputs.matrix }}
+  # final_combine:
+  #   needs: build_otp_round_2
+  #   uses: ./.github/workflows/final_combine.yml
+  #   with:
+  #     matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}

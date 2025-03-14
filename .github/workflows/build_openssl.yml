@@ -2,7 +2,7 @@ name: Build OpenSSL
 on:
   workflow_call:
     inputs:
-      matrix:
+      matrix_json:
         required: true
         type: string
 
@@ -10,23 +10,28 @@ jobs:
   build-openssl:
     runs-on: macos-latest
     strategy:
-      matrix: 
-        platform: ${{ fromJson(inputs.matrix).platform }}
+      matrix: ${{ fromJson(inputs.matrix_json).platform }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build OpenSSL ${{ env.OPENSSL_VERSION }} ${{ matrix.platform.id }}
+      - name: Openssl Text matrix
         run: |
-          MSG="Building ${{matrix.platform.id}} ${{ github.workflow }}" 
-          mkdir -p _build/${{matrix.platform.id}}_${{ github.workflow }}
-          echo $MSG > _build/${{matrix.platform.id}}_${{ github.workflow }}/artifact.txt
+          echo ${{ inputs.matrix_json }}
+          # echo ${{ env.OPENSSL_VERSION }} ${{ matrix.id }}
 
-          name: ${{matrix.platform.id}}_${{ github.workflow }}
-          path: _build/${{matrix.platform.id}}_${{ github.workflow }}/
+      # - name: Build OpenSSL ${{ env.OPENSSL_VERSION }} ${{ matrix.platform_id }}
+      #   run: |
+      #     MSG="Building ${{matrix.platform_id}} ${{ github.workflow }}"
+      #     mkdir -p _build/${{matrix.platform_id}}_${{ github.workflow }}
+      #     echo $MSG > _build/${{matrix.platform_id}}_${{ github.workflow }}/artifact.txt
 
-      - name: Upload OpenSSL Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{matrix.platform.id}}_${{ github.workflow }}
-          path: _build/${{matrix.platform.id}}_${{ github.workflow }}/
+      #     name: ${{matrix.platform_id}}_${{ github.workflow }}
+      #     path: _build/${{matrix.platform_id}}_${{ github.workflow }}/
+
+      # - name: Upload OpenSSL Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{matrix.platform_id}}_${{ github.workflow }}
+      #     path: _build/${{matrix.platform_id}}_${{ github.workflow }}/
