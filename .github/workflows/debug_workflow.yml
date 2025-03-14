@@ -1,0 +1,31 @@
+name: Debug JQ (Absolute Minimum)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug-jq:
+    runs-on: macos-latest
+    steps:
+      - name: Run jq Command
+        shell: bash  # Explicitly use bash
+        run: |
+          set -x  # Enable shell tracing - VERY IMPORTANT
+          PACKAGES='[
+            { "name": "NIF_Package_1", "config": "config1", "repos": ["repo1", "repo2"] },
+            { "name": "NIF_Package_2", "config": "config2", "repos": ["repo3"] }
+          ]'
+
+          # Run the jq command using cat and a pipe.
+          RESULT=$(cat <<EOF | jq -c '.[] | { name: .name, config: .config, repos: .repos } | .repos[] | {package: .name, repo: ., config: .config}'
+            $PACKAGES
+            EOF
+            )
+          echo "Result:"
+          echo "$RESULT"
+
+          # Check exit code
+          if [ $? -ne 0 ]; then
+            echo "jq command failed!" >&2
+            exit 1
+          fi
