@@ -41,6 +41,14 @@ jobs:
   #       run: |
   #         echo "Platform ID: ${{ matrix.platform.platform_id }}, OTP Version: ${{ matrix.erlixir['otp-version'] }}"
 
+  debug_matrix:
+    runs-on: macos-latest
+    steps:
+      - name: Debug matrix
+        shell: bash
+        run: |
+          echo ${{ needs.define-matrix.outputs.matrix }}
+
   build_openssl: # This is the job that uses the matrix
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
@@ -60,7 +68,7 @@ jobs:
   build_otp_round_1:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-    needs: build_openssl
+    needs: [build_openssl]
     uses: ./.github/workflows/build_otp.yml
     with:
       round: 1

@@ -43,6 +43,7 @@ jobs:
         shell: bash
         run: |
           echo "Platform ID: ${{ inputs.platform_id }}"
+          echo ${{inputs.platform_id }}_${{ github.workflow }}_${{ inputs.openssl_version }}
 
       - name: Configure OpenSSL
         shell: bash
