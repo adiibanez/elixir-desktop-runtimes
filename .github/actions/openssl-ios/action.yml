@@ -15,6 +15,9 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Cache Openssl source
       uses: actions/cache@v4
       id: openssl-cache
@@ -51,6 +54,10 @@ runs:
       shell: bash
       run: |
         mkdir -p _build/ios-openssl
+
+        # use patched config
+        cp patch/openssl-ios.conf openssl-${{ inputs.version }}/Configurations/15-ios.conf
+
         cd openssl-${{ inputs.version }}
         OPENSSL_VERSION=${{ inputs.version }} BUILD_DIR=${{ github.workspace }}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{ inputs.base_arch }}
 
@@ -72,7 +79,7 @@ runs:
     - name: Cache Openssl iOS builds (Save)
       uses: actions/cache/save@v4 # Use the save-only action
       id: openssl-ios-build-cache-save
-      if: always() # Always save the cache, even on failure (important!)
+      if: steps.build-openssl.outcome == 'success'
       with:
         path: |
           _build/ios-openssl

@@ -87,8 +87,7 @@ jobs:
               openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
               openssl_arch: 'darwin64-arm64',
               otp_arch: 'aarch64-apple-darwin',
-              xcomp: 'aarch64-darwin',
-              rust_target: 'aarch64-apple-darwin'
+              rust_target: 'aarch64-apple-darwin',
             }
           - {
               id: 'macos_x86_64',
@@ -100,8 +99,7 @@ jobs:
               openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
               openssl_arch: 'darwin64-x86_64',
               otp_arch: 'x86_64-apple-darwin',
-              xcomp: 'x86_64-darwin',
-              rust_target: 'x86_64-apple-darwin'
+              rust_target: 'x86_64-apple-darwin',
             }
           - {
               id: 'ios',
@@ -112,7 +110,6 @@ jobs:
               openssl_prefix: '_build/ios-openssl/build/openssl.ios',
               openssl_arch: 'ios64-xcrun',
               otp_arch: 'aarch64-apple-ios',
-              xcomp: 'arm64-ios',
               rust_target: 'aarch64-apple-ios',
             }
           - {
@@ -124,7 +121,6 @@ jobs:
               openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
               openssl_arch: 'iossimulator-arm64-xcrun',
               otp_arch: 'aarch64-apple-iossimulator',
-              xcomp: 'arm64-iossimulator',
               rust_target: 'aarch64-apple-ios-sim',
             }
           - {
@@ -136,52 +132,96 @@ jobs:
               openssl_prefix: '_build/ios-openssl/build/openssl.iossim.x86_64',
               openssl_arch: 'iossimulator-x86_64-xcrun',
               otp_arch: 'x86_64-apple-iossimulator',
-              xcomp: 'x86_64-iossimulator',
               rust_target: 'x86_64-apple-ios',
             }
-
-          # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          - {
-              id: 'tvos',
-              name: 'tvOS',
-              sdk: appletvos,
-              arch: arm64,
-              base_arch: ios,
-              openssl_prefix: '_build/ios-openssl/build/openssl.ios',
-              openssl_arch: 'ios64-xcrun',
-              otp_arch: 'aarch64-apple-ios',
-              xcomp: 'arm64-ios',
-              rust_target: 'aarch64-apple-tvos'
-            }
-          - {
-              id: 'tvos_sim_arm64',
-              name: 'tvOS Simulator arm64',
-              sdk: appletvsimulator,
-              arch: arm64,
-              base_arch: ios_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
-              openssl_arch: 'iossimulator-arm64-xcrun',
-              otp_arch: 'aarch64-apple-iossimulator',
-              xcomp: 'arm64-iossimulator',
-              rust_target: 'aarch64-apple-tvos-sim'
-            }
-          - {
-              id: 'tvos_sim_x86_64',
-              name: 'tvOS Simulator x86_64',
-              sdk: appletvsimulator,
-              arch: x86_64,
-              base_arch: ios_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.iossim.x86_64',
-              openssl_arch: 'iossimulator-x86_64-xcrun',
-              otp_arch: 'x86_64-apple-iossimulator',
-              xcomp: 'x86_64-iossimulator',
-              rust_target: 'x86_64-apple-tvos'
-            }
-          # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {id: "visionos", name: "visionOS", sdk: xros, arch: arm64, openssl_arch: "xros-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "visionos_sim_arm64", name: "visionOS Simulator", sdk: xrsimulator, arch: arm64, openssl_arch: "xrossimulator-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-iossimulator"}
+          # - {
+          #     id: 'watchos',
+          #     name: 'watchOS',
+          #     sdk: watchos,
+          #     arch: arm64,
+          #     base_arch: ios,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchos',
+          #     openssl_arch: 'watchos-arm64_32-xcrun',
+          #     otp_arch: 'aarch64-apple-ios',
+          #     rust_target: 'aarch64-apple-watchos',
+          #   }
+          # - {
+          #     id: 'watchos_sim',
+          #     name: 'watchOS Simulator',
+          #     sdk: watchsimulator,
+          #     arch: x86_64,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchos',
+          #     openssl_arch: 'watchsimulator-xcrun',
+          #     otp_arch: 'aarch64-apple-ios',
+          #     rust_target: 'aarch64-apple-watchos-sim',
+          #   }
+          # - {
+          #     id: 'tvos',
+          #     name: 'tvOS',
+          #     sdk: appletvos,
+          #     arch: arm64,
+          #     base_arch: tvos,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
+          #     openssl_arch: 'tvos-xcrun',
+          #     otp_arch: 'aarch64-apple-tvos',
+          #     rust_target: 'aarch64-apple-tvos',
+          #   }
+          # - {
+          #     id: 'tvos_sim_arm64',
+          #     name: 'tvOS Simulator arm64',
+          #     sdk: appletvsimulator,
+          #     arch: arm64,
+          #     base_arch: tvos_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.arm64',
+          #     openssl_arch: 'tvossimulator-xcrun',
+          #     otp_arch: 'aarch64-apple-tvossimulator',
+          #     rust_target: 'aarch64-apple-tvos-sim',
+          #   }
+          # - {
+          #     id: 'tvos_sim_x86_64',
+          #     name: 'tvOS Simulator x86_64',
+          #     sdk: appletvsimulator,
+          #     arch: x86_64,
+          #     base_arch: tvos_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.x86_64',
+          #     openssl_arch: 'tvossimulator-x86_64-xcrun',
+          #     otp_arch: 'x86_64-apple-tvos',
+          #     rust_target: 'x86_64-apple-tvos',
+          #   }
+          # # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
+          # # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          # - {
+          #     id: 'visionos',
+          #     name: 'visionOS',
+          #     sdk: xros,
+          #     arch: arm64,
+          #     base_arch: xros,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xros',
+          #     openssl_arch: 'xros-xcrun',
+          #     otp_arch: 'aarch64-apple-visionos',
+          #     rust_target: 'aarch64-apple-visionos',
+          #   }
+          # - {
+          #     id: 'visionos_sim_arm64',
+          #     name: 'visionOS Simulator arm64',
+          #     sdk: xrsimulator,
+          #     arch: arm64,
+          #     base_arch: xrossim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
+          #     openssl_arch: 'xrossimulator-xcrun',
+          #     otp_arch: 'aarch64-apple-visionos-sim',
+          #     rust_target: 'aarch64-apple-visionos-sim',
+          #   }
+          # - {
+          #     id: 'visionos_sim_x86_64',
+          #     name: 'visionOS Simulator x86_64',
+          #     sdk: xrsimulator,
+          #     arch: x86_64,
+          #     base_arch: xrossim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
+          #     openssl_arch: 'xrossimulator-xcrun',
+          #     otp_arch: 'x86_64-apple-ios',
+          #   }
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -193,17 +233,17 @@ jobs:
           path: |
             openssl-${{ env.OPENSSL_VERSION }}
           key: openssl-source-cache-${{ env.OPENSSL_VERSION }}
-      - name: Cache Openssl builds
-        uses: actions/cache@v4
-        id: openssl-build-cache
-        with:
-          path: |
-            openssl-${{ env.OPENSSL_VERSION }}
-            _build/openssl-${{ env.OPENSSL_VERSION }}
-          key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.sdk }}-${{ matrix.platform.openssl_arch }}-${{ hashFiles('./scripts/install_openssl_new.sh') }}
-          # restore-keys: |
-          #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
-          #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-
+      # - name: Cache Openssl builds
+      #   uses: actions/cache@v4
+      #   id: openssl-build-cache
+      #   with:
+      #     path: |
+      #       openssl-${{ env.OPENSSL_VERSION }}
+      #       _build/openssl-${{ env.OPENSSL_VERSION }}
+      #     key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.sdk }}-${{ matrix.platform.openssl_arch }}-${{ hashFiles('./scripts/install_openssl_new.sh') }}
+      #     # restore-keys: |
+      #     #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
+      #     #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-
 
       - name: Cache Openssl iOS builds
         uses: actions/cache@v4
@@ -212,14 +252,6 @@ jobs:
           path: |
             _build/ios-openssl
           key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{matrix.platform.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
-
-      # - name: Build iOS OpenSSL
-      #   if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
-      #   shell: bash
-      #   run: |
-      #     mkdir -p _build/ios-openssl
-      #     cd openssl-${{ env.OPENSSL_VERSION }}
-      #     OPENSSL_VERSION=${{ env.OPENSSL_VERSION }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{matrix.platform.base_arch}}
 
       - name: build_openssl_ios
         uses: ./.github/actions/openssl-ios
@@ -253,44 +285,44 @@ jobs:
           #echo "OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
           echo "OPENSSL_SRC_PREFIX=${{ github.workspace }}/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
 
-      - name: Build OpenSSL
-        if: false
-        id: openssl-build
-        # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
-        run: |
+      # - name: Build OpenSSL
+      #   if: false
+      #   id: openssl-build
+      #   # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
+      #   run: |
 
-          mkdir -p _build/openssl-${{ env.OPENSSL_VERSION }}
-          # https://github.com/erlang/otp/issues/5706
-          cp patch/openssl-ios.conf openssl-${{ env.OPENSSL_VERSION }}/Configurations/15-ios.conf
+      #     mkdir -p _build/openssl-${{ env.OPENSSL_VERSION }}
+      #     # https://github.com/erlang/otp/issues/5706
+      #     cp patch/openssl-ios.conf openssl-${{ env.OPENSSL_VERSION }}/Configurations/15-ios.conf
 
-          # CXXFLAGS=$CFLAGS \
-          # CFLAGS="-fno-common -Os -D__IOS__=yes" \
-          # OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
-          # ARCH=${{ matrix.platform.openssl_arch }} \
-          # MAKEFLAGS="-j10 -O" \
-          # OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-          # ./scripts/install_openssl_new.sh
+      #     # CXXFLAGS=$CFLAGS \
+      #     # CFLAGS="-fno-common -Os -D__IOS__=yes" \
+      #     # OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
+      #     # ARCH=${{ matrix.platform.openssl_arch }} \
+      #     # MAKEFLAGS="-j10 -O" \
+      #     # OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
+      #     # ./scripts/install_openssl_new.sh
 
-          # https://wiki.openssl.org/index.php/Compilation_and_Installation
-          # # CXXFLAGS=$CFLAGS \
-          # # CFLAGS="-fno-common -Os -D__IOS__=yes" \
-          OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
-          SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path` \
-          CC="xcrun -sdk ${{ matrix.platform.sdk }} cc" \
-          CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++" \
-          LD="xcrun -sdk ${{ matrix.platform.sdk }} ld" \
-          LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v" \
-          DED_LD=$LD \
-          DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v" \
-          RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib" \
-          AR="xcrun -sdk ${{ matrix.platform.sdk }} ar" \
-          ARCH=${{ matrix.platform.openssl_arch }} \
-          MAKEFLAGS="-j10 -O" \
-          OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-          ./scripts/install_openssl_new.sh        
+      #     # https://wiki.openssl.org/index.php/Compilation_and_Installation
+      #     # # CXXFLAGS=$CFLAGS \
+      #     # # CFLAGS="-fno-common -Os -D__IOS__=yes" \
+      #     OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
+      #     SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path` \
+      #     CC="xcrun -sdk ${{ matrix.platform.sdk }} cc" \
+      #     CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++" \
+      #     LD="xcrun -sdk ${{ matrix.platform.sdk }} ld" \
+      #     LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v" \
+      #     DED_LD=$LD \
+      #     DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v" \
+      #     RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib" \
+      #     AR="xcrun -sdk ${{ matrix.platform.sdk }} ar" \
+      #     ARCH=${{ matrix.platform.openssl_arch }} \
+      #     MAKEFLAGS="-j10 -O" \
+      #     OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
+      #     ./scripts/install_openssl_new.sh
 
-          ls -lah _build/openssl-$OPENSSL_VERSION
-          find _build/openssl-$OPENSSL_VERSION -name "*.a"
+      #     ls -lah _build/openssl-$OPENSSL_VERSION
+      #     find _build/openssl-$OPENSSL_VERSION -name "*.a"
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
@@ -335,7 +367,7 @@ jobs:
         with:
           path: ~/.asdf
           key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
-          
+
       - name: OTP Cache
         uses: actions/cache@v3
         id: otp-cache
@@ -390,7 +422,7 @@ jobs:
               echo "Openssl $OPENSSL_PREFIX exists."
               file "$OPENSSL_PREFIX/lib/libcrypto.a"
               lipo -info "$OPENSSL_PREFIX/lib/libcrypto.a"
-              otool -L "$OPENSSL_PREFIX/lib/libcrypto.a"
+              # otool -L "$OPENSSL_PREFIX/lib/libcrypto.a"
           else
               echo "Openssl $OPENSSL_PREFIX doesn't exists."
               exit 1
@@ -449,41 +481,50 @@ jobs:
           ls -lah _build/otp_builder
 
       - name: Show libs for ${{ matrix.platform.name }}
+        continue-on-error: true
         if: always() && steps.otp-setup-round1.outcome != 'success'
         shell: bash
         run: |
           find _build/otp_builder -name "*.a"
 
       - name: Extract logs for ${{ matrix.platform.name }}
+        continue-on-error: true
         if: always() && steps.otp-setup-round1.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
           name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
           path: '**/*.log'
 
-      - name: Set IS_TVOS environment variable
-        run: |
-          if [[ ${{ matrix.platform.rust_target }} == *"tvos"* ]]; then
-            echo "IS_TVOS=true" >> "$GITHUB_ENV"
-          else
-            echo "IS_TVOS=false" >> "$GITHUB_ENV"
-          fi
+      # - name: Set IS_TVOS environment variable
+      #   run: |
+      #     if [[ ${{ matrix.platform.rust_target }} == *"tvos"* ]]; then
+      #       echo "IS_TVOS=true" >> "$GITHUB_ENV"
+      #     else
+      #       echo "IS_TVOS=false" >> "$GITHUB_ENV"
+      #     fi
+      #   shell: bash
+
+      - name: Set 3rd tier rust target flag
+        if: ${{ ! contains(matrix.platform.rust_target, 'tvos') && ! contains(matrix.platform.rust_target, 'xros') }}
         shell: bash
+        run: |
+          echo "IS_3RD_TIER_TARGET=true" >> $GITHUB_ENV
 
-      - name: Install Rust Nightly
-        uses: dtolnay/rust-toolchain@master
-        if: env.IS_TVOS != 'true'
-        with:
-          toolchain: ${{ env.TOOLCHAIN }}
-          targets: ${{ matrix.platform.rust_target }}
+      # - name: Install Rust Nightly
+      #   if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
+      #   uses: dtolnay/rust-toolchain@master
+      #   with:
+      #     toolchain: ${{ env.TOOLCHAIN }}
+      #     targets: ${{ matrix.platform.rust_target }}
 
-      - name: Rust Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.CARGO_CACHE_PATH }}
-          key: cargo-${{ github.workflow }}-${{ github.job }}-${{runner.os}}-${{runner.arch}}
+      # - name: Rust Cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ${{ env.CARGO_CACHE_PATH }}
+      #     key: cargo-${{ github.workflow }}-${{ github.job }}-${{runner.os}}-${{runner.arch}}
 
       - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+        # if: false
         shell: bash
         env:
           RUSTLER_BTLEPLUG_BUILD: 1
@@ -527,7 +568,6 @@ jobs:
 
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
-          
           mkdir -p _build/nifs/
 
           git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
@@ -546,16 +586,20 @@ jobs:
           # cd ${{github.workspace}}/_build/nifs/
 
 
-          if [[ "${{ env.IS_TVOS }}" == "false" ]]; then
+          # # can't build tier 3 targets at the moment, no rustler for tvos / visionos :( 
+          if [[ "${{ env.IS_3RD_TIER_TARGET }}" != "true" ]]; then
+            echo "Nothing to do"
             # RUST_CONFIG=" -Zbuild-std"
-          
-            git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
+
+            git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled
             # v0.0.15-alpha
             cd rustler_btleplug
             mix deps.get
             cd native/btleplug_client
-            #RUSTFLAGS='-C target-feature=+crt-static' 
-            RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+            LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+            RUSTFLAGS="-C target-feature=-crt-static" \
+            cargo build --release --target=${{matrix.platform.rust_target}}
+
             LIB_NAME=`find . -name "*.a" | head -1`
             debug_lib $LIB_NAME
             cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
@@ -576,11 +620,7 @@ jobs:
             # mix deps.get
             # mix release
             # cd ${{github.workspace}}/_build/nifs/
-
-          else
-            echo "Is TVOS, skipping rustler builds due to std-lib not available per default"
           fi
-
 
           cd ${{github.workspace}}
 
@@ -594,6 +634,7 @@ jobs:
       #       _build/nifs/**/**.a
 
       - name: Test job
+        continue-on-error: true
         shell: bash
         run: |
           cd _build/nifs
@@ -604,7 +645,7 @@ jobs:
 
       - name: Build OTP Round 2
         id: otp-setup-round2
-        #if: false
+        # if: false
         # if: steps.otp-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
@@ -654,7 +695,7 @@ jobs:
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
@@ -676,12 +717,14 @@ jobs:
           ls -lah _build/otp_builder
 
       - name: Debug build
+        continue-on-error: true
         shell: bash
         if: always() && steps.otp-setup-round2.outcome != 'success'
         run: |
           find _build/otp_builder -name "*.a"
 
       - name: Upload debug Artifact for Round 2 build
+        continue-on-error: true
         if: always() && steps.otp-setup-round2.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
@@ -707,6 +750,11 @@ jobs:
           #exit 1
 
           LIBS="`cat /tmp/libs.txt` ${{env.OPENSSL_PREFIX}}/lib/libcrypto.a"
+
+          if [[ -d ${{github.workspace}}/_build/nifs ]]; then
+            NIF_LIBS=$(find ${{github.workspace}}/_build/nifs -type f -name "*.a" | awk '{printf " %s", $1} END { print "" }')
+            LIBS+="$NIF_LIBS"
+          fi
 
           cd _build/otp_builder
           # find . -name libbeam.a
@@ -738,8 +786,6 @@ jobs:
 
           OUTPUT_LIB="${{ github.workspace }}/_build/liberlang.a"
 
-          # ${{ github.workspace }}/_build/otp_builder/bin/${{matrix.platform.otp_arch}}/libbeam.a
-
           rm -f $OUTPUT_LIB
           libtool -static -o $OUTPUT_LIB $LIBS
 
@@ -747,8 +793,8 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
-          file ${{ github.workspace }}/_build/${{ matrix.platform.id }}/liberlang.a
-          lipo -info ${{ github.workspace }}/_build/${{ matrix.platform.id }}/liberlang.a
+          file ${{ github.workspace }}/_build/liberlang.a
+          lipo -info ${{ github.workspace }}/_build/liberlang.a
 
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
@@ -799,9 +845,8 @@ jobs:
           echo "TVOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.a" >> $GITHUB_ENV
           echo "TVOS_SIMULATOR_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.a" >> $GITHUB_ENV
           echo "TVOS_SIMULATOR_LIB_X86_64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.a" >> $GITHUB_ENV
-
-          # echo "WATCHOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos/liberlang.a" >> $GITHUB_ENV
-          # echo "WATCHOS_SIMULATOR_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos_sim/liberlang.a" >> $GITHUB_ENV
+          echo "WATCHOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos/liberlang.a" >> $GITHUB_ENV
+          echo "WATCHOS_SIMULATOR_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos_sim/liberlang.a" >> $GITHUB_ENV
           echo "VISIONOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos/liberlang.a" >> $GITHUB_ENV
           echo "VISIONOS_SIMULATOR_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos_sim/liberlang.a" >> $GITHUB_ENV
 
@@ -829,7 +874,7 @@ jobs:
           fi
 
           XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
-      
+
           add_library_if_exists() {
             if [ -f "$2" ]; then
               echo "✅ Including: $1 $2"
@@ -844,15 +889,18 @@ jobs:
           add_library_if_exists ios_sim $IOS_SIM_LIPO
           add_library_if_exists tvos $TVOS_LIB
           add_library_if_exists tvos_sim $TVOS_SIM_LIPO
-          
+          add_library_if_exists watchos $WATCHOS_LIB
+          add_library_if_exists watchos_sim $WATCHOS_SIMULATOR_LIB
+          add_library_if_exists watchos $VISIONOS_LIB
+          add_library_if_exists watchos_sim $VISIONOS_SIMULATOR_LIB_ARM64
+
           XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
-      
+
           echo "🚀 Running: $XCFRAMEWORK_CMD"
           eval "$XCFRAMEWORK_CMD"
 
           mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
           mv -f liberlang.xcframework liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
-      
 
       # - name: Check Architecture
       #   if: false

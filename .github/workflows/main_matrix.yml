@@ -87,14 +87,8 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
     with:
-      platform_id: ${{ matrix.platform.platform_id}}
-      otp_version: ${{ matrix.erlixir.otp_version}}
-      elixir_version: ${{ matrix.erlixir.elixir_version}}
-      name: ${{ matrix.platform.name}}
-      sdk: ${{ matrix.platform.sdk}}
-      arch: ${{matrix.platform.arch}}
-      otp_arch: ${{matrix.platform.otp_arch}}
-
+      parent_matrix: ${{ needs.define-matrix.outputs.matrix }} 
+    
   build_otp_round_2:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
@@ -112,11 +106,7 @@ jobs:
       xcomp: ${{matrix.platform.xcomp}}
 
   final_combine:
-    strategy:
-      matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-    
-    needs: [build_otp_round_2, build_nifs]
-    uses: ./.github/workflows/final_combine.yml
-    with:
-      otp_version: ${{ matrix.erlixir.otp_version}}
-      elixir_version: ${{ matrix.erlixir.elixir_version}}
+    needs: build_otp_round_2
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Final combine (placeholder)"
