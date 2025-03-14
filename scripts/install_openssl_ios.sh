@@ -99,11 +99,59 @@ build_catalyst_libs()
 	fi
 }
 
-build_sim_libs()
+build_ios_libs()
+{
+	# --openssldir="$BUILD_DIR/build/ssl"
+	if [[ ! -d $BUILD_DIR/build/lib.ios ]]; then
+		./Configure --prefix="$BUILD_DIR/build/openssl.ios" no-shared no-dso no-hw no-engine ios64-xcrun -fembed-bitcode -mios-version-min=13.4
+		make clean
+		make -j$THREAD_COUNT
+		make install
+
+		mkdir $BUILD_DIR/build/lib.ios
+		# cp libssl.a $BUILD_DIR/build/lib.ios/
+		# cp libcrypto.a $BUILD_DIR/build/lib.ios/
+		make clean
+	fi
+}
+
+build_ios_sim_libs()
 {
 	# --openssldir="$BUILD_DIR/build/ssl" 
 	if [[ ! -d $BUILD_DIR/build/lib.iossim-$1 ]]; then
 		./Configure --prefix="$BUILD_DIR/build/openssl.iossim.$1" no-shared iossimulator-xcrun CFLAGS="-arch $1 -mios-simulator-version-min=13.4"
+		make clean
+		make -j$THREAD_COUNT
+		make install
+
+		# mkdir $BUILD_DIR/build/lib.iossim-$1
+		# cp libssl.a $BUILD_DIR/build/lib.iossim-$1/
+		# cp libcrypto.a $BUILD_DIR/build/lib.iossim-$1/
+		make clean
+	fi
+}
+
+build_tvos_libs()
+{
+	# --openssldir="$BUILD_DIR/build/ssl"
+	if [[ ! -d $BUILD_DIR/build/lib.tvos ]]; then
+		./Configure --prefix="$BUILD_DIR/build/openssl.tvos" no-shared no-dso no-hw no-engine tvos-xcrun -fembed-bitcode -mios-version-min=13.4
+		make clean
+		make -j$THREAD_COUNT
+		make install
+
+		mkdir $BUILD_DIR/build/lib.tvos
+		# cp libssl.a $BUILD_DIR/build/lib.ios/
+		# cp libcrypto.a $BUILD_DIR/build/lib.ios/
+		make clean
+	fi
+}
+
+build_tvos_sim_libs()
+{
+	# --openssldir="$BUILD_DIR/build/ssl" 
+	if [[ ! -d $BUILD_DIR/build/lib.tvossim-$1 ]]; then
+		./Configure --prefix="$BUILD_DIR/build/openssl.tvossim.$1" no-shared tvossimulator-xcrun CFLAGS="-arch $1 -mios-simulator-version-min=13.4"
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -147,21 +195,6 @@ build_xrossim_libs()
 	fi
 }
 
-build_ios_libs()
-{
-	# --openssldir="$BUILD_DIR/build/ssl"
-	if [[ ! -d $BUILD_DIR/build/lib.ios ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.ios" no-shared no-dso no-hw no-engine ios64-xcrun -fembed-bitcode -mios-version-min=13.4
-		make clean
-		make -j$THREAD_COUNT
-		make install
-
-		mkdir $BUILD_DIR/build/lib.ios
-		# cp libssl.a $BUILD_DIR/build/lib.ios/
-		# cp libcrypto.a $BUILD_DIR/build/lib.ios/
-		make clean
-	fi
-}
 
 # if [[ ! -d $BUILD_DIR/build/lib ]]; then
 # 	./Configure --prefix="$BUILD_DIR/build" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$HOST_ARC-cc CFLAGS="$NATIVE_BUILD_FLAGS"
@@ -210,8 +243,15 @@ case "$BUILD_ARCH" in
         build_ios_libs
         ;;
     "ios_sim")
-        build_sim_libs arm64
-        build_sim_libs x86_64
+        build_ios_sim_libs arm64
+        build_ios_sim_libs x86_64
+        ;;
+	"tvos")
+        build_tvos_libs
+        ;;
+    "tvos_sim")
+        build_tvos_sim_libs arm64
+        build_tvos_sim_libs x86_64
         ;;
     "xros")
         build_xros_libs
