@@ -69,7 +69,8 @@ build_macos_libs() {
 
 		# CFLAGS="$BUILD_FLAGS"
 
-		./Configure --prefix="$BUILD_DIR/build/openssl.macos.$1" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$1-cc 
+		# --openssldir="$BUILD_DIR/build/ssl"
+		./Configure --prefix="$BUILD_DIR/build/openssl.macos.$1" no-shared darwin64-$1-cc 
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -85,8 +86,9 @@ build_macos_libs() {
 
 build_catalyst_libs()
 {
+	# --openssldir="$BUILD_DIR/build/ssl" 
 	if [[ ! -d $BUILD_DIR/build/lib.catalyst-$1 ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.catalyst.$1" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$1-cc --target=$(arc $1)-apple-ios13.4-macabi -isysroot $MACSYSROOT/SDKs/MacOSX.sdk
+		./Configure --prefix="$BUILD_DIR/build/openssl.catalyst.$1" no-shared darwin64-$1-cc --target=$(arc $1)-apple-ios13.4-macabi -isysroot $MACSYSROOT/SDKs/MacOSX.sdk
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -99,8 +101,9 @@ build_catalyst_libs()
 
 build_sim_libs()
 {
+	# --openssldir="$BUILD_DIR/build/ssl" 
 	if [[ ! -d $BUILD_DIR/build/lib.iossim-$1 ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.iossim.$1" --openssldir="$BUILD_DIR/build/ssl" no-shared iossimulator-xcrun CFLAGS="-arch $1 -mios-simulator-version-min=13.4"
+		./Configure --prefix="$BUILD_DIR/build/openssl.iossim.$1" no-shared iossimulator-xcrun CFLAGS="-arch $1 -mios-simulator-version-min=13.4"
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -112,10 +115,27 @@ build_sim_libs()
 	fi
 }
 
+build_xros_libs()
+{
+	# --openssldir="$BUILD_DIR/build/ssl"
+	if [[ ! -d $BUILD_DIR/build/lib.xros ]]; then
+		./Configure --prefix="$BUILD_DIR/build/openssl.xros" no-shared no-dso no-hw no-engine xros-xcrun -fembed-bitcode
+		make clean
+		make -j$THREAD_COUNT
+		make install
+
+		# mkdir $BUILD_DIR/build/lib.xros
+		# cp libssl.a $BUILD_DIR/build/lib.xros/
+		# cp libcrypto.a $BUILD_DIR/build/lib.xros/
+		make clean
+	fi
+}
+
 build_xrossim_libs()
 {
+	# --openssldir="$BUILD_DIR/build/ssl"
 	if [[ ! -d $BUILD_DIR/build/lib.xrossim-$1 ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.xrossim.$1" --openssldir="$BUILD_DIR/build/ssl" no-shared xrossimulator-xcrun CFLAGS="-arch $1"
+		./Configure --prefix="$BUILD_DIR/build/openssl.xrossim.$1" no-shared xrossimulator-xcrun CFLAGS="-arch $1"
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -129,8 +149,9 @@ build_xrossim_libs()
 
 build_ios_libs()
 {
+	# --openssldir="$BUILD_DIR/build/ssl"
 	if [[ ! -d $BUILD_DIR/build/lib.ios ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.ios" --openssldir="$BUILD_DIR/build/ssl" no-shared no-dso no-hw no-engine ios64-xcrun -fembed-bitcode -mios-version-min=13.4
+		./Configure --prefix="$BUILD_DIR/build/openssl.ios" no-shared no-dso no-hw no-engine ios64-xcrun -fembed-bitcode -mios-version-min=13.4
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -142,28 +163,13 @@ build_ios_libs()
 	fi
 }
 
-build_xros_libs()
-{
-	if [[ ! -d $BUILD_DIR/build/lib.xros ]]; then
-		./Configure $BUILD_DIR/build/openssl.xros --openssldir="$BUILD_DIR/build/ssl" no-shared no-dso no-hw no-engine xros-xcrun -fembed-bitcode
-		make clean
-		make -j$THREAD_COUNT
-		make install
-
-		# mkdir $BUILD_DIR/build/lib.xros
-		# cp libssl.a $BUILD_DIR/build/lib.xros/
-		# cp libcrypto.a $BUILD_DIR/build/lib.xros/
-		make clean
-	fi
-}
-
-if [[ ! -d $BUILD_DIR/build/lib ]]; then
-	./Configure --prefix="$BUILD_DIR/build" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$HOST_ARC-cc CFLAGS="$NATIVE_BUILD_FLAGS"
-	make clean
-	make -j$THREAD_COUNT
-	make install
-	make clean
-fi
+# if [[ ! -d $BUILD_DIR/build/lib ]]; then
+# 	./Configure --prefix="$BUILD_DIR/build" --openssldir="$BUILD_DIR/build/ssl" no-shared darwin64-$HOST_ARC-cc CFLAGS="$NATIVE_BUILD_FLAGS"
+# 	make clean
+# 	make -j$THREAD_COUNT
+# 	make install
+# 	make clean
+# fi
 
 # if [[ ! -d $BUILD_DIR/build/lib.catalyst ]]; then
 # 	build_catalyst_libs arm64
