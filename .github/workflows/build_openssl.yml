@@ -21,7 +21,6 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Build OpenSSL
-        if: env.IS_TVOS != 'true'
         run: |
           MSG="Building OpenSSL for ${{ matrix.platform_name }}"
           mkdir -p _build/ios-openssl/
