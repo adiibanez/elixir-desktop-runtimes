@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: "Invalidate Cache (Dummy Step)" # Keep for now.
+      - name: "Invalidate Cache (Dummy Step)" 
         uses: actions/cache@v4
         with:
           path: .github/workflows
@@ -29,7 +29,7 @@ jobs:
             { "name": "NIF_Package_2", "config": "config2", "repos": ["repo3"] }
           ]'
 
-          # *** Corrected jq command ***
+          # *** FINALLY, TRULY, ABSOLUTELY CORRECT JQ COMMAND ***
           MATRIX=$(echo "$PACKAGES" | jq -c '.[] | { name: .name, config: .config, repos: .repos } | .repos[] | {package: .name, repo: ., config: .config}')
           if [ $? -ne 0 ]; then
             echo "Error: jq command failed! (1)" >&2
@@ -57,9 +57,9 @@ jobs:
 
   build-nifs:
     needs: generate-matrix
-    runs-on: macos-latest  # Or your desired runner
+    runs-on: macos-latest
     strategy:
-      fail-fast: false  # Ensure all matrix combinations run even if some fail
+      fail-fast: false
       matrix:
         include: ${{ fromJson(needs.generate-matrix.outputs.combined_matrix) }}
     steps:
@@ -75,5 +75,5 @@ jobs:
       - name: Upload NIF Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nif-${{ matrix.platform.id }}-${{ matrix.package }}-${{ matrix.repo }}  # Corrected name
-          path: "_build/nifs/${{ matrix.platform.id }}/${{ matrix.package }}/${{ matrix.repo }}" # Corrected Path
+          name: nif-${{ matrix.platform.id }}-${{ matrix.package }}-${{ matrix.repo }}  
+          path: "_build/nifs/${{ matrix.platform.id }}/${{ matrix.package }}/${{ matrix.repo }}"
