@@ -3,7 +3,7 @@ name: Apple OTP Build Pipeline
 on:
   push:
     branches:
-      - main
+      - dummy-ci
   pull_request:
 
 env: 
