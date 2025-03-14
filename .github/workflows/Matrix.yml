@@ -567,7 +567,6 @@ jobs:
 
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
-
           mkdir -p _build/nifs/
 
           git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
