@@ -547,6 +547,7 @@ jobs:
 
 
           if [[ "${{ env.IS_TVOS }}" == "false" ]]; then
+            echo "Nothing to do"
             # RUST_CONFIG=" -Zbuild-std"
           
             # git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
