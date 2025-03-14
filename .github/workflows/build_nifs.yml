@@ -48,4 +48,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Print nif_matrix
-        run: echo "nif_matrix: ${{ needs.generate-matrix.outputs.nif_matrix }}"
+        run: |
+            echo "nif_matrix: ${{ needs.generate-matrix.outputs.nif_matrix }}"
