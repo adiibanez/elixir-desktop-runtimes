@@ -576,11 +576,7 @@ jobs:
             # mix deps.get
             # mix release
             # cd ${{github.workspace}}/_build/nifs/
-
-          else
-            echo "Is TVOS, skipping rustler builds due to std-lib not available per default"
           fi
-
 
           cd ${{github.workspace}}
 
