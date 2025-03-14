@@ -201,6 +201,7 @@ jobs:
               openssl_prefix: '_build/ios-openssl/build/openssl.xros',
               openssl_arch: 'xros-xcrun',
               otp_arch: 'aarch64-apple-ios',
+              rust_target: 'aarch64-apple-visionos',
             }
           - {
               id: 'visionos_sim_arm64',
@@ -211,6 +212,7 @@ jobs:
               openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
               openssl_arch: 'xrossimulator-xcrun',
               otp_arch: 'aarch64-apple-ios',
+              rust_target: 'aarch64-apple-visionos-sim',
             }
           # - {
           #     id: 'visionos_sim_x86_64',
