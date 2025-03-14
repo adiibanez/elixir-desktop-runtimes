@@ -22,31 +22,63 @@ jobs:
           key: matrix-generation-${{ github.run_id }}
       - name: Generate NIF Matrix
         id: generate-nif-matrix
+        shell: bash  # Explicitly use bash
         run: |
+          echo "--- Debug: Starting generate-nif-matrix ---"
+
+          # Check if the file exists.
+          echo "--- Debug: Checking file existence ---"
           if [ ! -f .github/workflows/nif_packages.json ]; then
             echo "Error: nif_packages.json not found!" >&2
             exit 1
           fi
-          PACKAGES=$(cat .github/workflows/nif_packages.json)
+          echo "--- Debug: File exists ---"
+
+          # Read the file content, removing any BOM.
+          PACKAGES=$(sed 's/\xEF\xBB\xBF//' .github/workflows/nif_packages.json)
+          echo "--- Debug: File content (raw, BOM removed): ---"
+          echo "$PACKAGES"
+          echo "--- Debug: End of file content ---"
+
+          # Check if the file was empty or cat failed.
+          echo "--- Debug: Checking for empty file ---"
           if [ -z "$PACKAGES" ]; then
             echo "Error: nif_packages.json is empty or could not be read!" >&2
             exit 1
           fi
+          echo "--- Debug: File is not empty ---"
+
+          # Validate that PACKAGES contains valid JSON *before* further processing.
+          echo "--- Debug: Validating JSON ---"
           if ! echo "$PACKAGES" | jq -e . > /dev/null; then
             echo "Error: nif_packages.json contains invalid JSON!" >&2
             exit 1
           fi
+          echo "--- Debug: JSON is valid ---"
+
+          # Now we *know* PACKAGES contains valid JSON, so the rest of the jq commands
+          # are safe.
+          echo "--- Debug: Processing JSON with jq ---"
           MATRIX=$(echo "$PACKAGES" | jq -c '.[] | .repos | .[] | {package: (.name), repo: ., config: (.config)}')
           if [ $? -ne 0 ]; then
             echo "Error: jq command failed! (1)" >&2
+            echo "--- Debug: jq error output:" >&2
+            echo "$PACKAGES" | jq '.[] | .repos | .[] | {package: (.name), repo: ., config: (.config)}' 2>&1 # Capture stderr + stdout
             exit 1
           fi
+          echo "--- Debug: First jq command successful. Result:"
+          echo "$MATRIX"
+
           MATRIX_ARRAY=$(echo "[$MATRIX]" | jq -s .)
           if [ $? -ne 0 ]; then
             echo "Error: jq command failed! (2)" >&2
             exit 1
           fi
+          echo "--- Debug: Second jq command successful. Result:"
+          echo "$MATRIX_ARRAY"
+
           echo "nif_matrix=$(echo "$MATRIX_ARRAY" | jq -c .)" >> "$GITHUB_OUTPUT"
+          echo "--- Debug: nif_matrix output set ---"
 
       - name: Combine Matrices
         id: combine-matrices
