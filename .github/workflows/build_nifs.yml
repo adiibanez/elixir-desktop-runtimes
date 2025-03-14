@@ -5,7 +5,7 @@ on:
       parent_matrix:
         required: true
         type: string
-  workflow_dispatch:
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
   generate-matrix:
@@ -13,6 +13,9 @@ jobs:
     outputs:
       combined_matrix: ${{ steps.combine-matrices.outputs.matrix }}
     steps:
+      - name: Debug - Workflow Triggered  # Add this debug step
+        run: echo "Workflow triggered!"
+
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: "Invalidate Cache (Dummy Step)"
@@ -23,7 +26,6 @@ jobs:
       - name: Generate NIF Matrix
         id: generate-nif-matrix
         run: |
-          echo "building nif matrix"
           if [ ! -f .github/workflows/nif_packages.json ]; then
             echo "Error: nif_packages.json not found!" >&2
             exit 1
@@ -38,15 +40,15 @@ jobs:
             exit 1
           fi
 
-          # Corrected jq command (finally!)
+          # *** TRULY CORRECTED JQ COMMAND ***
           MATRIX=$(echo "$PACKAGES" | jq -c '.[] | .repos[] | {package: .name, repo: ., config: .config}')
           if [ $? -ne 0 ]; then
             echo "Error: jq command failed! (1)" >&2
             echo "--- Debug: jq error output:" >&2
-            echo "$PACKAGES" | jq  '.[] | .repos[] | {package: .name, repo: ., config: .config}' 2>&1
+            echo "$PACKAGES" | jq  '.[] | .repos[] | {package: .name, repo: ., config: .config}' 2>&1  # Show the error
             exit 1
           fi
-
+        
           MATRIX_ARRAY=$(echo "[$MATRIX]" | jq -s .)
           if [ $? -ne 0 ]; then
             echo "Error: jq command failed! (2)" >&2
@@ -59,6 +61,8 @@ jobs:
         run: |
           PARENT_MATRIX='${{ inputs.parent_matrix }}'
           NIF_MATRIX=$(echo "${{ steps.generate-nif-matrix.outputs.nif_matrix }}")
+
+          # Corrected jq to iterate over both platforms and NIF entries
           COMBINED_MATRIX=$(echo "$PARENT_MATRIX" | jq --argjson nif "$NIF_MATRIX" -c '
             .platform[] as $p | $nif[] | {platform: $p, package: .package, repo: .repo, config: .config}
           ')
