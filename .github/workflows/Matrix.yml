@@ -134,26 +134,25 @@ jobs:
               otp_arch: 'x86_64-apple-iossimulator',
               rust_target: 'x86_64-apple-ios',
             }
-
-          # - {
-          #     id: 'watchos',
-          #     name: 'watchOS',
-          #     sdk: watchos,
-          #     arch: arm64,
-          #     base_arch: ios,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.ios',
-          #     openssl_arch: 'ios64-xcrun',
-          #     otp_arch: 'aarch64-apple-ios',
-          #     rust_target: 'aarch64-apple-ios',
-          #   }
-          # - {
-          #     id: 'watchos_sim',
-          #     name: 'watchOS Simulator',
-          #     sdk: watchsimulator,
-          #     arch: x86_64,
-          #     openssl_arch: 'iossimulator-x86_64-xcrun',
-          #     xcomp: 'x86_64-iossimulator',
-          #   }
+          - {
+              id: 'watchos',
+              name: 'watchOS',
+              sdk: watchos,
+              arch: arm64,
+              base_arch: ios,
+              openssl_prefix: '_build/ios-openssl/build/openssl.ios',
+              openssl_arch: 'ios64-xcrun',
+              otp_arch: 'aarch64-apple-ios',
+              rust_target: 'aarch64-apple-ios',
+            }
+          - {
+              id: 'watchos_sim',
+              name: 'watchOS Simulator',
+              sdk: watchsimulator,
+              arch: x86_64,
+              openssl_arch: 'iossimulator-x86_64-xcrun',
+              xcomp: 'x86_64-iossimulator',
+            }
           - {
               id: 'tvos',
               name: 'tvOS',
