@@ -22,16 +22,12 @@ jobs:
           key: matrix-generation-${{ github.run_id }}
       - name: Generate NIF Matrix
         id: generate-nif-matrix
-        shell: bash  # Explicitly use bash
         run: |
-          echo "--- Debug: Starting generate-nif-matrix ---"
-
-          # ... (File existence and content checks - remain the same) ...
           if [ ! -f .github/workflows/nif_packages.json ]; then
             echo "Error: nif_packages.json not found!" >&2
             exit 1
           fi
-          PACKAGES=$(sed 's/\xEF\xBB\xBF//' .github/workflows/nif_packages.json)
+          PACKAGES=$(cat .github/workflows/nif_packages.json)
           if [ -z "$PACKAGES" ]; then
             echo "Error: nif_packages.json is empty or could not be read!" >&2
             exit 1
@@ -41,45 +37,14 @@ jobs:
             exit 1
           fi
 
-          # --- Simplified jq steps with debugging ---
-          echo "--- Debug: Processing JSON with jq (step-by-step) ---"
-
-          # Step 1: Parse the JSON and output each element of the array.
-          STEP1=$(echo "$PACKAGES" | jq -c '.[]')
+          # Corrected jq command (finally!)
+          MATRIX=$(echo "$PACKAGES" | jq -c '.[] | .repos[] | {package: .name, repo: ., config: .config}')
           if [ $? -ne 0 ]; then
-            echo "Error: jq step 1 failed!" >&2
-            exit 1
-          fi
-          echo "--- Debug: Step 1 result: $STEP1"
-
-          # Step 2:  Extract the 'repos' array from each element.
-          STEP2=$(echo "$STEP1" | jq -c '.repos')
-          if [ $? -ne 0 ]; then
-            echo "Error: jq step 2 failed!" >&2
-             echo "$STEP1" | jq -c '.repos' 2>&1
-            exit 1
-          fi
-          echo "--- Debug: Step 2 result: $STEP2"
-
-          # Step 3: Iterate through the 'repos' array.
-          STEP3=$(echo "$STEP2" | jq -c '.[]')
-           if [ $? -ne 0 ]; then
-            echo "Error: jq step 3 failed!" >&2
-            exit 1
-          fi
-          echo "--- Debug: Step 3 result: $STEP3"
-
-          # Step 4: Create the final objects.
-          MATRIX=$(echo "$STEP3" | jq -c '{package: (.name), repo: ., config: (.config)}')
-          if [ $? -ne 0 ]; then
-            echo "Error: jq step 4 failed!" >&2
+            echo "Error: jq command failed! (1)" >&2
             echo "--- Debug: jq error output:" >&2
-            echo "$STEP3" | jq -c '{package: (.name), repo: ., config: (.config)}' 2>&1 # Capture stderr + stdout
+            echo "$PACKAGES" | jq  '.[] | .repos[] | {package: .name, repo: ., config: .config}' 2>&1
             exit 1
           fi
-          echo "--- Debug: Step 4 (final MATRIX) result:"
-          echo "$MATRIX"
-          # --- End of simplified jq steps ---
 
           MATRIX_ARRAY=$(echo "[$MATRIX]" | jq -s .)
           if [ $? -ne 0 ]; then
