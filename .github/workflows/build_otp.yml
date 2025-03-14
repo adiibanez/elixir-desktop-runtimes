@@ -16,18 +16,22 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        platform: ${{ fromJson(inputs.matrix).platform }}
-        erlixir: ${{ fromJson(inputs.matrix).erlixir }}
+        include: ${{ fromJson(inputs.matrix).include }} # CORRECTED: Use 'include'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      
+      # - name: Download OpenSSL Artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: openssl-${{ matrix.platform_id }} # Corrected: Use matrix.platform_id
+      #     path: _build/ios-openssl/build/
+
       - name: Build OTP Round ${{ inputs.round }}
         run: |
-          MSG="Building OTP Round ${{ inputs.round }} for ${{ matrix.platform.name }} with OTP ${{ matrix.erlixir.otp-version }}"
+          MSG="Building OTP Round ${{ inputs.round }} for ${{ matrix.platform_name }} with OTP ${{ matrix.otp_version }}" # Corrected
           mkdir -p _build/otp/
-          echo $MSG > _build/otp/msg.txt
+          echo $MSG > _build/otp/msg.txt"
           echo $MSG
 
           # Add OTP build commands here
@@ -35,5 +39,5 @@ jobs:
       - name: Upload OTP Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: otp${{ inputs.round }}-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}
-          path: _build/otp/
+          name: otp${{ inputs.round }}-${{ matrix.platform_id }}-${{ matrix.otp_version }} # Corrected
+          path: "_build/otp/"
