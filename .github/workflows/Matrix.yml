@@ -233,17 +233,17 @@ jobs:
           path: |
             openssl-${{ env.OPENSSL_VERSION }}
           key: openssl-source-cache-${{ env.OPENSSL_VERSION }}
-      - name: Cache Openssl builds
-        uses: actions/cache@v4
-        id: openssl-build-cache
-        with:
-          path: |
-            openssl-${{ env.OPENSSL_VERSION }}
-            _build/openssl-${{ env.OPENSSL_VERSION }}
-          key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.sdk }}-${{ matrix.platform.openssl_arch }}-${{ hashFiles('./scripts/install_openssl_new.sh') }}
-          # restore-keys: |
-          #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
-          #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-
+      # - name: Cache Openssl builds
+      #   uses: actions/cache@v4
+      #   id: openssl-build-cache
+      #   with:
+      #     path: |
+      #       openssl-${{ env.OPENSSL_VERSION }}
+      #       _build/openssl-${{ env.OPENSSL_VERSION }}
+      #     key: openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.platform.sdk }}-${{ matrix.platform.openssl_arch }}-${{ hashFiles('./scripts/install_openssl_new.sh') }}
+      #     # restore-keys: |
+      #     #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-
+      #     #   openssl-build-cache-${{ env.OPENSSL_VERSION }}-
 
       - name: Cache Openssl iOS builds
         uses: actions/cache@v4
@@ -252,14 +252,6 @@ jobs:
           path: |
             _build/ios-openssl
           key: openssl-ios-build-cache-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{matrix.platform.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
-
-      # - name: Build iOS OpenSSL
-      #   if: steps.openssl-ios-build-cache.outputs.cache-hit != 'true'
-      #   shell: bash
-      #   run: |
-      #     mkdir -p _build/ios-openssl
-      #     cd openssl-${{ env.OPENSSL_VERSION }}
-      #     OPENSSL_VERSION=${{ env.OPENSSL_VERSION }} BUILD_DIR=${{github.workspace}}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{matrix.platform.base_arch}}
 
       - name: build_openssl_ios
         uses: ./.github/actions/openssl-ios
@@ -293,44 +285,44 @@ jobs:
           #echo "OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
           echo "OPENSSL_SRC_PREFIX=${{ github.workspace }}/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
 
-      - name: Build OpenSSL
-        if: false
-        id: openssl-build
-        # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
-        run: |
+      # - name: Build OpenSSL
+      #   if: false
+      #   id: openssl-build
+      #   # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
+      #   run: |
 
-          mkdir -p _build/openssl-${{ env.OPENSSL_VERSION }}
-          # https://github.com/erlang/otp/issues/5706
-          cp patch/openssl-ios.conf openssl-${{ env.OPENSSL_VERSION }}/Configurations/15-ios.conf
+      #     mkdir -p _build/openssl-${{ env.OPENSSL_VERSION }}
+      #     # https://github.com/erlang/otp/issues/5706
+      #     cp patch/openssl-ios.conf openssl-${{ env.OPENSSL_VERSION }}/Configurations/15-ios.conf
 
-          # CXXFLAGS=$CFLAGS \
-          # CFLAGS="-fno-common -Os -D__IOS__=yes" \
-          # OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
-          # ARCH=${{ matrix.platform.openssl_arch }} \
-          # MAKEFLAGS="-j10 -O" \
-          # OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-          # ./scripts/install_openssl_new.sh
+      #     # CXXFLAGS=$CFLAGS \
+      #     # CFLAGS="-fno-common -Os -D__IOS__=yes" \
+      #     # OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
+      #     # ARCH=${{ matrix.platform.openssl_arch }} \
+      #     # MAKEFLAGS="-j10 -O" \
+      #     # OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
+      #     # ./scripts/install_openssl_new.sh
 
-          # https://wiki.openssl.org/index.php/Compilation_and_Installation
-          # # CXXFLAGS=$CFLAGS \
-          # # CFLAGS="-fno-common -Os -D__IOS__=yes" \
-          OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
-          SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path` \
-          CC="xcrun -sdk ${{ matrix.platform.sdk }} cc" \
-          CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++" \
-          LD="xcrun -sdk ${{ matrix.platform.sdk }} ld" \
-          LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v" \
-          DED_LD=$LD \
-          DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v" \
-          RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib" \
-          AR="xcrun -sdk ${{ matrix.platform.sdk }} ar" \
-          ARCH=${{ matrix.platform.openssl_arch }} \
-          MAKEFLAGS="-j10 -O" \
-          OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-          ./scripts/install_openssl_new.sh        
+      #     # https://wiki.openssl.org/index.php/Compilation_and_Installation
+      #     # # CXXFLAGS=$CFLAGS \
+      #     # # CFLAGS="-fno-common -Os -D__IOS__=yes" \
+      #     OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
+      #     SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path` \
+      #     CC="xcrun -sdk ${{ matrix.platform.sdk }} cc" \
+      #     CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++" \
+      #     LD="xcrun -sdk ${{ matrix.platform.sdk }} ld" \
+      #     LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v" \
+      #     DED_LD=$LD \
+      #     DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v" \
+      #     RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib" \
+      #     AR="xcrun -sdk ${{ matrix.platform.sdk }} ar" \
+      #     ARCH=${{ matrix.platform.openssl_arch }} \
+      #     MAKEFLAGS="-j10 -O" \
+      #     OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
+      #     ./scripts/install_openssl_new.sh
 
-          ls -lah _build/openssl-$OPENSSL_VERSION
-          find _build/openssl-$OPENSSL_VERSION -name "*.a"
+      #     ls -lah _build/openssl-$OPENSSL_VERSION
+      #     find _build/openssl-$OPENSSL_VERSION -name "*.a"
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''

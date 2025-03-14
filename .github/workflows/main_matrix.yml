@@ -2,6 +2,8 @@ name: Dummy Apple OTP Build Pipeline
 
 on:
   push:
+    branches:
+      - dummy-ci
   pull_request:
   workflow_dispatch:
 

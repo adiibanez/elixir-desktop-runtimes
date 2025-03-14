@@ -52,6 +52,8 @@ runs:
       run: |
         mkdir -p _build/ios-openssl
         cd openssl-${{ inputs.version }}
+
+        cp patch/openssl-ios.conf openssl-${{ inputs.version }}/Configurations/15-ios.conf
         OPENSSL_VERSION=${{ inputs.version }} BUILD_DIR=${{ github.workspace }}/_build/ios-openssl ../scripts/install_openssl_ios.sh ${{ inputs.base_arch }}
 
     - name: Check libs
