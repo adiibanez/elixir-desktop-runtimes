@@ -5,7 +5,7 @@ on:
       parent_matrix:
         required: true
         type: string
-  workflow_dispatch: # Allow manual triggering
+  workflow_dispatch:
 
 jobs:
   generate-matrix:
@@ -13,9 +13,6 @@ jobs:
     outputs:
       combined_matrix: ${{ steps.combine-matrices.outputs.matrix }}
     steps:
-      - name: Debug - Workflow Triggered  # Add this debug step
-        run: echo "Workflow triggered!"
-
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: "Invalidate Cache (Dummy Step)"
@@ -40,15 +37,13 @@ jobs:
             exit 1
           fi
 
-          # *** TRULY CORRECTED JQ COMMAND ***
-          MATRIX=$(echo "$PACKAGES" | jq -c '.[] | .repos[] | {package: .name, repo: ., config: .config}')
+          # *** FINALLY CORRECT JQ COMMAND ***
+          MATRIX=$(echo "$PACKAGES" | jq -c '.[] | { name: .name, config: .config, repos: .repos } | .repos[] | {package: .name, repo: ., config: .config}')
           if [ $? -ne 0 ]; then
             echo "Error: jq command failed! (1)" >&2
-            echo "--- Debug: jq error output:" >&2
-            echo "$PACKAGES" | jq  '.[] | .repos[] | {package: .name, repo: ., config: .config}' 2>&1  # Show the error
             exit 1
           fi
-        
+
           MATRIX_ARRAY=$(echo "[$MATRIX]" | jq -s .)
           if [ $? -ne 0 ]; then
             echo "Error: jq command failed! (2)" >&2
