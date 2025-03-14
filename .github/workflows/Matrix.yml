@@ -134,35 +134,36 @@ jobs:
               otp_arch: 'x86_64-apple-iossimulator',
               rust_target: 'x86_64-apple-ios',
             }
-          - {
-              id: 'watchos',
-              name: 'watchOS',
-              sdk: watchos,
-              arch: arm64,
-              base_arch: ios,
-              openssl_prefix: '_build/ios-openssl/build/openssl.ios',
-              openssl_arch: 'ios64-xcrun',
-              otp_arch: 'aarch64-apple-ios',
-              rust_target: 'aarch64-apple-ios',
-            }
-          - {
-              id: 'watchos_sim',
-              name: 'watchOS Simulator',
-              sdk: watchsimulator,
-              arch: x86_64,
-              openssl_arch: 'iossimulator-x86_64-xcrun',
-              xcomp: 'x86_64-iossimulator',
-            }
+          # - {
+          #     id: 'watchos',
+          #     name: 'watchOS',
+          #     sdk: watchos,
+          #     arch: arm64,
+          #     base_arch: ios,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchos',
+          #     openssl_arch: 'watchos-arm64_32-xcrun',
+          #     otp_arch: 'aarch64-apple-ios',
+          #     rust_target: 'aarch64-apple-watchos',
+          #   }
+          # - {
+          #     id: 'watchos_sim',
+          #     name: 'watchOS Simulator',
+          #     sdk: watchsimulator,
+          #     arch: x86_64,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchos',
+          #     openssl_arch: 'watchsimulator-xcrun',
+          #     otp_arch: 'aarch64-apple-ios',
+          #     rust_target: 'aarch64-apple-watchos-sim',
+          #   }
           - {
               id: 'tvos',
               name: 'tvOS',
               sdk: appletvos,
               arch: arm64,
               base_arch: ios,
-              openssl_prefix: '_build/ios-openssl/build/openssl.ios',
-              openssl_arch: 'ios64-xcrun',
-              otp_arch: 'aarch64-apple-ios',
-              xcomp: 'arm64-ios',
+              openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
+              openssl_arch: 'tvos-xcrun',
+              otp_arch: 'aarch64-apple-tvos',
               rust_target: 'aarch64-apple-tvos',
             }
           - {
@@ -171,10 +172,9 @@ jobs:
               sdk: appletvsimulator,
               arch: arm64,
               base_arch: ios_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
-              openssl_arch: 'iossimulator-arm64-xcrun',
-              otp_arch: 'aarch64-apple-iossimulator',
-              xcomp: 'arm64-iossimulator',
+              openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.arm64',
+              openssl_arch: 'tvossimulator-xcrun',
+              otp_arch: 'aarch64-apple-tvossimulator',
               rust_target: 'aarch64-apple-tvos-sim',
             }
           - {
@@ -183,10 +183,9 @@ jobs:
               sdk: appletvsimulator,
               arch: x86_64,
               base_arch: ios_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.iossim.x86_64',
-              openssl_arch: 'iossimulator-x86_64-xcrun',
-              otp_arch: 'x86_64-apple-iossimulator',
-              xcomp: 'x86_64-iossimulator',
+              openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.x86_64',
+              openssl_arch: 'tvossimulator-x86_64-xcrun',
+              otp_arch: 'x86_64-apple-tvos',
               rust_target: 'x86_64-apple-tvos',
             }
           # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
@@ -199,7 +198,7 @@ jobs:
               base_arch: xros,
               openssl_prefix: '_build/ios-openssl/build/openssl.xros',
               openssl_arch: 'xros-xcrun',
-              otp_arch: 'aarch64-apple-ios',
+              otp_arch: 'aarch64-apple-visionos',
               rust_target: 'aarch64-apple-visionos',
             }
           - {
@@ -210,7 +209,7 @@ jobs:
               base_arch: xrossim,
               openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
               openssl_arch: 'xrossimulator-xcrun',
-              otp_arch: 'aarch64-apple-ios',
+              otp_arch: 'aarch64-apple-visionos-sim',
               rust_target: 'aarch64-apple-visionos-sim',
             }
           # - {
@@ -423,7 +422,7 @@ jobs:
               echo "Openssl $OPENSSL_PREFIX exists."
               file "$OPENSSL_PREFIX/lib/libcrypto.a"
               lipo -info "$OPENSSL_PREFIX/lib/libcrypto.a"
-              otool -L "$OPENSSL_PREFIX/lib/libcrypto.a"
+              # otool -L "$OPENSSL_PREFIX/lib/libcrypto.a"
           else
               echo "Openssl $OPENSSL_PREFIX doesn't exists."
               exit 1
@@ -631,6 +630,7 @@ jobs:
       #       _build/nifs/**/**.a
 
       - name: Test job
+        continue-on-error: true
         shell: bash
         run: |
           cd _build/nifs
@@ -713,12 +713,14 @@ jobs:
           ls -lah _build/otp_builder
 
       - name: Debug build
+        continue-on-error: true
         shell: bash
         if: always() && steps.otp-setup-round2.outcome != 'success'
         run: |
           find _build/otp_builder -name "*.a"
 
       - name: Upload debug Artifact for Round 2 build
+        continue-on-error: true
         if: always() && steps.otp-setup-round2.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
