@@ -5,10 +5,8 @@ erlixir:
     git-repo: 'adiibanez/otp'
     git-ref: 'OTP-27.3-noiosminversion'
 
-os: ['macos-latest']
-
 platform:
-  - id: 'macos_arm64'
+  - platform_id: 'macos_arm64'
     name: 'macOS arm64'
     sdk: 'macosx'
     arch: 'arm64'
@@ -20,7 +18,7 @@ platform:
     xcomp: 'aarch64-darwin'
     rust_target: 'aarch64-apple-darwin'
 
-  - id: 'macos_x86_64'
+  - platform_id: 'macos_x86_64'
     name: 'macOS x86_64'
     sdk: 'macosx'
     arch: 'x86_64'

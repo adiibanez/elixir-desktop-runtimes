@@ -2,35 +2,57 @@ name: Build OTP
 on:
   workflow_call:
     inputs:
-      matrix:
+      opt-version:
         required: true
         type: string
       round:
         required: true
         type: number
+      platform_id:
+        required: true
+        type: string
+      name:
+        required: true
+        type: string
+      sdk:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+      otp_arch:
+        required: true
+        type: string
+      xcomp:
+        required: true
+        type: string
+      xcomp_ldflags:
+        required: false
+        type: string
+      static_libs:
+        required: false
+        type: string
 
 jobs:
   build-otp:
     runs-on: macos-latest
-    strategy:
-      matrix:
-        platform: ${{ fromJson(inputs.matrix).platform }}
-        erlixir: ${{ fromJson(inputs.matrix).erlixir }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Build OTP Round ${{ inputs.round }}
         run: |
-          MSG="Building ${{matrix.platform.id}} ${{ github.workflow }} ${{matrix.erlixir.otp-version}} ${{inputs.round}}" 
-          mkdir -p _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}
-          echo $MSG > _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}/artifact.txt
+          MSG="Building ${{inputs.platform_id}} ${{ github.workflow }} ${{inputs.otp-version}} ${{inputs.round}}" 
 
-          name: ${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}
-          path: _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}/
+          echo "HERE _build/${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}"
+          mkdir -p _build/${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}
+          echo $MSG > _build/${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}/artifact.txt
+
+          name: ${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}
+          path: _build/${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}/
 
       - name: Upload OTP Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}
-          path: _build/${{matrix.platform.id}}_${{ github.workflow }}_${{matrix.erlixir.otp-version}}_${{inputs.round}}/
+          name: ${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}
+          path: _build/${{inputs.platform_id}}_${{ github.workflow }}_${{inputs.otp-version}}_${{inputs.round}}/

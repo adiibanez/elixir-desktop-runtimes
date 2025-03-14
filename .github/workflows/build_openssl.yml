@@ -4,7 +4,10 @@ on:
   workflow_call:
     inputs:
       # Define ALL the inputs that correspond to the `with` values in main.yml
-      id:
+      openssl_version:
+        required: true
+        type: string
+      platform_id:
         required: true
         type: string
       name:
@@ -39,7 +42,7 @@ jobs:
       - name: Display Inputs (for debugging)
         shell: bash
         run: |
-          echo "Platform ID: ${{ inputs.id }}"
+          echo "Platform ID: ${{ inputs.platform_id }}"
 
       - name: Configure OpenSSL
         shell: bash
@@ -50,10 +53,12 @@ jobs:
       - name: Create Dummy Artifact
         shell: bash
         run: |
-          mkdir -p _build/${{ inputs.id }}_${{ env.OPENSSL_VERSION}}
-          echo "This is a dummy artifact for ${inputs.id} and (unused) OTP Version ${{ env.OPENSSL_VERSION }}" > _build/${{ inputs.id }}/artifact.txt
+          mkdir -p _build/${{inputs.platform_id }}_${{ github.worfkflow }}_${{ inputs.openssl_version }}
+          MSG="This is a dummy artifact for ${{inputs.platform_id }} ${{ inputs.openssl_version  }}"
+          echo $MSG
+          echo $MSG > _build/${{inputs.platform_id }}_${{ github.worfkflow }}_${{ inputs.openssl_version }}/artifact.txt
       - name: upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.id }}_${{ env.OPENSSL_VERSION }}_openssl
-          path: _build/${{ inputs.id }}_${{ env.OPENSSL_VERSION }}/
+          name: ${{inputs.platform_id }}_${{ github.worfkflow }}_${{ inputs.openssl_version }}
+          path: _build/${{inputs.platform_id }}_${{ github.worfkflow }}_${{ inputs.openssl_version }}/

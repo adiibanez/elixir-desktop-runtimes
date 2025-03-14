@@ -39,58 +39,36 @@ jobs:
   #     - name: Test
   #       shell: bash
   #       run: |
-  #         echo "Platform ID: ${{ matrix.platform.id }}, OTP Version: ${{ matrix.erlixir['otp-version'] }}"
+  #         echo "Platform ID: ${{ matrix.platform.platform_id }}, OTP Version: ${{ matrix.erlixir['otp-version'] }}"
 
   build_openssl: # This is the job that uses the matrix
+    strategy:
+      matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
     needs: define-matrix
-    runs-on: macos-latest
-    # strategy:
-    #   matrix:
-    #     platform: ${{ fromJson(needs.define-matrix.outputs.matrix).platform }}
+    uses: ./.github/workflows/build_openssl.yml
+    with:
+      openssl_version: 3.4.0
+      platform_id: ${{ matrix.platform.platform_id}}
+      name: ${{ matrix.platform.name}}
+      sdk: ${{ matrix.platform.sdk}}
+      arch: ${{matrix.platform.arch}}
+      base_arch: ${{matrix.platform.base_arch}}
+      openssl_prefix: ${{matrix.platform.openssl_prefix}}
+      openssl_opts: ${{matrix.platform.openssl_opts}}
+      openssl_arch: ${{matrix.platform.openssl_arch}}
 
-    steps:
-      - name: Builder
-        uses: ./.github/workflows/build_openssl_minimal.yml
-        with:
-          matrix_json: ${{toJson(fromJson(needs.define-matrix.outputs.matrix).platform)}}
-
-      # - uses: ./.github/workflows/build_openssl_minimal.yml
-      #   with:
-      #     # Platform settings
-      #     test_input: ${{ matrix.platform.id }}
-
-  # build_openssl: # This is the job that uses the matrix
-  #   needs: define-matrix
-  #   runs-on: macos-latest
-  #   strategy:
-  #     matrix:
-  #       platform: ${{ fromJson(needs.define-matrix.outputs.matrix).platform }}
-  #   steps: # uses and with moved *inside* steps
-  #     - uses: ./.github/workflows/build_openssl.yml
-  #       with:
-  #         # Platform settings
-  #         id: ${{ matrix.platform.id }}
-  #         name: ${{ matrix.platform.name }}
-  #         sdk: ${{ matrix.platform.sdk }}
-  #         arch: ${{ matrix.platform.arch }}
-  #         base_arch: ${{ matrix.platform.base_arch }}
-  #         openssl_prefix: ${{ matrix.platform.openssl_prefix }}
-  #         openssl_opts: ${{ matrix.platform.openssl_opts }}
-  #         openssl_arch: ${{ matrix.platform.openssl_arch }}
-
-  # build_openssl_:
-  #   if: false
-  #   needs: define-matrix
-  #   uses: ./.github/workflows/build_openssl.yml
-  #   with:
-  #     matrix_json: '${{ needs.define-matrix.outputs.matrix }}'
-
-  # build_otp_round_1:
-  #   needs: build_openssl
-  #   uses: ./.github/workflows/build_otp.yml
-  #   with:
-  #     matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-  #     round: 1
+  build_otp_round_1:
+    strategy:
+      matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+    needs: build_openssl
+    uses: ./.github/workflows/build_otp.yml
+    with:
+      round: 1
+      platform_id: ${{ matrix.platform.platform_id}}
+      name: ${{ matrix.platform.name}}
+      sdk: ${{ matrix.platform.sdk}}
+      otp_arch: ${{matrix.platform.otp_arch}}
+      xcomp: ${{matrix.platform.xcomp}}
 
   # build_nifs:
   #   needs: build_otp_round_1
