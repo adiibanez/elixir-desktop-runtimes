@@ -18,27 +18,46 @@ jobs:
       - name: Read Matrix from JSON
         id: read-matrix
         run: |
-          MATRIX=$(jq -c . .github/workflows/matrix_config.json)  # Read and compact
+          MATRIX=$(jq -c . .github/workflows/matrix_config.json)
+          echo $MATRIX
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+      - name: Read Matrix from JSON
+        id: read-matrix-debug
+        run: |
+            if [ ! -f .github/workflows/matrix_config.json ]; then
+                echo "Error: matrix_config.json not found!" >&2
+                exit 1
+            fi
+            MATRIX=$(jq -c . .github/workflows/matrix_config.json)
+            if [ -z "$MATRIX" ]; then
+                echo "Error: matrix_config.json is empty or could not be read!" >&2
+                exit 1
+            fi
+            if ! echo "$MATRIX" | jq -e . > /dev/null; then
+                echo "Error: matrix_config.json contains invalid JSON!" >&2
+                exit 1
+            fi
+            # echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
   build_openssl:
     needs: load-matrix
     uses: ./.github/workflows/build_openssl.yml
     with:
-      matrix: ${{ needs.load-matrix.outputs.matrix }} # Still need this for openssl
+      matrix: ${{ needs.load-matrix.outputs.matrix }}
 
   build_otp_round_1:
     needs: [load-matrix, build_openssl]
     uses: ./.github/workflows/build_otp.yml
     with:
-      matrix: ${{ needs.load-matrix.outputs.matrix }}  # Pass entire matrix
+      matrix: ${{ needs.load-matrix.outputs.matrix }}
       round: 1
 
   build_nifs:
     needs: [load-matrix, build_otp_round_1]
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.load-matrix.outputs.matrix) }} # Use matrix directly.
+      matrix: ${{ fromJson(needs.load-matrix.outputs.matrix) }} 
     runs-on: macos-latest # Now here
     steps:
       - name: Call nifs workflow
