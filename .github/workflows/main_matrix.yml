@@ -107,6 +107,7 @@ jobs:
       elixir_version: ${{ matrix.erlixir.elixir_version}}
       name: ${{ matrix.platform.name}}
       sdk: ${{ matrix.platform.sdk}}
+      arch: ${{matrix.platform.arch}}
       otp_arch: ${{matrix.platform.otp_arch}}
       xcomp: ${{matrix.platform.xcomp}}
 
