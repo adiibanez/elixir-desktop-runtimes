@@ -596,8 +596,10 @@ jobs:
             cd rustler_btleplug
             mix deps.get
             cd native/btleplug_client
-            #RUSTFLAGS='-C target-feature=+crt-static' 
-            RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+            LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+            RUSTFLAGS="-C target-feature=-crt-static" \
+            cargo build --release --target=${{matrix.platform.rust_target}}
+
             LIB_NAME=`find . -name "*.a" | head -1`
             debug_lib $LIB_NAME
             cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
