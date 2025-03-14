@@ -591,7 +591,7 @@ jobs:
             echo "Nothing to do"
             # RUST_CONFIG=" -Zbuild-std"
 
-            git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
+            git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled
             # v0.0.15-alpha
             cd rustler_btleplug
             mix deps.get
