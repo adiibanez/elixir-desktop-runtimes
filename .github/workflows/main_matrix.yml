@@ -46,8 +46,8 @@ jobs:
     needs: define-matrix
     uses: ./.github/workflows/build_nifs.yml
     with:
-      parent_matrix: ${{ needs.define-matrix.outputs.matrix }} 
-    
+      parent_matrix: ${{ needs.define-matrix.outputs.matrix }}
+
   build_otp_round_2:
     needs: [build_otp_round_1, build_nifs]
     uses: ./.github/workflows/build_otp.yml

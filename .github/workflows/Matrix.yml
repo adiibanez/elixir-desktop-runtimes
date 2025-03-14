@@ -87,8 +87,7 @@ jobs:
               openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
               openssl_arch: 'darwin64-arm64',
               otp_arch: 'aarch64-apple-darwin',
-              xcomp: 'aarch64-darwin',
-              rust_target: 'aarch64-apple-darwin'
+              rust_target: 'aarch64-apple-darwin',
             }
           - {
               id: 'macos_x86_64',
@@ -100,8 +99,7 @@ jobs:
               openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
               openssl_arch: 'darwin64-x86_64',
               otp_arch: 'x86_64-apple-darwin',
-              xcomp: 'x86_64-darwin',
-              rust_target: 'x86_64-apple-darwin'
+              rust_target: 'x86_64-apple-darwin',
             }
           - {
               id: 'ios',
@@ -112,7 +110,6 @@ jobs:
               openssl_prefix: '_build/ios-openssl/build/openssl.ios',
               openssl_arch: 'ios64-xcrun',
               otp_arch: 'aarch64-apple-ios',
-              xcomp: 'arm64-ios',
               rust_target: 'aarch64-apple-ios',
             }
           - {
@@ -124,7 +121,6 @@ jobs:
               openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
               openssl_arch: 'iossimulator-arm64-xcrun',
               otp_arch: 'aarch64-apple-iossimulator',
-              xcomp: 'arm64-iossimulator',
               rust_target: 'aarch64-apple-ios-sim',
             }
           - {
@@ -136,12 +132,28 @@ jobs:
               openssl_prefix: '_build/ios-openssl/build/openssl.iossim.x86_64',
               openssl_arch: 'iossimulator-x86_64-xcrun',
               otp_arch: 'x86_64-apple-iossimulator',
-              xcomp: 'x86_64-iossimulator',
               rust_target: 'x86_64-apple-ios',
             }
 
-          # - {id: "watchos", name: "watchOS", sdk: watchos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "watchos_sim", name: "watchOS Simulator", sdk: watchsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
+          - {
+              id: 'watchos',
+              name: 'watchOS',
+              sdk: watchos,
+              arch: arm64,
+              base_arch: ios,
+              openssl_prefix: '_build/ios-openssl/build/openssl.ios',
+              openssl_arch: 'ios64-xcrun',
+              otp_arch: 'aarch64-apple-ios',
+              rust_target: 'aarch64-apple-ios',
+            }
+          # - {
+          #     id: 'watchos_sim',
+          #     name: 'watchOS Simulator',
+          #     sdk: watchsimulator,
+          #     arch: x86_64,
+          #     openssl_arch: 'iossimulator-x86_64-xcrun',
+          #     xcomp: 'x86_64-iossimulator',
+          #   }
           # - {
           #     id: 'tvos',
           #     name: 'tvOS',
@@ -180,8 +192,36 @@ jobs:
           #   }
           # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {id: "visionos", name: "visionOS", sdk: xros, arch: arm64, openssl_arch: "xros-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # - {id: "visionos_sim_arm64", name: "visionOS Simulator", sdk: xrsimulator, arch: arm64, openssl_arch: "xrossimulator-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-iossimulator"}
+          - {
+              id: 'visionos',
+              name: 'visionOS',
+              sdk: xros,
+              arch: arm64,
+              base_arch: xros,
+              openssl_prefix: '_build/ios-openssl/build/openssl.xros',
+              openssl_arch: 'xros-xcrun',
+              otp_arch: 'aarch64-apple-ios',
+            }
+          - {
+              id: 'visionos_sim_arm64',
+              name: 'visionOS Simulator arm64',
+              sdk: xrsimulator,
+              arch: arm64,
+              base_arch: xrossim,
+              openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
+              openssl_arch: 'xrossimulator-xcrun',
+              otp_arch: 'aarch64-apple-ios',
+            }
+          - {
+              id: 'visionos_sim_x86_64',
+              name: 'visionOS Simulator x86_64',
+              sdk: xrsimulator,
+              arch: x86_64,
+              base_arch: xrossim,
+              openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
+              openssl_arch: 'xrossimulator-xcrun',
+              otp_arch: 'x86_64-apple-ios',
+            }
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -335,7 +375,7 @@ jobs:
         with:
           path: ~/.asdf
           key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
-          
+
       - name: OTP Cache
         uses: actions/cache@v3
         id: otp-cache
@@ -527,7 +567,7 @@ jobs:
 
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
-          
+
           mkdir -p _build/nifs/
 
           git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
@@ -549,7 +589,7 @@ jobs:
           if [[ "${{ env.IS_TVOS }}" == "false" ]]; then
             echo "Nothing to do"
             # RUST_CONFIG=" -Zbuild-std"
-          
+
             # git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
             # # v0.0.15-alpha
             # cd rustler_btleplug
@@ -827,7 +867,7 @@ jobs:
           fi
 
           XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
-      
+
           add_library_if_exists() {
             if [ -f "$2" ]; then
               echo "✅ Including: $1 $2"
@@ -842,15 +882,14 @@ jobs:
           add_library_if_exists ios_sim $IOS_SIM_LIPO
           add_library_if_exists tvos $TVOS_LIB
           add_library_if_exists tvos_sim $TVOS_SIM_LIPO
-          
+
           XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
-      
+
           echo "🚀 Running: $XCFRAMEWORK_CMD"
           eval "$XCFRAMEWORK_CMD"
 
           mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
           mv -f liberlang.xcframework liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
-      
 
       # - name: Check Architecture
       #   if: false
