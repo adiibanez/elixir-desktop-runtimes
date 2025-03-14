@@ -335,9 +335,7 @@ jobs:
         with:
           path: ~/.asdf
           key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
-          restore-keys: |
-            asdf-cache-${{ runner.os }}-
-
+          
       - name: OTP Cache
         uses: actions/cache@v3
         id: otp-cache
@@ -538,7 +536,7 @@ jobs:
           # cd ${{github.workspace}}/_build/nifs/
 
 
-          if [[ ${{ matrix.platform.rust_target }} != *"tvos"* ]]; then
+          if [[ "${{ matrix.platform.rust_target }}" != *"tvos"* ]]; then
             # RUST_CONFIG=" -Zbuild-std"
           
             git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
