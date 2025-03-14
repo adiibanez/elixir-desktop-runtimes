@@ -77,6 +77,7 @@ jobs:
       elixir_version: ${{ matrix.erlixir.elixir_version}}
       name: ${{ matrix.platform.name}}
       sdk: ${{ matrix.platform.sdk}}
+      arch: ${{matrix.platform.arch}}
       otp_arch: ${{matrix.platform.otp_arch}}
       xcomp: ${{matrix.platform.xcomp}}
 
@@ -93,17 +94,28 @@ jobs:
       sdk: ${{ matrix.platform.sdk}}
       otp_arch: ${{matrix.platform.otp_arch}}
       xcomp: ${{matrix.platform.xcomp}}
+
+  build_otp_round_2:
+    strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+    needs: [define-matrix, build_openssl]
+    uses: ./.github/workflows/build_otp.yml
+    with:
+      round: 2
+      platform_id: ${{ matrix.platform.platform_id}}
+      otp_version: ${{ matrix.erlixir.otp_version}}
+      elixir_version: ${{ matrix.erlixir.elixir_version}}
+      name: ${{ matrix.platform.name}}
+      sdk: ${{ matrix.platform.sdk}}
+      otp_arch: ${{matrix.platform.otp_arch}}
+      xcomp: ${{matrix.platform.xcomp}}
 
-  # build_otp_round_2:
-  #   needs: [build_otp_round_1, build_nifs]
-  #   uses: ./.github/workflows/build_otp.yml
-  #   with:
-  #     matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-  #     round: 2
-
-  # final_combine:
-  #   needs: build_otp_round_2
-  #   uses: ./.github/workflows/final_combine.yml
-  #   with:
-  #     matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+  final_combine:
+    strategy:
+      matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+    
+    needs: build_otp_round_2
+    uses: ./.github/workflows/final_combine.yml
+    with:
+      otp_version: ${{ matrix.erlixir.otp_version}}
+      elixir_version: ${{ matrix.erlixir.elixir_version}}

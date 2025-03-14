@@ -2,16 +2,18 @@ name: Combine OTP Builds
 on:
   workflow_call:
     inputs:
-      matrix:
+      otp_version:
+        required: true
+        type: string
+      elixir_version:
         required: true
         type: string
 
 jobs:
   final_combine:
+    env: 
+      NAME: "final_combine"
     runs-on: macos-latest
-    strategy:
-      matrix: 
-        erlixir: ${{ fromJson(inputs.matrix).erlixir }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,14 +25,14 @@ jobs:
 
       - name: Final Combination Step
         run: |
-          MSG="Building ${{ github.workflow }}" 
-          mkdir -p _build/${{matrix.erlixir.otp-version}}_${{ github.workflow }}
-          echo $MSG > _build/${{matrix.erlixir.otp-version}}_${{ github.workflow }}/artifact.txt
+          MSG="Building ${{ env.NAME }}" 
+          mkdir -p _build/${{inputs.otp_version}}_${{ env.NAME }}
+          echo $MSG > _build/${{inputs.otp_version}}_${{ env.NAME }}/artifact.txt
           echo `find _build/ -type f`
-          echo `find _build/ -type f` > _build/${{matrix.erlixir.otp-version}}_${{ github.workflow }}/artifact_list.txt
+          echo `find _build/ -type f` > _build/${{inputs.otp_version}}_${{ env.NAME }}/artifact_list.txt
 
       - name: Upload Final Build
         uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.erlixir.otp-version}}_${{ github.workflow }}
-          path: _build/${{matrix.erlixir.otp-version}}_${{ github.workflow }}/
+          name: ${{inputs.otp_version}}_${{ env.NAME }}
+          path: _build/${{inputs.otp_version}}_${{ env.NAME }}/
