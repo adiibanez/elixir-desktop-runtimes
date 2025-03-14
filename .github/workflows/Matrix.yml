@@ -549,17 +549,17 @@ jobs:
           if [[ "${{ env.IS_TVOS }}" == "false" ]]; then
             # RUST_CONFIG=" -Zbuild-std"
           
-            git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
-            # v0.0.15-alpha
-            cd rustler_btleplug
-            mix deps.get
-            cd native/btleplug_client
-            #RUSTFLAGS='-C target-feature=+crt-static' 
-            RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
-            LIB_NAME=`find . -name "*.a" | head -1`
-            debug_lib $LIB_NAME
-            cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-            cd ${{github.workspace}}
+            # git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch main
+            # # v0.0.15-alpha
+            # cd rustler_btleplug
+            # mix deps.get
+            # cd native/btleplug_client
+            # #RUSTFLAGS='-C target-feature=+crt-static' 
+            # RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+            # LIB_NAME=`find . -name "*.a" | head -1`
+            # debug_lib $LIB_NAME
+            # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
+            # cd ${{github.workspace}}
 
             # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
             # cd wasmex
