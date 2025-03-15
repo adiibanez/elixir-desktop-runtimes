@@ -618,8 +618,8 @@ jobs:
 
           mkdir -p _build/nifs/
 
-          # https://github.com/elixir-desktop/exqlite.git
-          git clone --depth 1 https://github.com/elixir-sqlite/exqlite
+          #  https://github.com/elixir-sqlite/exqlite
+          git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
           cd exqlite
           mix deps.get
           STATIC_ERLANG_NIF_LIBNAME=exqlite mix release
@@ -970,8 +970,8 @@ jobs:
           add_library_if_exists tvos_sim $TVOS_SIM_LIPO
           add_library_if_exists watchos $WATCHOS_LIB
           add_library_if_exists watchos_sim $WATCHOS_SIMULATOR_LIB
-          add_library_if_exists watchos $VISIONOS_LIB
-          add_library_if_exists watchos_sim $VISIONOS_SIMULATOR_LIB_ARM64
+          add_library_if_exists visionos $VISIONOS_LIB
+          add_library_if_exists visionos_sim $VISIONOS_SIMULATOR_LIB_ARM64
 
           XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
 
