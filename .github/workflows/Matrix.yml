@@ -586,7 +586,7 @@ jobs:
             #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
             # fi
 
-            if [[ -v $CUSTOM_LDFLAGS ]]; then
+            if [[ ! -z "$CUSTOM_LDFLAGS" ]]; then
               CARGO_CMD="$CUSTOM_LDFLAGS $CARGO_CMD"
             fi
             
