@@ -510,18 +510,18 @@ jobs:
         run: |
           echo "IS_3RD_TIER_TARGET=true" >> $GITHUB_ENV
 
-      # - name: Install Rust Nightly
-      #   if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
-      #   uses: dtolnay/rust-toolchain@master
-      #   with:
-      #     toolchain: ${{ env.TOOLCHAIN }}
-      #     targets: ${{ matrix.platform.rust_target }}
+      - name: Install Rust Nightly
+        # if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.TOOLCHAIN }}
+          targets: ${{ matrix.platform.rust_target }}
 
-      # - name: Rust Cache
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: ${{ env.CARGO_CACHE_PATH }}
-      #     key: cargo-${{ github.workflow }}-${{ github.job }}-${{runner.os}}-${{runner.arch}}
+      - name: Rust Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CARGO_CACHE_PATH }}
+          key: cargo-${{ github.workflow }}-${{ github.job }}-${{runner.os}}-${{runner.arch}}
 
       - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         # if: false
