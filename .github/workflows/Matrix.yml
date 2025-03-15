@@ -607,8 +607,8 @@ jobs:
 
           LIB_NAME=`find . -name "*.a" | head -1`
           debug_lib $LIB_NAME
-          #cp `find target/${{matrix.platform.rust_target}}/release -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-          cp target/${{matrix.platform.rust_target}}/release/libbtleplug_client.a ${{github.workspace}}/_build/nifs/
+          cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
+          # cp target/${{matrix.platform.rust_target}}/release/libbtleplug_client.a ${{github.workspace}}/_build/nifs/
           cd ${{github.workspace}}
 
           # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
