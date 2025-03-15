@@ -571,7 +571,6 @@ jobs:
             fi
           }
 
-
           build_rustler_lib()
           {
             LIBNAME=$1
@@ -631,12 +630,12 @@ jobs:
           #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
           # fi
           
-          # build_rustler_lib \
-          #   "rustler_btleplug" \
-          #   "btleplug_client" \
-          #   "https://github.com/adiibanez/rustler_btleplug.git" \
-          #   "static-no-precompiled" \
-          #   "-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
+          build_rustler_lib \
+            "rustler_btleplug" \
+            "btleplug_client" \
+            "https://github.com/adiibanez/rustler_btleplug.git" \
+            "static-no-precompiled" \
+            "-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
           # CARGO_PKG_NAME="btleplug_client" \
           # RUSTFLAGS="-C target-feature=-crt-static" \
@@ -653,11 +652,11 @@ jobs:
           # # cp target/${{matrix.platform.rust_target}}/release/libbtleplug_client.a ${{github.workspace}}/_build/nifs/
           # cd ${{github.workspace}}
 
-          build_rustler_lib \
-            "wasmex" \
-            "wasmex" \
-            "https://github.com/tessi/wasmex.git" \
-            "main"
+          # build_rustler_lib \
+          #   "wasmex" \
+          #   "wasmex" \
+          #   "https://github.com/tessi/wasmex.git" \
+          #   "main"
 
           # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
           # cd wasmex
