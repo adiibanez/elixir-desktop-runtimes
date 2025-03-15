@@ -155,39 +155,39 @@ jobs:
           #     otp_arch: 'aarch64-apple-ios',
           #     rust_target: 'aarch64-apple-watchos-sim',
           #   }
-          - {
-              id: 'tvos',
-              name: 'tvOS',
-              sdk: appletvos,
-              arch: arm64,
-              base_arch: tvos,
-              openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
-              openssl_arch: 'tvos-xcrun',
-              otp_arch: 'aarch64-apple-tvos',
-              rust_target: 'aarch64-apple-tvos',
-            }
-          - {
-              id: 'tvos_sim_arm64',
-              name: 'tvOS Simulator arm64',
-              sdk: appletvsimulator,
-              arch: arm64,
-              base_arch: tvos_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.arm64',
-              openssl_arch: 'tvossimulator-xcrun',
-              otp_arch: 'aarch64-apple-tvossimulator',
-              rust_target: 'aarch64-apple-tvos-sim',
-            }
-          - {
-              id: 'tvos_sim_x86_64',
-              name: 'tvOS Simulator x86_64',
-              sdk: appletvsimulator,
-              arch: x86_64,
-              base_arch: tvos_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.x86_64',
-              openssl_arch: 'tvossimulator-x86_64-xcrun',
-              otp_arch: 'x86_64-apple-tvos',
-              rust_target: 'x86_64-apple-tvos',
-            }
+          # - {
+          #     id: 'tvos',
+          #     name: 'tvOS',
+          #     sdk: appletvos,
+          #     arch: arm64,
+          #     base_arch: tvos,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
+          #     openssl_arch: 'tvos-xcrun',
+          #     otp_arch: 'aarch64-apple-tvos',
+          #     rust_target: 'aarch64-apple-tvos',
+          #   }
+          # - {
+          #     id: 'tvos_sim_arm64',
+          #     name: 'tvOS Simulator arm64',
+          #     sdk: appletvsimulator,
+          #     arch: arm64,
+          #     base_arch: tvos_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.arm64',
+          #     openssl_arch: 'tvossimulator-xcrun',
+          #     otp_arch: 'aarch64-apple-tvossimulator',
+          #     rust_target: 'aarch64-apple-tvos-sim',
+          #   }
+          # - {
+          #     id: 'tvos_sim_x86_64',
+          #     name: 'tvOS Simulator x86_64',
+          #     sdk: appletvsimulator,
+          #     arch: x86_64,
+          #     base_arch: tvos_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.x86_64',
+          #     openssl_arch: 'tvossimulator-x86_64-xcrun',
+          #     otp_arch: 'x86_64-apple-tvos',
+          #     rust_target: 'x86_64-apple-tvos',
+          #   }
           # # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
           # - {
@@ -516,11 +516,11 @@ jobs:
           toolchain: ${{ env.TOOLCHAIN }}
           targets: ${{ matrix.platform.rust_target }}
 
-      - name: Install Rust Nightly std-lib
-        if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
-        shell: bash 
-        run: |
-          rustup component add rust-src --toolchain nightly-${{ matrix.platform.rust_target }}
+      # - name: Install Rust Nightly std-lib
+      #   if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
+      #   shell: bash 
+      #   run: |
+      #     rustup component add rust-src --toolchain nightly-${{ matrix.platform.rust_target }}
 
       - name: Rust Cache
         uses: actions/cache@v4
@@ -591,9 +591,9 @@ jobs:
           # cd ${{github.workspace}}/_build/nifs/
 
           CARGO_CMD="cargo build --release --target=${{matrix.platform.rust_target}}"
-          if [[ "${{ env.IS_3RD_TIER_TARGET }}" != "true" ]]; then
-            CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
-          fi
+          # if [[ "${{ env.IS_3RD_TIER_TARGET }}" != "true" ]]; then
+          #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
+          # fi
           
           git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled # v0.0.15-alpha
           cd rustler_btleplug
