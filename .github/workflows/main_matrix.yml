@@ -47,7 +47,7 @@ jobs:
     needs: define-matrix
     uses: ./.github/workflows/build_openssl.yml
     with:
-      openssl_version: 3.4.0
+      openssl_version: ${{ matrix.openssl.version }}
       platform_id: ${{ matrix.platform.platform_id}}
       name: ${{ matrix.platform.name}}
       sdk: ${{ matrix.platform.sdk}}
@@ -71,6 +71,8 @@ jobs:
       git_ref: ${{ matrix.platform.git_ref}}
       name: ${{ matrix.platform.name}}
       sdk: ${{ matrix.platform.sdk}}
+      base_arch: ${{ matrix.platform.base_arch}}
+      openssl_version: ${{ matrix.openssl.version }}
       openssl_prefix: ${{ matrix.platform.openssl_prefix}}
       arch: ${{ matrix.platform.arch}}
       erl_opts: ${{ matrix.platform.erl_opts}}
@@ -88,6 +90,8 @@ jobs:
       elixir_version: ${{ matrix.erlixir.elixir_version}}
       name: ${{ matrix.platform.name}}
       sdk: ${{ matrix.platform.sdk}}
+      base_arch: ${{ matrix.platform.base_arch}}
+      openssl_version: ${{ matrix.openssl.version }}
       openssl_prefix: ${{matrix.platform.openssl_prefix}}
       arch: ${{matrix.platform.arch}}
       otp_arch: ${{matrix.platform.otp_arch}}
@@ -106,6 +110,8 @@ jobs:
       git_ref: ${{ matrix.platform.git_ref}}
       name: ${{ matrix.platform.name}}
       sdk: ${{ matrix.platform.sdk}}
+      base_arch: ${{ matrix.platform.base_arch}}
+      openssl_version: ${{ matrix.openssl.version }}
       openssl_prefix: ${{matrix.platform.openssl_prefix}}
       arch: ${{matrix.platform.arch}}
       erl_opts: ${{matrix.platform.erl_opts}}

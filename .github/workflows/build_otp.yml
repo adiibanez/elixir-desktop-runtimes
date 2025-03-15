@@ -41,6 +41,12 @@ on:
       otp_arch:
         required: true
         type: string
+      base_arch: 
+        required: true
+        type: string
+      openssl_version: 
+        required: true
+        type: string
       openssl_prefix: 
         required: true
         type: string
@@ -63,6 +69,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Cache Openssl iOS builds
+        uses: actions/cache@v4
+        id: openssl-ios-build-cache
+        with:
+          path: |
+            _build/ios-openssl
+          key: openssl-ios-build-cache-${{ inputs.otp_version }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
       - name: Configure erl options
         if: ${{ inputs.erl_opts }} != ''

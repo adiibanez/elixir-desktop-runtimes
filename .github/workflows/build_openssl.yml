@@ -61,7 +61,7 @@ jobs:
           echo "OPENSSL_HASH=$OPENSSL_HASH" >> "$GITHUB_OUTPUT"
           echo "OPENSSL_PATH=$PWD/openssl-$OPENSSL_VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Cache Openssl iOS builds
+      - name: Openssl cache
         uses: actions/cache@v4
         id: openssl-ios-build-cache
         with:
