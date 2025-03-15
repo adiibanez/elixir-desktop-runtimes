@@ -563,7 +563,7 @@ jobs:
               ar -t $1
               echo BEFORE stripping
               ls -lah $1
-              strip -x $1
+              # strip -x $1
               echo AFTER stripping
               ls -lah $1
             else 
