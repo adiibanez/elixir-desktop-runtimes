@@ -590,17 +590,18 @@ jobs:
           # mix release
           # cd ${{github.workspace}}/_build/nifs/
 
-          CARGO_CMD="cargo build --release --target=${{matrix.platform.rust_target}}"
-          # if [[ "${{ env.IS_3RD_TIER_TARGET }}" != "true" ]]; then
+          # CARGO_CMD="cargo build --release --target=${{matrix.platform.rust_target}}"
+          CARGO_CMD="cargo rustc --crate-type staticlib --features rustler/staticlib --target=${{matrix.platform.rust_target}}"
+          # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
           #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
           # fi
           
+          # RUSTFLAGS="-C target-feature=-crt-static" \
           git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled # v0.0.15-alpha
           cd rustler_btleplug
           mix deps.get
           cd native/btleplug_client
           LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
-          RUSTFLAGS="-C target-feature=-crt-static" \
           $CARGO_CMD
 
           LIB_NAME=`find . -name "*.a" | head -1`
