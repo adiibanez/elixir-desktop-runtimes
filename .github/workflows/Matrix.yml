@@ -638,27 +638,28 @@ jobs:
           
           # -L${OPENSSL_PREFIX}/lib -lcrypto 
           # -L${{github.workspace}}/_build/nifs 
-          build_rustler_lib \
-            "rustler_btleplug" \
-            "btleplug_client" \
-            "https://github.com/adiibanez/rustler_btleplug.git" \
-            "static-no-precompiled" \
-            "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
+          # build_rustler_lib \
+          #   "rustler_btleplug" \
+          #   "btleplug_client" \
+          #   "https://github.com/adiibanez/rustler_btleplug.git" \
+          #   "static-no-precompiled" \
+          #   "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
           # CARGO_PKG_NAME="btleplug_client" \
           # RUSTFLAGS="-C target-feature=-crt-static" \
-          # git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled # v0.0.15-alpha
-          # cd rustler_btleplug
-          # mix deps.get
-          # cd native/btleplug_client
-          # LDFLAGS="-L$OPENSSL_PREFIX/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
-          # $CARGO_CMD
+          
+          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled # v0.0.15-alpha
+          cd rustler_btleplug
+          mix deps.get
+          cd native/btleplug_client
+          LDFLAGS="-L$OPENSSL_PREFIX/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          $CARGO_CMD
 
-          # LIB_NAME=`find . -name "*.a" | head -1`
-          # debug_lib $LIB_NAME
-          # cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
-          # # cp target/${{matrix.platform.rust_target}}/release/libbtleplug_client.a ${{github.workspace}}/_build/nifs/
-          # cd ${{github.workspace}}
+          LIB_NAME=`find . -name "*.a" | head -1`
+          debug_lib $LIB_NAME
+          cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
+          # cp target/${{matrix.platform.rust_target}}/release/libbtleplug_client.a ${{github.workspace}}/_build/nifs/
+          cd ${{github.workspace}}
 
           # build_rustler_lib \
           #   "wasmex" \
