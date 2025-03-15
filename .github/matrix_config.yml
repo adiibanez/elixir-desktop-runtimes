@@ -1,5 +1,5 @@
 openssl:
-  - version: [3.4.0]
+  - version: 3.4.0
 erlixir:
   - otp_version: 27.3
     elixir_version: 1.18.2

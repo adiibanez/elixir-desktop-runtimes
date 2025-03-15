@@ -34,13 +34,13 @@ jobs:
   #       shell: bash
   #       run: |
   #         echo "Platform ID: ${{ matrix.platform.platform_id }}, OTP Version: ${{ matrix.erlixir['otp_version'] }}"
-  debug_matrix:
-    runs-on: macos-latest
-    steps:
-      - name: Debug matrix
-        shell: bash
-        run: |
-          echo ${{ needs.define-matrix.outputs.matrix }}
+  # debug_matrix:
+  #   runs-on: macos-latest
+  #   steps:
+  #     - name: Debug matrix
+  #       shell: bash
+  #       run: |
+  #         echo ${{ needs.define-matrix.outputs.matrix }}
   build_openssl: # This is the job that uses the matrix
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
@@ -59,7 +59,7 @@ jobs:
   build_otp_round_1:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-    needs: [define-matrix, build_openssl]
+    needs: [build_openssl]
     uses: ./.github/workflows/build_otp.yml
     with:
       round: 1
@@ -80,7 +80,7 @@ jobs:
       otp_arch: ${{ matrix.platform.otp_arch}}
       xcomp: ${{ matrix.platform.xcomp}}
   build_nifs:
-    needs: [define-matrix, build_otp_round_1]
+    needs: [build_otp_round_1]
     uses: ./.github/workflows/build_nifs.yml
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
@@ -98,7 +98,7 @@ jobs:
   build_otp_round_2:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-    needs: [define-matrix, build_openssl, build_otp_round_1, build_nifs]
+    needs: [build_otp_round_1, build_nifs]
     uses: ./.github/workflows/build_otp.yml
     with:
       round: 2
@@ -121,7 +121,7 @@ jobs:
   final_combine:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-    needs: [build_otp_round_2, build_nifs]
+    needs: [build_otp_round_2]
     uses: ./.github/workflows/final_combine.yml
     with:
       otp_version: ${{ matrix.erlixir.otp_version}}
