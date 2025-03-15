@@ -579,6 +579,8 @@ jobs:
             GIT_REF=$4
             CUSTOM_LDFLAGS=$5
 
+            cd ${{github.workspace}}
+
             asdf current
             whereis mix
 
@@ -595,13 +597,17 @@ jobs:
             git clone --depth 1 $GIT_REPO --branch $GIT_REF
             cd $LIBNAME
             mix deps.get
-            cd native/$NATIVE_NAME
-            LDFLAGS="$CUSTOM_LDFLAGS" \
-            $CARGO_CMD
+            if [[ -d "native/$NATIVE_NAME" ]]; then
+              cd native/$NATIVE_NAME
+              LDFLAGS="$CUSTOM_LDFLAGS" \
+              $CARGO_CMD
 
-            LIB_NAME=`find . -name "*.a" | head -1`
-            debug_lib $LIB_NAME
-            cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
+              LIB_NAME=`find . -name "*.a" | head -1`
+              debug_lib $LIB_NAME
+              cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
+            else
+              echo "native/$NATIVE_NAME doesn't exist, abort building $LIBNAME"
+            fi
             cd ${{github.workspace}}
           }
 
@@ -635,7 +641,7 @@ jobs:
             "btleplug_client" \
             "https://github.com/adiibanez/rustler_btleplug.git" \
             "static-no-precompiled" \
-            "-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
+            "-L$OPENSSL_PREFIX/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
           # CARGO_PKG_NAME="btleplug_client" \
           # RUSTFLAGS="-C target-feature=-crt-static" \
@@ -643,7 +649,7 @@ jobs:
           # cd rustler_btleplug
           # mix deps.get
           # cd native/btleplug_client
-          # LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          # LDFLAGS="-L$OPENSSL_PREFIX/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           # $CARGO_CMD
 
           # LIB_NAME=`find . -name "*.a" | head -1`
@@ -677,7 +683,7 @@ jobs:
           
           cd ${{github.workspace}}
 
-          find _build/nifs -type f -name "*.a"
+          find _build/nifs -type f -name "*.a" || 1
 
       # - name: Upload Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}} ELX-${{matrix.erlixir.elixir-version}}
       #   uses: actions/upload-artifact@v4
