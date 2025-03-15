@@ -577,7 +577,7 @@ jobs:
             LIBNAME=$1
             NATIVE_NAME=$2
             GIT_REPO=$3
-            GIT_REF=${4:main}
+            GIT_REF=$4
             CUSTOM_LDFLAGS=$5
 
             # CARGO_CMD="cargo build --release --target=${{matrix.platform.rust_target}}"
@@ -586,7 +586,7 @@ jobs:
             #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
             # fi
 
-            if [[ -v CUSTOM_LDFLAGS ]]; then
+            if [[ -v $CUSTOM_LDFLAGS ]]; then
               CARGO_CMD="$CUSTOM_LDFLAGS $CARGO_CMD"
             fi
             
