@@ -10,6 +10,7 @@ env:
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
   TOOLCHAIN: nightly
   ENABLE_STRIPPING: false
+  STRIP_CMD: "strip --strip-debug"
   CARGO_MAKE_TOOLCHAIN: nightly
   # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
   CARGO_CACHE_PATH: |
@@ -68,12 +69,13 @@ jobs:
           - {
               otp-version: 27.3,
               elixir-version: 1.18.2,
-              erl-opts-description: 'min;no-stripping;-year2038;-megaco',
-              erl-opts: '--disable-stripped-runtime --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba',
+              erl-opts-description: 'somemods',
+              erl-opts: '--enable-debug --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
               use-git: true,
               git-repo: 'adiibanez/otp',
               git-ref: 'OTP-27.3-noiosminversion',
             }
+            # --disable-sctp --disable-stripped-runtime 
           # - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
         os: [macos-latest]
         platform:
@@ -565,10 +567,10 @@ jobs:
               if [[ "$ENABLE_STRIPPING" == "true" ]]; then
                 echo BEFORE stripping
                 ls -lah $1
-                strip -x $1
+                $STRIP_CMD $1
                 echo AFTER stripping
+                ls -lah $1
               fi
-              ls -lah $1
             else 
               echo "LIB $1 doesn't exist"
             fi
@@ -618,7 +620,8 @@ jobs:
 
           mkdir -p _build/nifs/
 
-          git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
+          # https://github.com/elixir-desktop/exqlite.git
+          git clone --depth 1 https://github.com/elixir-sqlite/exqlite
           cd exqlite
           mix deps.get
           STATIC_ERLANG_NIF_LIBNAME=exqlite mix release
@@ -752,8 +755,9 @@ jobs:
 
           ls -l $(xcrun --sdk iphoneos --show-sdk-path)/usr/lib/libobjc.tbd
 
-          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           ERL_FLAGS="-smp disable" \
+
+          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
@@ -927,7 +931,7 @@ jobs:
             MACOS_LIPO="$TEMP_DIR/liberlang_macos.a"
             lipo -create "$MACOS_LIB_ARM64" "$MACOS_LIB_X86_64" -output "$MACOS_LIPO"
             if [[ "$ENABLE_STRIPPING" == "true" ]]; then
-              strip -x $MACOS_LIB_ARM64
+              $STRIP_CMD $MACOS_LIB_ARM64
             fi
           fi
 
@@ -935,7 +939,7 @@ jobs:
             IOS_SIM_LIPO="$TEMP_DIR/liberlang_ios_sims.a"
             lipo -create "$SIMULATOR_LIB_ARM64" "$SIMULATOR_LIB_X86_64" -output "$IOS_SIM_LIPO"
             if [[ "$ENABLE_STRIPPING" == "true" ]]; then
-              strip -x $SIMULATOR_LIB_ARM64
+              $STRIP_CMD $SIMULATOR_LIB_ARM64
             fi
           fi
 
@@ -943,7 +947,7 @@ jobs:
             TVOS_SIM_LIPO="$TEMP_DIR/liberlang_tvos_sims.a"
             lipo -create "$TVOS_SIMULATOR_LIB_ARM64" "$TVOS_SIMULATOR_LIB_X86_64" -output "$TVOS_SIM_LIPO"
             if [[ "$ENABLE_STRIPPING" == "true" ]]; then
-              strip -x $TVOS_SIMULATOR_LIB_ARM64
+              $STRIP_CMD $TVOS_SIMULATOR_LIB_ARM64
             fi
           fi
 
@@ -954,7 +958,7 @@ jobs:
               echo "✅ Including: $1 $2"
               if [[ "$ENABLE_STRIPPING" == "true" ]]; then
                 BEFORE_STRIPPING=`ls -lah $2 | awk '{print $5}'`
-                strip -x $2
+                $STRIP_CMD $2
                 AFTER_STRIPPING=`ls -lah $2 | awk '{print $5}'`
                 echo "Stripping: $1 $2 before: $BEFORE_STRIPPING, after: $AFTER_STRIPPING"
               fi
