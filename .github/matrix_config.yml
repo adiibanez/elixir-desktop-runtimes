@@ -1,7 +1,7 @@
 erlixir:
   - otp_version: 27.3
     elixir_version: 1.18.2
-    use_git: true
+    use_git: 'true'
     git_repo: 'adiibanez/otp'
     git_ref: 'OTP-27.3-noiosminversion'
     erl_opts_description: 'min;no-stripping;-year2038;-megaco'

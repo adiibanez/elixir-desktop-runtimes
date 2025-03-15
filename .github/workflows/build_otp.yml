@@ -10,7 +10,7 @@ on:
         type: string
       use_git: 
         required: true
-        type: boolean
+        type: string
       git_repo: 
         required: true
         type: string
