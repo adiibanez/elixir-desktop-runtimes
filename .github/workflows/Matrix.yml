@@ -650,11 +650,11 @@ jobs:
           # # cp target/${{matrix.platform.rust_target}}/release/libbtleplug_client.a ${{github.workspace}}/_build/nifs/
           # cd ${{github.workspace}}
 
-          build_rustler_lib \
-            "wasmex" \
-            "wasmex" \
-            "https://github.com/adiibanez/wasmex.git" \
-            "main" 
+          # build_rustler_lib \
+          #   "wasmex" \
+          #   "wasmex" \
+          #   "https://github.com/adiibanez/wasmex.git" \
+          #   "main" 
 
           # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
           # cd wasmex
