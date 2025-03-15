@@ -511,11 +511,16 @@ jobs:
           echo "IS_3RD_TIER_TARGET=true" >> $GITHUB_ENV
 
       - name: Install Rust Nightly
-        # if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.TOOLCHAIN }}
           targets: ${{ matrix.platform.rust_target }}
+
+      - name: Install Rust Nightly std-lib
+        if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
+        shell: bash 
+        run: |
+          rustup component add rust-src --toolchain nightly-${{ matrix.platform.rust_target }}
 
       - name: Rust Cache
         uses: actions/cache@v4
@@ -585,18 +590,18 @@ jobs:
           # mix release
           # cd ${{github.workspace}}/_build/nifs/
 
-
-          # # can't build tier 3 targets at the moment, no rustler for tvos / visionos :( 
-          # if [[ "${{ env.IS_3RD_TIER_TARGET }}" != "true" ]]; then
+          CARGO_CMD="cargo build --release --target=${{matrix.platform.rust_target}}"
+          if [[ "${{ env.IS_3RD_TIER_TARGET }}" != "true" ]]; then
+            CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
+          fi
           
-          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled
-          # v0.0.15-alpha
+          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled # v0.0.15-alpha
           cd rustler_btleplug
           mix deps.get
           cd native/btleplug_client
           LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           RUSTFLAGS="-C target-feature=-crt-static" \
-          rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}
+          $CARGO_CMD
 
           LIB_NAME=`find . -name "*.a" | head -1`
           debug_lib $LIB_NAME
@@ -607,7 +612,8 @@ jobs:
           # cd wasmex
           # mix deps.get
           # cd native/wasmex
-          # RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
+          # RUSTFLAGS="-C target-feature=-crt-static" \
+          # $CARGO_CMD
           # LIB_NAME=`find . -name "*.a" | head -1`
           # debug_lib $LIB_NAME
           # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
@@ -618,7 +624,7 @@ jobs:
           # mix deps.get
           # mix release
           # cd ${{github.workspace}}/_build/nifs/
-          # fi
+          
           cd ${{github.workspace}}
 
           find _build/nifs -type f -name "*.a"
