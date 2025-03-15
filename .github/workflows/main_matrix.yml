@@ -94,7 +94,7 @@ jobs:
   build_otp_round_2:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-    needs: [define-matrix, build_openssl, build_nifs]
+    needs: [define-matrix, build_openssl, build_otp_round_1, build_nifs]
     uses: ./.github/workflows/build_otp.yml
     with:
       round: 2
