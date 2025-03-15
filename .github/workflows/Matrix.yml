@@ -602,6 +602,7 @@ jobs:
           mix deps.get
           cd native/btleplug_client
           LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          CARGO_PKG_NAME="btleplug_client" \
           $CARGO_CMD
 
           LIB_NAME=`find . -name "*.a" | head -1`
