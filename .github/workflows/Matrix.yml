@@ -9,6 +9,7 @@ env:
   OPENSSL_VERSION: '3.4.0'
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
   TOOLCHAIN: nightly
+  ENABLE_STRIPPING: false
   CARGO_MAKE_TOOLCHAIN: nightly
   # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
   CARGO_CACHE_PATH: |
@@ -561,10 +562,12 @@ jobs:
               lipo -info $1
 
               ar -t $1
-              echo BEFORE stripping
-              ls -lah $1
-              strip -x $1
-              echo AFTER stripping
+              if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+                echo BEFORE stripping
+                ls -lah $1
+                strip -x $1
+                echo AFTER stripping
+              fi
               ls -lah $1
             else 
               echo "LIB $1 doesn't exist"
@@ -923,19 +926,25 @@ jobs:
           if [ -f "$MACOS_LIB_ARM64" ] && [ -f "$MACOS_LIB_X86_64" ]; then
             MACOS_LIPO="$TEMP_DIR/liberlang_macos.a"
             lipo -create "$MACOS_LIB_ARM64" "$MACOS_LIB_X86_64" -output "$MACOS_LIPO"
-            strip -x $MACOS_LIB_ARM64
+            if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+              strip -x $MACOS_LIB_ARM64
+            fi
           fi
 
           if [ -f "$SIMULATOR_LIB_ARM64" ] && [ -f "$SIMULATOR_LIB_X86_64" ]; then
             IOS_SIM_LIPO="$TEMP_DIR/liberlang_ios_sims.a"
             lipo -create "$SIMULATOR_LIB_ARM64" "$SIMULATOR_LIB_X86_64" -output "$IOS_SIM_LIPO"
-            strip -x $SIMULATOR_LIB_ARM64
+            if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+              strip -x $SIMULATOR_LIB_ARM64
+            fi
           fi
 
           if [ -f "$TVOS_SIMULATOR_LIB_ARM64" ] && [ -f "$TVOS_SIMULATOR_LIB_X86_64" ]; then
             TVOS_SIM_LIPO="$TEMP_DIR/liberlang_tvos_sims.a"
             lipo -create "$TVOS_SIMULATOR_LIB_ARM64" "$TVOS_SIMULATOR_LIB_X86_64" -output "$TVOS_SIM_LIPO"
-            strip -x $TVOS_SIMULATOR_LIB_ARM64
+            if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+              strip -x $TVOS_SIMULATOR_LIB_ARM64
+            fi
           fi
 
           XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
@@ -943,10 +952,12 @@ jobs:
           add_library_if_exists() {
             if [ -f "$2" ]; then
               echo "✅ Including: $1 $2"
-              BEFORE_STRIPPING=`ls -lah $2 | awk '{print $5}'`
-              strip -x $2
-              AFTER_STRIPPING=`ls -lah $2 | awk '{print $5}'`
-              echo "Stripping: $1 $2 before: $BEFORE_STRIPPING, after: $AFTER_STRIPPING"
+              if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+                BEFORE_STRIPPING=`ls -lah $2 | awk '{print $5}'`
+                strip -x $2
+                AFTER_STRIPPING=`ls -lah $2 | awk '{print $5}'`
+                echo "Stripping: $1 $2 before: $BEFORE_STRIPPING, after: $AFTER_STRIPPING"
+              fi
               XCFRAMEWORK_CMD+=" -library $2"
             else
               echo "⚠️ Skipping missing library: $1 $2"
