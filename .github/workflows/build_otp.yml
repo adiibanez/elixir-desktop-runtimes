@@ -75,7 +75,7 @@ jobs:
         with:
           path: |
             _build/ios-openssl
-          key: openssl-ios-build-cache-${{ inputs.otp_version }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+          key: openssl-ios-build-cache-${{ inputs.openssl_version }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
       - name: Configure erl options
         if: ${{ inputs.erl_opts }} != ''
