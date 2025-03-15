@@ -580,6 +580,9 @@ jobs:
             GIT_REF=$4
             CUSTOM_LDFLAGS=$5
 
+            asdf current
+            whereis mix
+
             # CARGO_CMD="cargo build --release --target=${{matrix.platform.rust_target}}"
             CARGO_CMD="cargo rustc --crate-type staticlib --features rustler/staticlib --target=${{matrix.platform.rust_target}}"
             # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
