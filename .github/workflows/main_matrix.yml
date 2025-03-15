@@ -59,7 +59,7 @@ jobs:
   build_otp_round_1:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-    needs: [build_openssl]
+    needs: [define-matrix, build_openssl]
     uses: ./.github/workflows/build_otp.yml
     with:
       round: 1
@@ -80,7 +80,7 @@ jobs:
       otp_arch: ${{ matrix.platform.otp_arch}}
       xcomp: ${{ matrix.platform.xcomp}}
   build_nifs:
-    needs: [build_otp_round_1]
+    needs: [define-matrix, build_otp_round_1]
     uses: ./.github/workflows/build_nifs.yml
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
@@ -98,7 +98,7 @@ jobs:
   build_otp_round_2:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-    needs: [build_otp_round_1, build_nifs]
+    needs: [define-matrix, build_otp_round_1, build_nifs]
     uses: ./.github/workflows/build_otp.yml
     with:
       round: 2
@@ -121,7 +121,7 @@ jobs:
   final_combine:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
-    needs: [build_otp_round_2]
+    needs: [define-matrix, build_otp_round_2]
     uses: ./.github/workflows/final_combine.yml
     with:
       otp_version: ${{ matrix.erlixir.otp_version}}
