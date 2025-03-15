@@ -563,7 +563,7 @@ jobs:
               ar -t $1
               echo BEFORE stripping
               ls -lah $1
-              # strip -x $1
+              strip -x $1
               echo AFTER stripping
               ls -lah $1
             else 
@@ -647,7 +647,7 @@ jobs:
 
           # CARGO_PKG_NAME="btleplug_client" \
           # RUSTFLAGS="-C target-feature=-crt-static" \
-          
+
           git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled # v0.0.15-alpha
           cd rustler_btleplug
           mix deps.get
@@ -923,16 +923,19 @@ jobs:
           if [ -f "$MACOS_LIB_ARM64" ] && [ -f "$MACOS_LIB_X86_64" ]; then
             MACOS_LIPO="$TEMP_DIR/liberlang_macos.a"
             lipo -create "$MACOS_LIB_ARM64" "$MACOS_LIB_X86_64" -output "$MACOS_LIPO"
+            strip -x $MACOS_LIB_ARM64
           fi
 
           if [ -f "$SIMULATOR_LIB_ARM64" ] && [ -f "$SIMULATOR_LIB_X86_64" ]; then
             IOS_SIM_LIPO="$TEMP_DIR/liberlang_ios_sims.a"
             lipo -create "$SIMULATOR_LIB_ARM64" "$SIMULATOR_LIB_X86_64" -output "$IOS_SIM_LIPO"
+            strip -x $SIMULATOR_LIB_ARM64
           fi
 
           if [ -f "$TVOS_SIMULATOR_LIB_ARM64" ] && [ -f "$TVOS_SIMULATOR_LIB_X86_64" ]; then
             TVOS_SIM_LIPO="$TEMP_DIR/liberlang_tvos_sims.a"
             lipo -create "$TVOS_SIMULATOR_LIB_ARM64" "$TVOS_SIMULATOR_LIB_X86_64" -output "$TVOS_SIM_LIPO"
+            strip -x $TVOS_SIMULATOR_LIB_ARM64
           fi
 
           XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
@@ -940,6 +943,10 @@ jobs:
           add_library_if_exists() {
             if [ -f "$2" ]; then
               echo "✅ Including: $1 $2"
+              BEFORE_STRIPPING=`ls -lah $2 | awk '{print $5}'`
+              strip -x $2
+              AFTER_STRIPPING=`ls -lah $2 | awk '{print $5}'`
+              echo "Stripping: $1 $2 before: $BEFORE_STRIPPING, after: $AFTER_STRIPPING"
               XCFRAMEWORK_CMD+=" -library $2"
             else
               echo "⚠️ Skipping missing library: $1 $2"
