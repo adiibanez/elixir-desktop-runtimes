@@ -636,12 +636,14 @@ jobs:
           #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
           # fi
           
+          # -L${OPENSSL_PREFIX}/lib -lcrypto 
+          # -L${{github.workspace}}/_build/nifs 
           build_rustler_lib \
             "rustler_btleplug" \
             "btleplug_client" \
             "https://github.com/adiibanez/rustler_btleplug.git" \
             "static-no-precompiled" \
-            "-L$OPENSSL_PREFIX/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
+            "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
           # CARGO_PKG_NAME="btleplug_client" \
           # RUSTFLAGS="-C target-feature=-crt-static" \
