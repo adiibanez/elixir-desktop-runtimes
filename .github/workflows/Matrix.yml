@@ -618,8 +618,8 @@ jobs:
 
           mkdir -p _build/nifs/
 
-          #  https://github.com/elixir-sqlite/exqlite
-          git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
+          # https://github.com/elixir-desktop/exqlite.git
+          git clone --depth 1 https://github.com/elixir-sqlite/exqlite
           cd exqlite
           mix deps.get
           STATIC_ERLANG_NIF_LIBNAME=exqlite mix release
@@ -654,7 +654,7 @@ jobs:
 
           git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled # v0.0.15-alpha
           cd rustler_btleplug
-          mix deps.get
+          # mix deps.get
           cd native/btleplug_client
           LDFLAGS="-L$OPENSSL_PREFIX/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           $CARGO_CMD
@@ -671,16 +671,16 @@ jobs:
           #   "https://github.com/tessi/wasmex.git" \
           #   "main"
 
-          # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
-          # cd wasmex
+          git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
+          cd wasmex
           # mix deps.get
-          # cd native/wasmex
-          # RUSTFLAGS="-C target-feature=-crt-static" \
-          # $CARGO_CMD
-          # LIB_NAME=`find . -name "*.a" | head -1`
-          # debug_lib $LIB_NAME
-          # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-          # cd ${{github.workspace}}
+          cd native/wasmex
+          RUSTFLAGS="-C target-feature=-crt-static" \
+          $CARGO_CMD
+          LIB_NAME=`find . -name "*.a" | head -1`
+          debug_lib $LIB_NAME
+          cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
+          cd ${{github.workspace}}
 
           # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
           # cd explorer
