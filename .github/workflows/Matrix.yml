@@ -10,7 +10,7 @@ env:
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
   TOOLCHAIN: nightly
   ENABLE_STRIPPING: false
-  STRIP_CMD: "strip --strip-debug"
+  STRIP_CMD: 'strip --strip-debug'
   CARGO_MAKE_TOOLCHAIN: nightly
   # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
   CARGO_CACHE_PATH: |
@@ -75,7 +75,7 @@ jobs:
               git-repo: 'adiibanez/otp',
               git-ref: 'OTP-27.3-noiosminversion',
             }
-            # --disable-sctp --disable-stripped-runtime 
+            # --disable-sctp --disable-stripped-runtime
           # - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
         os: [macos-latest]
         platform:
@@ -519,7 +519,7 @@ jobs:
 
       # - name: Install Rust Nightly std-lib
       #   if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
-      #   shell: bash 
+      #   shell: bash
       #   run: |
       #     rustup component add rust-src --toolchain nightly-${{ matrix.platform.rust_target }}
 
@@ -639,7 +639,7 @@ jobs:
           # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
           #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
           # fi
-          
+
           # -L${OPENSSL_PREFIX}/lib -lcrypto 
           # -L${{github.workspace}}/_build/nifs 
           # build_rustler_lib \
@@ -671,7 +671,7 @@ jobs:
           #   "https://github.com/tessi/wasmex.git" \
           #   "main"
 
-          git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
+          git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch static-no-precompiled
           cd wasmex
           # mix deps.get
           cd native/wasmex
@@ -687,7 +687,7 @@ jobs:
           # mix deps.get
           # mix release
           # cd ${{github.workspace}}/_build/nifs/
-          
+
           cd ${{github.workspace}}
 
           find _build/nifs -type f -name "*.a" || 1
