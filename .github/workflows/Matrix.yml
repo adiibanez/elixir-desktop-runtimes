@@ -652,11 +652,15 @@ jobs:
           # CARGO_PKG_NAME="btleplug_client" \
           # RUSTFLAGS="-C target-feature=-crt-static" \
 
+          # -L$OPENSSL_PREFIX/lib -lcrypto -L${{github.workspace}}/_build/nifs
           git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled # v0.0.15-alpha
           cd rustler_btleplug
           # mix deps.get
           cd native/btleplug_client
-          LDFLAGS="-L$OPENSSL_PREFIX/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+
+          # first rust lib, include std lib
+          LDFLAGS="-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          RUSTFLAGS="-C target-feature=-crt-static" \
           $CARGO_CMD
 
           LIB_NAME=`find . -name "*.a" | head -1`
@@ -675,7 +679,8 @@ jobs:
           cd wasmex
           # mix deps.get
           cd native/wasmex
-          RUSTFLAGS="-C target-feature=-crt-static" \
+          # N rust lib, exclude std lib
+          RUSTFLAGS="-C target-feature=-crt-static -C link-arg=-nostdlib" \
           $CARGO_CMD
           LIB_NAME=`find . -name "*.a" | head -1`
           debug_lib $LIB_NAME
@@ -759,7 +764,7 @@ jobs:
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -lbtleplug_client -lwasmex -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
