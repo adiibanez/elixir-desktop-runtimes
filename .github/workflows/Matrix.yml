@@ -70,7 +70,7 @@ jobs:
               otp-version: 27.3,
               elixir-version: 1.18.2,
               erl-opts-description: 'somemods',
-              erl-opts: '--enable-debug --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
+              erl-opts: '--disable-debug --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
               use-git: true,
               git-repo: 'adiibanez/otp',
               git-ref: 'OTP-27.3-noiosminversion',
@@ -700,15 +700,27 @@ jobs:
       #     path: |
       #       _build/nifs/**/**.a
 
-      - name: Test job
+      - name: Verify nif libs
         continue-on-error: true
         shell: bash
         run: |
           cd _build/nifs
-          # find ~+ -type f -name "*.a"
+          find ~+ -type f -name "*.a" -exec ls -lah {} \;
           find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }'
           NIF_LIBS=$(find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }')
           echo $NIF_LIBS
+
+      - name: Strip nif libs
+        continue-on-error: true
+        shell: bash
+        run: |
+          cd _build/nifs
+          find ~+ -type f -name "*.a" -exec ls -lah {} \;
+
+          if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+            find ~+ -type f -name "*.a" -exec $STRIP_CMD {} \;
+            find ~+ -type f -name "*.a" -exec ls -lah {} \;
+          fi
 
       - name: Build OTP Round 2
         id: otp-setup-round2
