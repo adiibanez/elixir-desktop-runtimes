@@ -566,6 +566,8 @@ jobs:
             fi
           }
 
+          FIRST_RUSTLER_BUILT=0
+
           build_rustler_lib()
           {
             LIBNAME=$1
@@ -576,25 +578,29 @@ jobs:
 
             cd ${{github.workspace}}
 
-            asdf current
-            whereis mix
+            #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
+            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
 
-            CARGO_CMD="cargo rustc --crate-type staticlib --release --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
-
-            # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
-            #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
-            # fi
+            if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
+              CARGO_CMD="rustup run nightly cargo build -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
+            fi
 
             if [[ ! -z "$CUSTOM_LDFLAGS" ]]; then
               CARGO_CMD="$CUSTOM_LDFLAGS $CARGO_CMD"
             fi
-            
+
+            if [[ $FIRST_RUSTLER_BUILT = 0 ]]; then
+              RUSTFLAGS="-C target-feature=-crt-static"
+            else 
+              RUSTFLAGS="-C target-feature=-crt-static -C link-arg=-nostdlib -C panic=abort"
+            fi
+
             git clone --depth 1 $GIT_REPO --branch $GIT_REF
             cd $LIBNAME
-            mix deps.get
             if [[ -d "native/$NATIVE_NAME" ]]; then
               cd native/$NATIVE_NAME
               LDFLAGS="$CUSTOM_LDFLAGS" \
+              RUSTFLAGS="$RUSTFLAGS" \
               $CARGO_CMD
 
               LIB_NAME=`find . -name "*.a" | head -1`
@@ -603,6 +609,11 @@ jobs:
             else
               echo "native/$NATIVE_NAME doesn't exist, abort building $LIBNAME"
             fi
+
+            if [[ $FIRST_RUSTLER_BUILT = 0 ]]; then
+              FIRST_RUSTLER_BUILT=1
+            fi
+
             cd ${{github.workspace}}
           }
 
@@ -638,50 +649,50 @@ jobs:
 
           # -L${OPENSSL_PREFIX}/lib -lcrypto 
           # -L${{github.workspace}}/_build/nifs 
-          # build_rustler_lib \
-          #   "rustler_btleplug" \
-          #   "btleplug_client" \
-          #   "https://github.com/adiibanez/rustler_btleplug.git" \
-          #   "static-no-precompiled" \
-          #   "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
+          build_rustler_lib \
+            "rustler_btleplug" \
+            "btleplug_client" \
+            "https://github.com/adiibanez/rustler_btleplug.git" \
+            "static-no-precompiled" \
+            "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
           # CARGO_PKG_NAME="btleplug_client" \
           # RUSTFLAGS="-C target-feature=-crt-static" \
 
           # -L$OPENSSL_PREFIX/lib -lcrypto -L${{github.workspace}}/_build/nifs
-          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled # v0.0.15-alpha
-          cd rustler_btleplug
-          # mix deps.get
-          cd native/btleplug_client
+          # git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled # v0.0.15-alpha
+          # cd rustler_btleplug
+          # # mix deps.get
+          # cd native/btleplug_client
 
-          # first rust lib, include std lib
-          LDFLAGS="-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
-          RUSTFLAGS="-C target-feature=-crt-static" \
-          $CARGO_CMD
+          # # first rust lib, include std lib
+          # LDFLAGS="-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          # RUSTFLAGS="-C target-feature=-crt-static" \
+          # $CARGO_CMD
 
-          LIB_NAME=`find . -name "*.a" | head -1`
-          debug_lib $LIB_NAME
-          cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
-          # cp target/${{matrix.platform.rust_target}}/release/libbtleplug_client.a ${{github.workspace}}/_build/nifs/
-          cd ${{github.workspace}}
+          # LIB_NAME=`find . -name "*.a" | head -1`
+          # debug_lib $LIB_NAME
+          # cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
+          # # cp target/${{matrix.platform.rust_target}}/release/libbtleplug_client.a ${{github.workspace}}/_build/nifs/
+          # cd ${{github.workspace}}
 
-          # build_rustler_lib \
-          #   "wasmex" \
-          #   "wasmex" \
-          #   "https://github.com/tessi/wasmex.git" \
-          #   "main"
+          build_rustler_lib \
+            "wasmex" \
+            "wasmex" \
+            "https://github.com/adiibanez/wasmex.git" \
+            "static-no-precompiled"
 
-          git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch static-no-precompiled
-          cd wasmex
-          # mix deps.get
-          cd native/wasmex
-          # N rust lib, exclude std lib
-          RUSTFLAGS="-C target-feature=-crt-static -C link-arg=-nostdlib -C panic=abort" \
-          $CARGO_CMD
-          LIB_NAME=`find . -name "*.a" | head -1`
-          debug_lib $LIB_NAME
-          cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-          cd ${{github.workspace}}
+          # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch static-no-precompiled
+          # cd wasmex
+          # # mix deps.get
+          # cd native/wasmex
+          # # N rust lib, exclude std lib
+          # RUSTFLAGS="-C target-feature=-crt-static -C link-arg=-nostdlib -C panic=abort" \
+          # $CARGO_CMD
+          # LIB_NAME=`find . -name "*.a" | head -1`
+          # debug_lib $LIB_NAME
+          # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
+          # cd ${{github.workspace}}
 
           # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
           # cd explorer
