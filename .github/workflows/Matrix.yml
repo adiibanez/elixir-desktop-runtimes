@@ -627,7 +627,7 @@ jobs:
             #   export RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
             # fi
 
-            #RUSTFLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            RUSTFLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
             git clone --depth 1 $GIT_REPO --branch $GIT_REF
             cd $LIBNAME
