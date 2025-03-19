@@ -139,7 +139,18 @@ jobs:
             cd ${{github.workspace}}
 
             #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
-            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{inputs.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
+            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{inputs.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1 -C lto=fat -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+
+            # cargo rustc --crate-type staticlib --release \
+            # --target=aarch64-apple-ios \
+            # -- \
+            # -C opt-level=z \
+            # -C lto=fat \
+            # -C strip=symbols \
+            # -C codegen-units=1 \
+            # -C panic=abort \
+            # -C link-arg=-Wl,-dead_strip \
+            # -C link-arg=-Wl,--gc-sections
 
             # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
             #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --crate-type staticlib --target=${{inputs.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"

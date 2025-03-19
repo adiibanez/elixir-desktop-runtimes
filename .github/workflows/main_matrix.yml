@@ -43,6 +43,7 @@ jobs:
   #         echo ${{ needs.define-matrix.outputs.matrix }}
   build_openssl: # This is the job that uses the matrix
     strategy:
+      fail-fast: false
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
     needs: define-matrix
     uses: ./.github/workflows/build_openssl.yml

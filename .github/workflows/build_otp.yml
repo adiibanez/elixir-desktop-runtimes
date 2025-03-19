@@ -207,7 +207,7 @@ jobs:
           xcrun --sdk ${{inputs.sdk}} --show-sdk-path
 
           echo 'int main() { return 0; }' > test_compiler.c
-          xcrun -sdk iphoneos cc -arch ${{matrix.platform.arch}} -o test_compiler test_compiler.c
+          xcrun -sdk iphoneos cc -arch ${{inputs.arch}} -o test_compiler test_compiler.c
           #./test_compiler
           file test_compiler
 
