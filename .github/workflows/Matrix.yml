@@ -617,7 +617,7 @@ jobs:
             # fi
 
             #export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
-            export RUSTFLAGS="-C lto=thin -C embed-bitcode=yes"
+            export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
 
             if [[ $FIRST_RUSTLER_BUILT == 1 ]]; then
               export CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort"
@@ -638,7 +638,7 @@ jobs:
               $CARGO_CMD
 
               LIB_NAME=`find . -name "*.a" | head -1`
-              debug_lib $LIB_NAME
+              # debug_lib $LIB_NAME
               cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
             else
               echo "native/$NATIVE_NAME doesn't exist, abort building $LIBNAME"
