@@ -581,9 +581,9 @@ jobs:
             #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
             CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
 
-            if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
-              CARGO_CMD="rustup run nightly cargo build -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
-            fi
+            # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
+            #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
+            # fi
 
             if [[ $FIRST_RUSTLER_BUILT == 0 ]]; then
               RUSTFLAGS="-C target-feature=-crt-static"
@@ -637,7 +637,7 @@ jobs:
           #CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib"
 
           #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
-          CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
+          # CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
 
           # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
           #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
