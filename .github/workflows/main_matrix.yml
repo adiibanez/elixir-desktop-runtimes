@@ -95,6 +95,7 @@ jobs:
       openssl_prefix: ${{matrix.platform.openssl_prefix}}
       arch: ${{matrix.platform.arch}}
       otp_arch: ${{matrix.platform.otp_arch}}
+      rust_target: ${{matrix.platform.rust_target}}
   build_otp_round_2:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}

@@ -17,13 +17,13 @@ on:
       sdk:
         required: true
         type: string
-      base_arch: 
+      base_arch:
         required: true
         type: string
-      openssl_version: 
+      openssl_version:
         required: true
         type: string
-      openssl_prefix: 
+      openssl_prefix:
         required: true
         type: string
       arch:
@@ -32,56 +32,44 @@ on:
       otp_arch:
         required: true
         type: string
+      rust_target:
+        required: true
+        type: string
 
 jobs:
   build-nifs:
-    env: 
-      NAME: "build-nifs"
+    env:
+      NAME: 'build-nifs'
     runs-on: macos-latest
     strategy:
       matrix:
-        repo:
-        - package: "NIF_Package_1"
-          name: "rustler_btleplug"
-          repo: "adiibanez/rustler_btleplug"
-          ldflag_config: "config1"
-          ref: "main"
+        nifs:
+          - package: 'NIF_Package_1'
+            name: 'exqlite'
+            repo: 'elixir-sqlite/exqlite'
+            type: 'mix'
 
-        - package: "NIF_Package_1"
-          name: "rustler_btleplug"
-          repo: "adiibanez/rustler_btleplug"
-          ldflag_config: "config1"
-          ref: "dev"
+          - package: 'NIF_Package_1'
+            name: 'libsecp256k1'
+            repo: 'diodechain/libsecp256k1'
+            type: 'mix'
 
-        - package: "NIF_Package_1"
-          name: "rustler"
-          repo: "adiibanez/rustler"
-          ldflag_config: "config1"
-          ref: "dev"
-        
-        - package: "NIF_Package_1"
-          name: "wasmex"
-          repo: "adiibanez/wasmex"
-          ldflag_config: "config1"
-          ref: "dev"
+          - package: 'NIF_Package_1'
+            name: 'rustler_btleplug'
+            native_name: 'btleplug_client'
+            repo: 'adiibanez/rustler_btleplug'
+            ldflag_config: '-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC'
+            type: 'rustler'
+            ref: 'static-no-precompiled'
+            rust_stdlib: 1
 
-        - package: "NIF_Package_1"
-          name: "rustler_extra"
-          repo: "adiibanez/rustler_extra"
-          ldflag_config: "config2"
-          ref: "develop"
-
-        - package: "NIF_Package_2"
-          name: "rustler_something"
-          repo: "adiibanez/rustler_something"
-          ldflag_config: "config3"
-          ref: "release"
-        
-        - package: "NIF_Package_2"
-          name: "wasmex"
-          repo: "adiibanez/wasmex"
-          ldflag_config: "config1"
-          ref: "dev"
+          - package: 'NIF_Package_1'
+            name: 'wasmex'
+            native_name: 'wasmex'
+            repo: 'adiibanez/wasmex'
+            ref: 'static-no-precompiled'
+            type: 'rustler'
+            rust_stdlib: 0
 
     steps:
       - name: Checkout repository
@@ -96,17 +84,168 @@ jobs:
 
       - name: Print Package Information
         run: |
-          echo "Building package: ${{ matrix.repo.package }}"
+          echo "Building package: ${{ matrix.nifs.package }}"
 
-      - name: Build NIFs ${{inputs.platform_id}} ${{ matrix.repo.package }} ${{inputs.otp_version}} ${{matrix.repo.name}} ${{matrix.repo.repo }}
+      - name: Build NIFs for ${{ inputs.name }} OTP-${{inputs.otp_version}}-ELX-${{inputs.elixir_version}}
+        shell: bash
+        id: build-nif
+        continue-on-error: true
+        env:
+          RUSTLER_BTLEPLUG_BUILD: 1
+          WASMEX_BUILD: 1
         run: |
-          echo ${{matrix.repo.repo}}
-          MSG="Building ${{inputs.platform_id}} ${{ env.NAME }} ${{inputs.otp_version}} ${{matrix.repo.name}} ${{matrix.repo.repo}} ${{matrix.repo.ref}}" 
-          mkdir -p _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.repo.name}}_${{matrix.repo.repo }}
-          echo $MSG > _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.repo.name}}_${{matrix.repo.repo }}/artifact.txt
+
+          mkdir ${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.nifs.package}}
+
+          echo "Building NIFs for ${{ inputs.name }} - ${{ inputs.sdk }} - ${{ inputs.arch }}"
+          export MK_FILE=`find _build/otp_builder/erts/ -name "vsn.mk"`
+          export ERTS_VERSION="`sed -nE 's/VSN *= *([0-9.]+)/\1/p' $MK_FILE`"
+          export STATIC_ERLANG_NIF="yes"
+          export ERLANG_PATH="_build/otp_builder/release/${{inputs.otp_arch}}/include"
+          export ERTS_INCLUDE_DIR="_build/otp_builder/release/${{inputs.otp_arch}}/erts-$ERTS_VERSION/include"
+          export SDKROOT=`xcrun -sdk ${{ inputs.sdk }} --show-sdk-path`
+          export CC="xcrun -sdk ${{ inputs.sdk }} cc -arch ${{ inputs.arch }}"
+          export CXX="xcrun -sdk ${{ inputs.sdk }} c++"
+          export LD="xcrun -sdk ${{ inputs.sdk }} ld"
+          export LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v"
+          export DED_LD=$LD
+          export DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v"
+          export RANLIB="xcrun -sdk ${{ inputs.sdk }} ranlib"
+          export AR="xcrun -sdk ${{ inputs.sdk }} ar"
+          export ARCH=${{ inputs.arch }}
+          export MAKEFLAGS="-j10 -O"
+          export OPENSSL_PREFIX=${{inputs.openssl_prefix}}
+
+          debug_lib()
+          {
+            if [[ -f $1 ]]; then
+              file $1
+              lipo -info $1
+              ar -t $1
+            else 
+              echo "LIB $1 doesn't exist"
+            fi
+          }
+
+          build_rustler_lib()
+          {
+            LIBNAME=$1
+            NATIVE_NAME=$2
+            GIT_REPO=$3
+            GIT_REF=$4
+            CUSTOM_LDFLAGS="$5"
+            INCLUDE_STDLIB=$6
+
+            cd ${{github.workspace}}
+
+            #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
+            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{inputs.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
+
+            # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
+            #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --crate-type staticlib --target=${{inputs.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
+            # fi
+
+            if [[ $INCLUDE_STDLIB == 1 ]]; then
+              RUSTFLAGS="-C target-feature=-crt-static"
+            else 
+              RUSTFLAGS="-C target-feature=-crt-static -C link-arg=-nostdlib -C panic=abort"
+            fi
+
+            git clone --depth 1 $GIT_REPO --branch $GIT_REF
+            cd $LIBNAME
+            if [[ -d "native/$NATIVE_NAME" ]]; then
+              cd native/$NATIVE_NAME
+              LDFLAGS="$CUSTOM_LDFLAGS" \
+              RUSTFLAGS="$RUSTFLAGS" \
+              $CARGO_CMD
+
+              LIB_NAME=`find . -name "*.a" | head -1`
+              debug_lib $LIB_NAME
+              cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
+            else
+              echo "native/$NATIVE_NAME doesn't exist, abort building $LIBNAME"
+            fi
+
+            if [[ $FIRST_RUSTLER_BUILT = 0 ]]; then
+              FIRST_RUSTLER_BUILT=1
+            fi
+
+            cd ${{github.workspace}}
+          }
+
+          # export CFLAGS="-fno-common -Os -D__IOS__=yes"
+
+          mkdir -p _build/nifs/
+
+          if [[ "${{matrix.nifs.type}}" == "mix" ]]; then
+
+            if [[ ! -z "${{matrix.nifs.ref}}" ]]; then
+              GIT_REF="--branch ${{matrix.nifs.ref}}"
+            fi
+
+            # https://github.com/elixir-desktop/exqlite.git
+            git clone --depth 1 ${{matrix.nifs.repo}} $GIT_REF
+            cd exqlite
+            mix deps.get
+            mix release
+            LIB_NAME=`find . -name "*.a" | head -1`
+            lipo -info $LIB_NAME
+            cp $LIB_NAME ${{github.workspace}}/_build/nifs/
+
+          fi
+
+          if [[ "${{matrix.nifs.type}}" == "rustler" ]]; then
+            build_rustler_lib \
+            "${{matrix.nifs.name}}" \
+            "${{matrix.nifs.native_name}}" \
+            "${{matrix.nifs.repo}}" \
+            "${{matrix.nifs.ref}}" \
+            "${{matrix.nifs.ldflags}}" \
+            "${{matrix.nifs.rust_stdlib}}"
+          fi
+
+          cd ${{github.workspace}}
+
+          find _build/nifs -type f -name "*.a" || 1
+
+      # - name: Upload Nifs for ${{ inputs.name }} OTP-${{inputs.otp_version}} ELX-${{inputs.elixir_version}}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: libs-OTP-${{inputs.otp_version}}-ELX-${{inputs.elixir_version}}-${{ inputs.platform.id }}-nifs
+      #     path: |
+      #       _build/nifs/**/**.a
+
+      - name: Verify nif libs
+        continue-on-error: true
+        shell: bash
+        run: |
+          cd _build/nifs
+          find ~+ -type f -name "*.a" -exec ls -lah {} \;
+          find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }'
+          NIF_LIBS=$(find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }')
+          echo $NIF_LIBS
+
+      - name: Strip nif libs
+        continue-on-error: true
+        shell: bash
+        run: |
+          cd _build/nifs
+          find ~+ -type f -name "*.a" -exec ls -lah {} \;
+
+          if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+            find ~+ -type f -name "*.a" -exec $STRIP_CMD {} \;
+            find ~+ -type f -name "*.a" -exec ls -lah {} \;
+          fi
+
+      # - name: Upload Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}} ELX-${{matrix.erlixir.elixir-version}}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-nifs
+      #     path: |
+      #       _build/nifs/**/**.a
 
       - name: Upload NIF Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.repo.package}}
-          path: _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.repo.package}}/
+          name: ${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.nifs.package}}
+          path: _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.nifs.package}}/
