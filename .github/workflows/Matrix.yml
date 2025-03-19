@@ -9,6 +9,8 @@ env:
   OPENSSL_VERSION: '3.4.0'
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
   TOOLCHAIN: nightly
+  ENABLE_STRIPPING: true
+  STRIP_CMD: 'strip -x'
   CARGO_MAKE_TOOLCHAIN: nightly
   # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
   CARGO_CACHE_PATH: |
@@ -67,12 +69,13 @@ jobs:
           - {
               otp-version: 27.3,
               elixir-version: 1.18.2,
-              erl-opts-description: 'min;no-stripping;-year2038;-megaco',
-              erl-opts: '--disable-stripped-runtime --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba',
+              erl-opts-description: 'somemods',
+              erl-opts: '--disable-debug --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
               use-git: true,
               git-repo: 'adiibanez/otp',
               git-ref: 'OTP-27.3-noiosminversion',
             }
+            # --disable-sctp --disable-stripped-runtime
           # - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
         os: [macos-latest]
         platform:
@@ -437,7 +440,6 @@ jobs:
 
           #KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
           #KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" \
-          #ERL_FLAGS="-smp disable" \
 
           # KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
           # KERL_CONFIGURE_DISABLE_APPLICATIONS https://github.com/kerl/kerl/blob/master/kerl
@@ -452,7 +454,6 @@ jobs:
           file test_compiler
 
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
-          ERL_FLAGS="-smp disable" \
           LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
@@ -510,18 +511,23 @@ jobs:
         run: |
           echo "IS_3RD_TIER_TARGET=true" >> $GITHUB_ENV
 
-      # - name: Install Rust Nightly
-      #   if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
-      #   uses: dtolnay/rust-toolchain@master
-      #   with:
-      #     toolchain: ${{ env.TOOLCHAIN }}
-      #     targets: ${{ matrix.platform.rust_target }}
+      - name: Install Rust Nightly
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.TOOLCHAIN }}
+          targets: ${{ matrix.platform.rust_target }}
 
-      # - name: Rust Cache
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: ${{ env.CARGO_CACHE_PATH }}
-      #     key: cargo-${{ github.workflow }}-${{ github.job }}-${{runner.os}}-${{runner.arch}}
+      # - name: Install Rust Nightly std-lib
+      #   if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
+      #   shell: bash
+      #   run: |
+      #     rustup component add rust-src --toolchain nightly-${{ matrix.platform.rust_target }}
+
+      - name: Rust Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CARGO_CACHE_PATH }}
+          key: cargo-${{ github.workflow }}-${{ github.job }}-${{runner.os}}-${{runner.arch}}
 
       - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         # if: false
@@ -554,23 +560,58 @@ jobs:
             if [[ -f $1 ]]; then
               file $1
               lipo -info $1
-
               ar -t $1
-              echo BEFORE stripping
-              ls -lah $1
-              strip -x $1
-              echo AFTER stripping
-              ls -lah $1
             else 
               echo "LIB $1 doesn't exist"
             fi
+          }
+
+          build_rustler_lib()
+          {
+            LIBNAME=$1
+            NATIVE_NAME=$2
+            GIT_REPO=$3
+            GIT_REF=$4
+            CUSTOM_LDFLAGS=$5
+
+            cd ${{github.workspace}}
+
+            asdf current
+            whereis mix
+
+            CARGO_CMD="cargo rustc --crate-type staticlib --release --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
+
+            # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
+            #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
+            # fi
+
+            if [[ ! -z "$CUSTOM_LDFLAGS" ]]; then
+              CARGO_CMD="$CUSTOM_LDFLAGS $CARGO_CMD"
+            fi
+            
+            git clone --depth 1 $GIT_REPO --branch $GIT_REF
+            cd $LIBNAME
+            mix deps.get
+            if [[ -d "native/$NATIVE_NAME" ]]; then
+              cd native/$NATIVE_NAME
+              LDFLAGS="$CUSTOM_LDFLAGS" \
+              $CARGO_CMD
+
+              LIB_NAME=`find . -name "*.a" | head -1`
+              debug_lib $LIB_NAME
+              cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
+            else
+              echo "native/$NATIVE_NAME doesn't exist, abort building $LIBNAME"
+            fi
+            cd ${{github.workspace}}
           }
 
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
           mkdir -p _build/nifs/
 
-          git clone --depth 1 https://github.com/elixir-desktop/exqlite.git
+          # https://github.com/elixir-desktop/exqlite.git
+          git clone --depth 1 https://github.com/elixir-sqlite/exqlite
           cd exqlite
           mix deps.get
           STATIC_ERLANG_NIF_LIBNAME=exqlite mix release
@@ -585,46 +626,72 @@ jobs:
           # mix release
           # cd ${{github.workspace}}/_build/nifs/
 
+          #CARGO_CMD="cargo rustc --crate-type staticlib --release --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C lto=yes -C codegen-units=1"
+          #CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib"
 
-          # # can't build tier 3 targets at the moment, no rustler for tvos / visionos :( 
-          if [[ "${{ env.IS_3RD_TIER_TARGET }}" != "true" ]]; then
-            echo "Nothing to do"
-            # RUST_CONFIG=" -Zbuild-std"
+          #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
+          CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
 
-            git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled
-            # v0.0.15-alpha
-            cd rustler_btleplug
-            mix deps.get
-            cd native/btleplug_client
-            LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
-            RUSTFLAGS="-C target-feature=-crt-static" \
-            cargo build --release --target=${{matrix.platform.rust_target}}
+          # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
+          #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --release --target=${{matrix.platform.rust_target}}"
+          # fi
 
-            LIB_NAME=`find . -name "*.a" | head -1`
-            debug_lib $LIB_NAME
-            cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-            cd ${{github.workspace}}
+          # -L${OPENSSL_PREFIX}/lib -lcrypto 
+          # -L${{github.workspace}}/_build/nifs 
+          # build_rustler_lib \
+          #   "rustler_btleplug" \
+          #   "btleplug_client" \
+          #   "https://github.com/adiibanez/rustler_btleplug.git" \
+          #   "static-no-precompiled" \
+          #   "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
-            # git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch main
-            # cd wasmex
-            # mix deps.get
-            # cd native/wasmex
-            # RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target=${{matrix.platform.rust_target}}
-            # LIB_NAME=`find . -name "*.a" | head -1`
-            # debug_lib $LIB_NAME
-            # cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
-            # cd ${{github.workspace}}
+          # CARGO_PKG_NAME="btleplug_client" \
+          # RUSTFLAGS="-C target-feature=-crt-static" \
 
-            # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
-            # cd explorer
-            # mix deps.get
-            # mix release
-            # cd ${{github.workspace}}/_build/nifs/
-          fi
+          # -L$OPENSSL_PREFIX/lib -lcrypto -L${{github.workspace}}/_build/nifs
+          git clone --depth 1 https://github.com/adiibanez/rustler_btleplug.git --branch static-no-precompiled # v0.0.15-alpha
+          cd rustler_btleplug
+          # mix deps.get
+          cd native/btleplug_client
+
+          # first rust lib, include std lib
+          LDFLAGS="-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          RUSTFLAGS="-C target-feature=-crt-static" \
+          $CARGO_CMD
+
+          LIB_NAME=`find . -name "*.a" | head -1`
+          debug_lib $LIB_NAME
+          cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
+          # cp target/${{matrix.platform.rust_target}}/release/libbtleplug_client.a ${{github.workspace}}/_build/nifs/
+          cd ${{github.workspace}}
+
+          # build_rustler_lib \
+          #   "wasmex" \
+          #   "wasmex" \
+          #   "https://github.com/tessi/wasmex.git" \
+          #   "main"
+
+          git clone --depth 1 https://github.com/adiibanez/wasmex.git --branch static-no-precompiled
+          cd wasmex
+          # mix deps.get
+          cd native/wasmex
+          # N rust lib, exclude std lib
+          RUSTFLAGS="-C target-feature=-crt-static -C link-arg=-nostdlib -C panic=abort" \
+          $CARGO_CMD
+          LIB_NAME=`find . -name "*.a" | head -1`
+          debug_lib $LIB_NAME
+          cp `find . -name "*.a" | head -1` ${{github.workspace}}/_build/nifs/
+          cd ${{github.workspace}}
+
+          # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
+          # cd explorer
+          # mix deps.get
+          # mix release
+          # cd ${{github.workspace}}/_build/nifs/
 
           cd ${{github.workspace}}
 
-          find _build/nifs -type f -name "*.a"
+          find _build/nifs -type f -name "*.a" || 1
 
       # - name: Upload Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}} ELX-${{matrix.erlixir.elixir-version}}
       #   uses: actions/upload-artifact@v4
@@ -633,15 +700,27 @@ jobs:
       #     path: |
       #       _build/nifs/**/**.a
 
-      - name: Test job
+      - name: Verify nif libs
         continue-on-error: true
         shell: bash
         run: |
           cd _build/nifs
-          # find ~+ -type f -name "*.a"
+          find ~+ -type f -name "*.a" -exec ls -lah {} \;
           find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }'
           NIF_LIBS=$(find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }')
           echo $NIF_LIBS
+
+      - name: Strip nif libs
+        continue-on-error: true
+        shell: bash
+        run: |
+          cd _build/nifs
+          find ~+ -type f -name "*.a" -exec ls -lah {} \;
+
+          if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+            find ~+ -type f -name "*.a" -exec $STRIP_CMD {} \;
+            find ~+ -type f -name "*.a" -exec ls -lah {} \;
+          fi
 
       - name: Build OTP Round 2
         id: otp-setup-round2
@@ -669,7 +748,6 @@ jobs:
 
           #KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
           #KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" \
-          #ERL_FLAGS="-smp disable" \
 
           # KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
           # KERL_CONFIGURE_DISABLE_APPLICATIONS https://github.com/kerl/kerl/blob/master/kerl
@@ -688,14 +766,13 @@ jobs:
           ls -l $(xcrun --sdk iphoneos --show-sdk-path)/usr/lib/libobjc.tbd
 
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
-          ERL_FLAGS="-smp disable" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -lbtleplug_client -lwasmex -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
@@ -788,6 +865,13 @@ jobs:
 
           rm -f $OUTPUT_LIB
           libtool -static -o $OUTPUT_LIB $LIBS
+
+          if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+            BEFORE_STRIPPING=`ls -lah $OUTPUT_LIB | awk '{print $5}'`
+            $STRIP_CMD $OUTPUT_LIB
+            AFTER_STRIPPING=`ls -lah $OUTPUT_LIB | awk '{print $5}'`
+            echo "Stripping: $OUTPUT_LIB before: $BEFORE_STRIPPING, after: $AFTER_STRIPPING"
+          fi
 
       - name: Check output lib
         shell: bash
@@ -891,8 +975,8 @@ jobs:
           add_library_if_exists tvos_sim $TVOS_SIM_LIPO
           add_library_if_exists watchos $WATCHOS_LIB
           add_library_if_exists watchos_sim $WATCHOS_SIMULATOR_LIB
-          add_library_if_exists watchos $VISIONOS_LIB
-          add_library_if_exists watchos_sim $VISIONOS_SIMULATOR_LIB_ARM64
+          add_library_if_exists visionos $VISIONOS_LIB
+          add_library_if_exists visionos_sim $VISIONOS_SIMULATOR_LIB_ARM64
 
           XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
 
