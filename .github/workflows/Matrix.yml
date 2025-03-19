@@ -589,7 +589,7 @@ jobs:
               CARGO_CMD="$CUSTOM_LDFLAGS $CARGO_CMD"
             fi
 
-            if [[ $FIRST_RUSTLER_BUILT = 0 ]]; then
+            if [[ $FIRST_RUSTLER_BUILT == 0 ]]; then
               RUSTFLAGS="-C target-feature=-crt-static"
             else 
               RUSTFLAGS="-C target-feature=-crt-static -C link-arg=-nostdlib -C panic=abort"
