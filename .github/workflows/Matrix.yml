@@ -613,7 +613,7 @@ jobs:
             # https://github.com/rust-lang/rust/issues/44322
             # CARGO_CMD="cargo +${{env.TOOLCHAIN}} rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C target-feature=-crt-static -C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             #CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --release --features rustler/staticlib -- -C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
-            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
             # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
             #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
@@ -627,7 +627,7 @@ jobs:
             #   export RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
             # fi
 
-            RUSTFLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            RUSTFLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
             git clone --depth 1 $GIT_REPO --branch $GIT_REF
             cd $LIBNAME
@@ -643,7 +643,7 @@ jobs:
                 $CARGO_CMD
               else 
                 CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib"
-                
+
                 LDFLAGS="$CUSTOM_LDFLAGS" \
                 RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib" \
                 $CARGO_CMD
