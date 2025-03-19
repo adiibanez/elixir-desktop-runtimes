@@ -9,7 +9,7 @@ env:
   OPENSSL_VERSION: '3.4.0'
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
   TOOLCHAIN: nightly-2024-11-01
-  CARGO_MAKE_TOOLCHAIN: nightly
+  CARGO_MAKE_TOOLCHAIN: nightly-2024-11-01
   ENABLE_STRIPPING: true
   STRIP_CMD: 'strip -x'
   # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
@@ -592,7 +592,8 @@ jobs:
 
             #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
             # -C lto=fat -C embed-bitcode=yes filesize 26MB!
-            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1 -C lto=thin -C embed-bitcode=yes -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            # -C lto=thin -C embed-bitcode=yes
+            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
             # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
             #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
@@ -630,6 +631,22 @@ jobs:
 
           mkdir -p _build/nifs/
 
+          # -L${OPENSSL_PREFIX}/lib -lcrypto 
+          # -L${{github.workspace}}/_build/nifs 
+
+          build_rustler_lib \
+            "rustler_btleplug" \
+            "btleplug_client" \
+            "https://github.com/adiibanez/rustler_btleplug.git" \
+            "static-no-precompiled" \
+            "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
+
+          build_rustler_lib \
+            "wasmex" \
+            "wasmex" \
+            "https://github.com/adiibanez/wasmex.git" \
+            "static-no-precompiled"
+
           # https://github.com/elixir-desktop/exqlite.git
           git clone --depth 1 https://github.com/elixir-sqlite/exqlite
           cd exqlite
@@ -646,21 +663,6 @@ jobs:
           # mix release
           # cd ${{github.workspace}}/_build/nifs/
 
-          # -L${OPENSSL_PREFIX}/lib -lcrypto 
-          # -L${{github.workspace}}/_build/nifs 
-
-          build_rustler_lib \
-            "rustler_btleplug" \
-            "btleplug_client" \
-            "https://github.com/adiibanez/rustler_btleplug.git" \
-            "static-no-precompiled" \
-            "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
-
-          build_rustler_lib \
-            "wasmex" \
-            "wasmex" \
-            "https://github.com/adiibanez/wasmex.git" \
-            "static-no-precompiled"
 
           # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
           # cd explorer
