@@ -522,17 +522,6 @@ jobs:
         run: |
           rustc -C embed-bitcode=yes --print cfg
 
-      - name: Verify Clang & LLVM
-        run: |
-          clang --version
-          llvm-ar --version || 1
-
-      # - name: Install Rust Nightly
-      #   uses: dtolnay/rust-toolchain@master
-      #   with:
-      #     toolchain: ${{ env.TOOLCHAIN }}
-      #     targets: ${{ matrix.platform.rust_target }}
-
       - name: Show Rustup Info
         run: |
           rustup show
