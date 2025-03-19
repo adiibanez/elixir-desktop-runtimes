@@ -787,10 +787,9 @@ jobs:
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -lbtleplug_client -lwasmex -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          XCOMP_LDFLAGS="-Wl,--allow-multiple-definition -L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -lbtleplug_client -lwasmex -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
-          LDFLAGS="-Wl,--allow-multiple-definition" \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
           --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
           --disable-dynamic-ssl-lib \
