@@ -621,6 +621,7 @@ jobs:
 
             if [[ $FIRST_RUSTLER_BUILT == 1 ]]; then
               export CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort"
+              export RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
             fi
 
             echo "CARGO_CMD: $CARGO_CMD"
