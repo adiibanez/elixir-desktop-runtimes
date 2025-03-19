@@ -517,6 +517,16 @@ jobs:
           toolchain: ${{ env.TOOLCHAIN }}
           targets: ${{ matrix.platform.rust_target }}
 
+      - name: Show Rustup Info
+        run: |
+          rustup show
+          echo "TOOLCHAIN: ${{ env.TOOLCHAIN }}"
+
+      - name: Install LLVM tools
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        run: rustup component add llvm-tools-preview
+
       # rustup toolchain install ${{env.TOOLCHAIN}} --target ${{matrix.platform.rust_target}}
 
       # rustup toolchain list
