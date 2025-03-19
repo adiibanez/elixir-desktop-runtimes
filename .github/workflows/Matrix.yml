@@ -615,10 +615,10 @@ jobs:
             #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
             # fi
 
-            RUSTFLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C lto=thin -C strip=symbols -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections -C target-feature=-crt-static"
+            RUSTFLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections -C target-feature=-crt-static"
 
             if [[ $FIRST_RUSTLER_BUILT == 1 ]]; then
-              RUSTFLAGS+=" -C link-arg=-nostdlib -C panic=abort"
+              RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
             fi
 
             git clone --depth 1 $GIT_REPO --branch $GIT_REF
