@@ -8,8 +8,8 @@ on:
 env:
   OPENSSL_VERSION: '3.4.0'
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
-  TOOLCHAIN: nightly-2024-01-20
-  CARGO_MAKE_TOOLCHAIN: nightly-2024-01-20
+  TOOLCHAIN: nightly-2025-01-01 # 1.85.0
+  CARGO_MAKE_TOOLCHAIN: nightly-2025-01-01
   ENABLE_STRIPPING: true
   STRIP_CMD: 'strip -x'
   # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
