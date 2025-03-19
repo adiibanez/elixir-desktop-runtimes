@@ -636,6 +636,8 @@ jobs:
                 RUSTFLAGS="$RUSTFLAGS" \
                 $CARGO_CMD
               else 
+                CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort" \
+
                 LDFLAGS="$CUSTOM_LDFLAGS" \
                 RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort" \
                 $CARGO_CMD
