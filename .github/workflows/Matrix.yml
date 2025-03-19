@@ -6,6 +6,7 @@ on:
       - refactoring
   pull_request:
 env:
+  TIMESTAMP: ${{ github.event.repository.updated_at}}
   OPENSSL_VERSION: '3.4.0'
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
   TOOLCHAIN: nightly-2025-01-01 # 1.85.0
@@ -493,7 +494,7 @@ jobs:
         if: always() && steps.otp-setup-round1.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+          name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{env.TIMESTAMP}}
           path: '**/*.log'
 
       # - name: Set IS_TVOS environment variable
@@ -784,6 +785,8 @@ jobs:
 
           ls -l $(xcrun --sdk iphoneos --show-sdk-path)/usr/lib/libobjc.tbd
 
+          # funky business: -Wl,--allow-multiple-definition 
+
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
@@ -791,7 +794,7 @@ jobs:
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-          XCOMP_LDFLAGS="-Wl,--allow-multiple-definition -L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -lbtleplug_client -lwasmex -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -lbtleplug_client -lwasmex -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
@@ -824,12 +827,12 @@ jobs:
         if: always() && steps.otp-setup-round2.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: debug-round2-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+          name: debug-round2-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{env.TIMESTAMP}}
           #path: _build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a
           path: |
-            **/*.a
             **/*.log
 
+        # **/*.a
         # _build/nifs/**
 
       - name: Combine static OTP libs
