@@ -535,6 +535,7 @@ jobs:
           RUSTLER_BTLEPLUG_BUILD: 1
           WASMEX_BUILD: 1
         run: |
+
           echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
           export MK_FILE=`find _build/otp_builder/erts/ -name "vsn.mk"`
           export ERTS_VERSION="`sed -nE 's/VSN *= *([0-9.]+)/\1/p' $MK_FILE`"
@@ -641,6 +642,12 @@ jobs:
 
           # -L${OPENSSL_PREFIX}/lib -lcrypto 
           # -L${{github.workspace}}/_build/nifs 
+
+
+          rustup toolchain install ${{env.TOOLCHAIN}} --target ${{matrix.platform.rust_target}}
+
+          rustup toolchain list
+          rustup target list
 
           build_rustler_lib \
             "rustler_btleplug" \
