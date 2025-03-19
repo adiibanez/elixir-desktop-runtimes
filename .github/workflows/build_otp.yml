@@ -8,13 +8,13 @@ on:
       elixir_version:
         required: true
         type: string
-      use_git: 
+      use_git:
         required: true
         type: string
-      git_repo: 
+      git_repo:
         required: true
         type: string
-      git_ref: 
+      git_ref:
         required: true
         type: string
       round:
@@ -41,13 +41,13 @@ on:
       otp_arch:
         required: true
         type: string
-      base_arch: 
+      base_arch:
         required: true
         type: string
-      openssl_version: 
+      openssl_version:
         required: true
         type: string
-      openssl_prefix: 
+      openssl_prefix:
         required: true
         type: string
       xcomp:
@@ -62,8 +62,8 @@ on:
 
 jobs:
   build-otp:
-    env: 
-      NAME: "build-otp"
+    env:
+      NAME: 'build-otp'
       OPENSSL_PREFIX: ${{inputs.openssl_prefix}}
     runs-on: macos-latest
     steps:
@@ -149,7 +149,7 @@ jobs:
             tar -xzf otp_src_${{inputs.otp_version}}.tar.gz
           fi
 
-      - name: Test compiler 
+      - name: Test compiler
         shell: bash
         run: |
           xcodebuild -showsdks
@@ -166,16 +166,7 @@ jobs:
         shell: bash
         run: |
           ulimit -n 65536
-
-          NIF_LIBS=""
-          if [[ ${{inputs.round }} == 2 ]]; then
-            NIF_LIBS=$(find ${{github.workspace}}/_build/nifs -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }')
-          fi
-
-          DEFAULT_STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
-          
-          STATIC_NIFS="$DEFAULT_STATIC_NIFS$NIF_LIBS"
-
+          STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ inputs.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ inputs.otp_arch }}/crypto.a"
           echo $STATIC_NIFS
 
           mkdir -p _build
@@ -183,13 +174,13 @@ jobs:
           if [ -e _build/otp_builder ]; then
               echo "Otp builder exists."
           else
-              echo "Copy otp source to _build/otp_builder"
               cp -r otp_src_${{inputs.otp_version}} _build/otp_builder
           fi
 
-          if [ -d "$OPENSSL_PREFIX" ]; then
-              ls -lah $OPENSSL_PREFIX/lib
-              echo $OPENSSL_PREFIX
+          ls -lah $OPENSSL_PREFIX/lib
+          echo $OPENSSL_PREFIX
+
+          if [ -e $OPENSSL_PREFIX ]; then
               echo "Openssl $OPENSSL_PREFIX exists."
               file "$OPENSSL_PREFIX/lib/libcrypto.a"
               lipo -info "$OPENSSL_PREFIX/lib/libcrypto.a"
@@ -204,12 +195,23 @@ jobs:
           cp patch/erl-xcomp-*.conf _build/otp_builder/xcomp/
           cd _build/otp_builder
 
+          # exit 1
+
+          #KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
+
           # KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
           # KERL_CONFIGURE_DISABLE_APPLICATIONS https://github.com/kerl/kerl/blob/master/kerl
           # https://www.erlang.org/docs/19/applications
 
-          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
-          ERL_FLAGS="-smp disable" \
+          xcodebuild -showsdks
+          xcrun --sdk ${{inputs.sdk}} --show-sdk-path
+
+          echo 'int main() { return 0; }' > test_compiler.c
+          xcrun -sdk iphoneos cc -arch ${{matrix.platform.arch}} -o test_compiler test_compiler.c
+          #./test_compiler
+          file test_compiler
+
+          KERL_CONFIGURE_OPTIONS="${{inputs.erl_opts}}" \
           LDFLAGS="-L${{inputs.openssl_prefix}}/lib -lcrypto" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
@@ -254,7 +256,7 @@ jobs:
 
       # - name: Build OTP Round ${{ inputs.round }}
       #   run: |
-      #     MSG="Building ${{inputs.platform_id}} ${{ env.NAME }} ${{inputs.otp_version}} ${{inputs.round}}" 
+      #     MSG="Building ${{inputs.platform_id}} ${{ env.NAME }} ${{inputs.otp_version}} ${{inputs.round}}"
 
       #     echo "HERE ${{env.NAME}} _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}"
       #     mkdir -p _build/${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{inputs.round}}

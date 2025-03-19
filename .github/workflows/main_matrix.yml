@@ -56,6 +56,7 @@ jobs:
       openssl_prefix: ${{matrix.platform.openssl_prefix}}
       openssl_opts: ${{matrix.platform.openssl_opts}}
       openssl_arch: ${{matrix.platform.openssl_arch}}
+
   build_otp_round_1:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
@@ -79,6 +80,7 @@ jobs:
       erl_opts_description: ${{ matrix.platform.erl_opts_description}}
       otp_arch: ${{ matrix.platform.otp_arch}}
       xcomp: ${{ matrix.platform.xcomp}}
+
   build_nifs:
     needs: [define-matrix, build_otp_round_1]
     uses: ./.github/workflows/build_nifs.yml
@@ -96,6 +98,7 @@ jobs:
       arch: ${{matrix.platform.arch}}
       otp_arch: ${{matrix.platform.otp_arch}}
       rust_target: ${{matrix.platform.rust_target}}
+
   build_otp_round_2:
     strategy:
       matrix: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
