@@ -635,7 +635,7 @@ jobs:
               cd native/$NATIVE_NAME
 
               # :/ back tracking on rust version due to xcode LLVM 15
-              rm -f Cargo.loc
+              rm -f Cargo.lock
               cargo clean
 
               #RUSTFLAGS="$RUSTFLAGS -C lto=fat -C embed-bitcode=yes" \
