@@ -642,7 +642,8 @@ jobs:
                 RUSTFLAGS="$RUSTFLAGS" \
                 $CARGO_CMD
               else 
-                CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib" \
+                CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib"
+                
                 LDFLAGS="$CUSTOM_LDFLAGS" \
                 RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib" \
                 $CARGO_CMD
