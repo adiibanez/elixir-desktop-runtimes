@@ -594,10 +594,12 @@ jobs:
               lipo -info $LIB_PATH
               # ar -t $LIB_PATH
 
-              if ! ( xcrun nm $LIB_PATH 2> debug_lib_stderr_1.log | grep "_${LIB_NAME}_nif_init" | grep "U " > /dev/null ); then
+              nm $LIB_PATH > "lib-$LIB_NAME-symbols.log" 2> /dev/null
+
+              if ! ( xcrun nm $LIB_PATH 2> debug_lib_stderr_1.log | grep "_${LIB_NAME}_nif_init" | grep "T " > /dev/null ); then
                 echo "Error: Undefined symbol _${LIB_NAME}_nif_init. See debug_lib_stderr_1.log for details."
 
-                if ! ( xcrun nm $LIB_PATH 2> debug_lib_stderr_2.lo | grep _nif_init | grep "U " > /dev/null ); then
+                if ! ( xcrun nm $LIB_PATH 2> debug_lib_stderr_2.lo | grep _nif_init | grep "T " > /dev/null ); then
                   echo "Error: Undefined symbol '*_nif_init'. See debug_lib_stderr_2.lo for details."
                   exit 1
                 fi
@@ -632,8 +634,8 @@ jobs:
 
             cd ${{github.workspace}}
 
-            OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
-            # OPTIMIZATION_FLAGS="-C lto=off -C embed-bitcode=no -C opt-level=z"
+            # OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            OPTIMIZATION_FLAGS="-C lto=off -C embed-bitcode=no -C opt-level=z"
             # -Clinker=rust-lld
 
             #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
