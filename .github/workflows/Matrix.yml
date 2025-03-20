@@ -708,7 +708,7 @@ jobs:
               rm -f Cargo.lock
               cargo clean
 
-              RUSTFLAGS="$CARGO_OPTIMIZATION_FLAGS -C debug=false -C debug-assertions=false -C incremental=false"
+              RUSTFLAGS="$CARGO_OPTIMIZATION_FLAGS"
 
               #RUSTFLAGS="$RUSTFLAGS -C lto=fat -C embed-bitcode=yes" \
               if [[ $FIRST_RUSTLER_BUILT == 0 ]]; then
