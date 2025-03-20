@@ -582,6 +582,30 @@ jobs:
           export MAKEFLAGS="-j10 -O"
           export OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}
 
+
+
+          check_symbol() {
+            local lib_path="$1"
+            local symbol_name="$2"
+            local expected_type="$3"
+            local log_file="$4"
+
+            echo "Checking for symbol '$symbol_name' (expecting type '$expected_type') in '$lib_path'..."
+
+            if ! xcrun nm "$lib_path" 2> "$log_file"; then
+                echo "Error: 'xcrun nm' command failed.  See '$log_file' for details." >&2
+                return 1  # Return failure status
+            fi
+
+            if ! grep "${symbol_name}" "$log_file" | grep "${expected_type}" > /dev/null; then
+              echo "Error: Symbol '$symbol_name' not found or has incorrect type.  See '$log_file' for details." >&2
+              return 1 # Return failure status
+            fi
+
+            echo "Symbol '$symbol_name' found with expected type '$expected_type'."
+            return 0  # Return success status
+          }
+
           debug_lib()
           {
             LIB_NAME="$1"
@@ -591,17 +615,13 @@ jobs:
               lipo -info $LIB_PATH
               # ar -t $LIB_PATH
 
-              nm $LIB_PATH > lib-$LIB_NAME-symbols.log 2> /dev/null || 1
+              # nm $LIB_PATH > lib-$LIB_NAME-symbols.log 2> /dev/null || 1
 
-              if ! ( xcrun nm $LIB_PATH 2> debug_lib_stderr_1.log | grep "_${LIB_NAME}_nif_init" | grep "T " > /dev/null ); then
-                echo "Error: Undefined symbol _${LIB_NAME}_nif_init. See debug_lib_stderr_1.log for details."
-
-                if ! ( xcrun nm $LIB_PATH 2> debug_lib_stderr_2.lo | grep _nif_init | grep "T " > /dev/null ); then
-                  echo "Error: Undefined symbol '*_nif_init'. See debug_lib_stderr_2.lo for details."
+              if ! check_symbol "$LIB_PATH" "_${LIB_NAME}_nif_init" "T " "debug_lib_stderr_1.log"; then
+                # Check for any nif_init as a fallback
+                if ! check_symbol "$LIB_PATH" "_nif_init" "T " "debug_lib_stderr_2.log"; then
                   exit 1
                 fi
-              else 
-                echo "_${LIB_NAME}_nif_init found in $LIB_PATH ... all good"
               fi
 
             else 
