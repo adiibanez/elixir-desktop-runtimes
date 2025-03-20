@@ -689,7 +689,7 @@ jobs:
             CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
 
             echo "CARGO target is 3rd tier: ${{ matrix.platform.rust_is_3rd_tier }}
-            if [[ "${{ matrix.platform.rust_is_3rd_tier }}" == true ]]; then
+            if [[ "${{ matrix.platform.rust_is_3rd_tier }}" == "true" ]]; then
               echo "CARGO_CMD using -Zbuild-std"
               CARGO_CMD="cargo +nightly rustc -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
             fi
