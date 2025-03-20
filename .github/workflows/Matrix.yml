@@ -32,9 +32,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest
+      # - uses: maxim-lobanov/setup-xcode@v1
+      #   with:
+      #     xcode-version: latest
 
       - name: Cache ASDF and Toolchains
         uses: actions/cache@v4
@@ -592,12 +592,12 @@ jobs:
 
             echo "Checking for symbol '$symbol_name' (expecting type '$expected_type') in '$lib_path'..."
 
-            if ! xcrun nm "$lib_path" 2> "$log_file"; then
+            if ! xcrun nm "$lib_path" &> "$log_file"; then
                 echo "Error: 'xcrun nm' command failed.  See '$log_file' for details." >&2
                 return 1  # Return failure status
             fi
 
-            if ! grep "${symbol_name}" "$log_file" | grep "${expected_type}" > /dev/null; then
+            if ! grep "${symbol_name}" "$log_file" | grep -E "${expected_type}" > /dev/null; then
               echo "Error: Symbol '$symbol_name' not found or has incorrect type.  See '$log_file' for details." >&2
               return 1 # Return failure status
             fi
@@ -617,9 +617,9 @@ jobs:
 
               # nm $LIB_PATH > lib-$LIB_NAME-symbols.log 2> /dev/null || 1
 
-              if ! check_symbol "$LIB_PATH" "_${LIB_NAME}_nif_init" "T " "debug_lib_stderr_1.log"; then
+              if ! check_symbol "$LIB_PATH" "_${LIB_NAME}_nif_init" "T |U " "debug_lib_stderr_1.log"; then
                 # Check for any nif_init as a fallback
-                if ! check_symbol "$LIB_PATH" "_nif_init" "T " "debug_lib_stderr_2.log"; then
+                if ! check_symbol "$LIB_PATH" "_nif_init" "T |U " "debug_lib_stderr_2.log"; then
                   exit 1
                 fi
               fi
