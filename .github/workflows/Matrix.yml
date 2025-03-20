@@ -591,8 +591,8 @@ jobs:
               lipo -info $LIB_PATH
               # ar -t $LIB_PATH
 
-              if ! ( nm $LIB_PATH 2> stderr.log | grep _$LIB_NAME_nif_init | grep "U " > /dev/null ); then
-                echo "Error: Undefined symbol '_$LIB_NAME_nif_init'. See stderr.log for details."
+              if ! ( nm $LIB_PATH 2> stderr.log | grep "_${LIB_NAME}_nif_init" | grep "U " > /dev/null ); then
+                echo "Error: Undefined symbol _${LIB_NAME}_nif_init. See stderr.log for details."
                 cat stderr.log
 
                 if ! ( nm $LIB_PATH 2> stderr.log | grep _nif_init | grep "U " > /dev/null ); then
@@ -600,12 +600,9 @@ jobs:
                   cat stderr.log
                   exit 1
                 fi
-
-                exit 1
+              else 
+                echo "_${LIB_NAME}_nif_init found in $LIB_PATH ... all good"
               fi
-
-              echo "Found symbol '_$LIB_NAME_nif_init' ."
-              exit 0
 
             else 
               echo "LIB $LIB_NAME $LIB_PATH doesn't exist"
