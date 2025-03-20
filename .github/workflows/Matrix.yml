@@ -11,7 +11,7 @@ env:
   TOOLCHAIN: nightly
   CARGO_MAKE_TOOLCHAIN: nightly
   ENABLE_STRIPPING: true
-  ENABLE_STRIPPING_NIFS: true
+  ENABLE_STRIPPING_NIFS: false
   STRIP_CMD: 'strip -x'
   # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
   CARGO_CACHE_PATH: |
