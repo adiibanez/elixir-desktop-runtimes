@@ -15,7 +15,7 @@ env:
   CARGO_MAKE_TOOLCHAIN: nightly-2025-03-01
   ENABLE_STRIPPING: true
   ENABLE_STRIPPING_NIFS: false
-  STRIP_CMD: 'xcrun strip -x'
+  STRIP_CMD: 'strip -x'
   # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
   CARGO_CACHE_PATH: |
     ~/.cargo/.crates.toml
@@ -594,7 +594,7 @@ jobs:
               lipo -info $LIB_PATH
               # ar -t $LIB_PATH
 
-              nm $LIB_PATH > "lib-$LIB_NAME-symbols.log" 2> /dev/null
+              nm $LIB_PATH > "lib-$LIB_NAME-symbols.log" 2> /dev/null || 1
 
               if ! ( xcrun nm $LIB_PATH 2> debug_lib_stderr_1.log | grep "_${LIB_NAME}_nif_init" | grep "T " > /dev/null ); then
                 echo "Error: Undefined symbol _${LIB_NAME}_nif_init. See debug_lib_stderr_1.log for details."
