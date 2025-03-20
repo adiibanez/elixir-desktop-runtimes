@@ -12,8 +12,8 @@ env:
   # CARGO_MAKE_TOOLCHAIN: nightly
 
   # rust 1.85.0 for xcode llvm
-  TOOLCHAIN: nightly-2025-01-01
-  CARGO_MAKE_TOOLCHAIN: nightly-2025-01-01
+  # TOOLCHAIN: nightly-2025-01-01
+  # CARGO_MAKE_TOOLCHAIN: nightly-2025-01-01
 
   ENABLE_STRIPPING: true
   ENABLE_STRIPPING_NIFS: true
@@ -507,17 +507,26 @@ jobs:
           path: '**/*.log'
 
       - name: Set 3rd tier rust target flag
-        if: ${{ ! contains(matrix.platform.rust_target, 'tvos') && ! contains(matrix.platform.rust_target, 'xros') }}
+        if: ${{ contains(matrix.platform.rust_target, 'tvos') || contains(matrix.platform.rust_target, 'xros') }}
         shell: bash
         run: |
-          echo "IS_3RD_TIER_TARGET=true" >> $GITHUB_ENV
+          echo "IS_3RD_TIER_RUST_TARGET=true" >> $GITHUB_ENV
+          echo "TOOLCHAIN=nightly" >> $GITHUB_ENV
+          echo "CARGO_MAKE_TOOLCHAIN=nightly" >> $GITHUB_ENV
 
       - name: Install Rust Nightly (Explicit Version)
+        if: ${{ env.IS_3RD_TIER_RUST_TARGET == 'false' }}
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{env.TOOLCHAIN}}
           targets: ${{ matrix.platform.rust_target }}
           components: rust-src, llvm-tools-preview
+
+      - name: Install Rust Nightly (Explicit Version) 3rd tier
+        if: ${{ env.IS_3RD_TIER_RUST_TARGET == 'true' }}
+        shell: bash
+        run: |
+          rustup toolchain install nightly --target ${{matrix.platform.rust_target}} --profile minimal
 
       - name: Check LLVM Bitcode Support
         run: |
@@ -528,10 +537,10 @@ jobs:
           rustup show
           echo "TOOLCHAIN: ${{ env.TOOLCHAIN }}"
 
-      - name: Install LLVM tools
-        if: runner.os == 'macOS'
-        continue-on-error: true
-        run: rustup component add llvm-tools-preview
+      # - name: Install LLVM tools
+      #   if: runner.os == 'macOS'
+      #   continue-on-error: true
+      #   run: rustup component add llvm-tools-preview
 
       # rustup toolchain install ${{env.TOOLCHAIN}} --target ${{matrix.platform.rust_target}}
 
@@ -539,7 +548,7 @@ jobs:
       # rustup target list
 
       # - name: Install Rust Nightly std-lib
-      #   if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
+      #   if: ${{env.IS_3RD_TIER_RUST_TARGET}} != 'true'
       #   shell: bash
       #   run: |
       #     rustup component add rust-src --toolchain nightly-${{ matrix.platform.rust_target }}
@@ -676,7 +685,7 @@ jobs:
             #CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --release --features rustler/staticlib -- -C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
 
-            if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
+            if [[ "${{ env.IS_3RD_TIER_RUST_TARGET }}" == "true" ]]; then
               echo "CARGO_CMD using -Zbuild-std"
               CARGO_CMD="cargo rustc -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
             fi
@@ -758,7 +767,7 @@ jobs:
           debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
           # https://github.com/bytecodealliance/rustix/issues/1424
-          if [[ -z $IS_3RD_TIER_TARGET ]]; then
+          if [[ -z $IS_3RD_TIER_RUST_TARGET ]]; then
             build_rustler_lib \
               "wasmex" \
               "wasmex" \
