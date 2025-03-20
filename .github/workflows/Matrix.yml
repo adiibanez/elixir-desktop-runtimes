@@ -710,7 +710,11 @@ jobs:
             "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
 
-          debug_lib "libbtleplug_client" "_/build/nifs/libbtleplug_client.a"
+          # -rw-r--r--  1 runner  staff   580M Mar 20 00:28 /Users/runner/work/elixir-desktop-runtimes/elixir-desktop-runtimes/_build/nifs/libwasmex.a
+          # -rw-r--r--  1 runner  staff   2.1M Mar 20 00:29 /Users/runner/work/elixir-desktop-runtimes/elixir-desktop-runtimes/_build/nifs/sqlite3_nif.a
+          # -rw-r--r--  1 runner  staff    97M Mar 20 00:26 /Users/runner/work/elixir-desktop-runtimes/elixir-desktop-runtimes/_build/nifs/libbtleplug_client.a
+
+          debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
           build_rustler_lib \
             "wasmex" \
@@ -718,7 +722,7 @@ jobs:
             "https://github.com/adiibanez/wasmex.git" \
             "static-no-precompiled"
 
-          debug_lib "libwasmex" "_/build/nifs/libwasmex.a"
+          debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
 
           # https://github.com/elixir-desktop/exqlite.git
           git clone --depth 1 https://github.com/elixir-sqlite/exqlite
@@ -729,6 +733,8 @@ jobs:
           lipo -info $LIB_NAME
           cp $LIB_NAME ${{github.workspace}}/_build/nifs/
           cd ${{github.workspace}}
+
+          debug_lib "sqlite3_nif" "${{github.workspace}}/_build/nifs/sqlite3_nif.a"
 
           # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
           # cd libsecp256k1
