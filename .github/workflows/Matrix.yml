@@ -169,42 +169,42 @@ jobs:
           #     otp_arch: 'aarch64-apple-ios',
           #     rust_target: 'aarch64-apple-watchos-sim',
           #   }
-          - {
-              id: 'tvos',
-              name: 'tvOS',
-              sdk: appletvos,
-              arch: arm64,
-              base_arch: tvos,
-              openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
-              openssl_arch: 'tvos-xcrun',
-              otp_arch: 'aarch64-apple-tvos',
-              rust_target: 'aarch64-apple-tvos',
-              rust_is_3rd_tier: true,
-            }
-          - {
-              id: 'tvos_sim_arm64',
-              name: 'tvOS Simulator arm64',
-              sdk: appletvsimulator,
-              arch: arm64,
-              base_arch: tvos_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.arm64',
-              openssl_arch: 'tvossimulator-xcrun',
-              otp_arch: 'aarch64-apple-tvossimulator',
-              rust_target: 'aarch64-apple-tvos-sim',
-              rust_is_3rd_tier: true,
-            }
-          - {
-              id: 'tvos_sim_x86_64',
-              name: 'tvOS Simulator x86_64',
-              sdk: appletvsimulator,
-              arch: x86_64,
-              base_arch: tvos_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.x86_64',
-              openssl_arch: 'tvossimulator-x86_64-xcrun',
-              otp_arch: 'x86_64-apple-tvos',
-              rust_target: 'x86_64-apple-tvos',
-              rust_is_3rd_tier: true,
-            }
+          # - {
+          #     id: 'tvos',
+          #     name: 'tvOS',
+          #     sdk: appletvos,
+          #     arch: arm64,
+          #     base_arch: tvos,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
+          #     openssl_arch: 'tvos-xcrun',
+          #     otp_arch: 'aarch64-apple-tvos',
+          #     rust_target: 'aarch64-apple-tvos',
+          #     rust_is_3rd_tier: true,
+          #   }
+          # - {
+          #     id: 'tvos_sim_arm64',
+          #     name: 'tvOS Simulator arm64',
+          #     sdk: appletvsimulator,
+          #     arch: arm64,
+          #     base_arch: tvos_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.arm64',
+          #     openssl_arch: 'tvossimulator-xcrun',
+          #     otp_arch: 'aarch64-apple-tvossimulator',
+          #     rust_target: 'aarch64-apple-tvos-sim',
+          #     rust_is_3rd_tier: true,
+          #   }
+          # - {
+          #     id: 'tvos_sim_x86_64',
+          #     name: 'tvOS Simulator x86_64',
+          #     sdk: appletvsimulator,
+          #     arch: x86_64,
+          #     base_arch: tvos_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.x86_64',
+          #     openssl_arch: 'tvossimulator-x86_64-xcrun',
+          #     otp_arch: 'x86_64-apple-tvos',
+          #     rust_target: 'x86_64-apple-tvos',
+          #     rust_is_3rd_tier: true,
+          #   }
 
           - {
               id: 'visionos',
