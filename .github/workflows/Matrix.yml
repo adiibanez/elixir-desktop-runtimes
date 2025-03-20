@@ -601,6 +601,8 @@ jobs:
             if ! grep "${symbol_name}" "$log_file" | grep -E "${expected_type}" > /dev/null; then
               echo "Error: Symbol '$symbol_name' not found or has incorrect type.  See '$log_file' for details." >&2
               return 1 # Return failure status
+            else 
+              grep "${symbol_name}" "$log_file" | grep -E "${expected_type}"
             fi
 
             echo "Symbol '$symbol_name' found with expected type '$expected_type'."
