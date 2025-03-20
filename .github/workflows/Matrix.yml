@@ -515,7 +515,7 @@ jobs:
           echo "CARGO_MAKE_TOOLCHAIN=nightly" >> $GITHUB_ENV
 
       - name: Install Rust Nightly (Explicit Version)
-        if: ${{ env.IS_3RD_TIER_RUST_TARGET == 'false' }}
+        if: ${{ env.IS_3RD_TIER_RUST_TARGET == false }}
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{env.TOOLCHAIN}}
@@ -523,7 +523,7 @@ jobs:
           components: rust-src, llvm-tools-preview
 
       - name: Install Rust Nightly (Explicit Version) 3rd tier
-        if: ${{ env.IS_3RD_TIER_RUST_TARGET == 'true' }}
+        if: ${{ env.IS_3RD_TIER_RUST_TARGET == true }}
         shell: bash
         run: |
           rustup toolchain install nightly --target ${{matrix.platform.rust_target}} --profile minimal
