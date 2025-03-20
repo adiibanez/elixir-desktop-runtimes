@@ -90,63 +90,64 @@ jobs:
         os: [macos-latest]
         platform:
           # macos homebrew formula openssl setting: no-ssl3 no-ssl3-method no-zlib https://github.com/Homebrew/homebrew-core/blob/32afa4406358ffb6b9d68d47692561fc5cc63ef6/Formula/o/openssl@3.rb
-          - {
-              id: 'macos_arm64',
-              name: 'macOS arm64',
-              sdk: macosx,
-              arch: arm64,
-              base_arch: macos,
-              openssl_prefix: '_build/ios-openssl/build/openssl.macos.arm64',
-              openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
-              openssl_arch: 'darwin64-arm64',
-              otp_arch: 'aarch64-apple-darwin',
-              rust_target: 'aarch64-apple-darwin',
-            }
-          - {
-              id: 'macos_x86_64',
-              name: 'macOS x86_64',
-              sdk: macosx,
-              arch: x86_64,
-              base_arch: macos,
-              openssl_prefix: '_build/ios-openssl/build/openssl.macos.x86_64',
-              openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
-              openssl_arch: 'darwin64-x86_64',
-              otp_arch: 'x86_64-apple-darwin',
-              rust_target: 'x86_64-apple-darwin',
-            }
-          - {
-              id: 'ios',
-              name: 'iOS',
-              sdk: iphoneos,
-              arch: arm64,
-              base_arch: ios,
-              openssl_prefix: '_build/ios-openssl/build/openssl.ios',
-              openssl_arch: 'ios64-xcrun',
-              otp_arch: 'aarch64-apple-ios',
-              rust_target: 'aarch64-apple-ios',
-            }
-          - {
-              id: 'ios_sim_arm64',
-              name: 'iOS Simulator arm64',
-              sdk: iphonesimulator,
-              arch: arm64,
-              base_arch: ios_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
-              openssl_arch: 'iossimulator-arm64-xcrun',
-              otp_arch: 'aarch64-apple-iossimulator',
-              rust_target: 'aarch64-apple-ios-sim',
-            }
-          - {
-              id: 'ios_sim_x86_64',
-              name: 'iOS Simulator x86_64',
-              sdk: iphonesimulator,
-              arch: x86_64,
-              base_arch: ios_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.iossim.x86_64',
-              openssl_arch: 'iossimulator-x86_64-xcrun',
-              otp_arch: 'x86_64-apple-iossimulator',
-              rust_target: 'x86_64-apple-ios',
-            }
+          # - {
+          #     id: 'macos_arm64',
+          #     name: 'macOS arm64',
+          #     sdk: macosx,
+          #     arch: arm64,
+          #     base_arch: macos,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.macos.arm64',
+          #     openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
+          #     openssl_arch: 'darwin64-arm64',
+          #     otp_arch: 'aarch64-apple-darwin',
+          #     rust_target: 'aarch64-apple-darwin',
+          #   }
+          # - {
+          #     id: 'macos_x86_64',
+          #     name: 'macOS x86_64',
+          #     sdk: macosx,
+          #     arch: x86_64,
+          #     base_arch: macos,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.macos.x86_64',
+          #     openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
+          #     openssl_arch: 'darwin64-x86_64',
+          #     otp_arch: 'x86_64-apple-darwin',
+          #     rust_target: 'x86_64-apple-darwin',
+          #   }
+          # - {
+          #     id: 'ios',
+          #     name: 'iOS',
+          #     sdk: iphoneos,
+          #     arch: arm64,
+          #     base_arch: ios,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.ios',
+          #     openssl_arch: 'ios64-xcrun',
+          #     otp_arch: 'aarch64-apple-ios',
+          #     rust_target: 'aarch64-apple-ios',
+          #   }
+          # - {
+          #     id: 'ios_sim_arm64',
+          #     name: 'iOS Simulator arm64',
+          #     sdk: iphonesimulator,
+          #     arch: arm64,
+          #     base_arch: ios_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
+          #     openssl_arch: 'iossimulator-arm64-xcrun',
+          #     otp_arch: 'aarch64-apple-iossimulator',
+          #     rust_target: 'aarch64-apple-ios-sim',
+          #   }
+          # - {
+          #     id: 'ios_sim_x86_64',
+          #     name: 'iOS Simulator x86_64',
+          #     sdk: iphonesimulator,
+          #     arch: x86_64,
+          #     base_arch: ios_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.iossim.x86_64',
+          #     openssl_arch: 'iossimulator-x86_64-xcrun',
+          #     otp_arch: 'x86_64-apple-iossimulator',
+          #     rust_target: 'x86_64-apple-ios',
+          #   }
+
           # - {
           #     id: 'watchos',
           #     name: 'watchOS',
@@ -212,30 +213,35 @@ jobs:
               openssl_prefix: '_build/ios-openssl/build/openssl.xros',
               openssl_arch: 'xros-xcrun',
               otp_arch: 'aarch64-apple-visionos',
-              rust_target: 'aarch64-apple-visionos',
-              rust_is_3rd_tier: true,
+              #rust_target: 'aarch64-apple-visionos',
+              rust_target: 'aarch64-apple-ios',
+              # rust_is_3rd_tier: true,
             }
-          # - {
-          #     id: 'visionos_sim_arm64',
-          #     name: 'visionOS Simulator arm64',
-          #     sdk: xrsimulator,
-          #     arch: arm64,
-          #     base_arch: xrossim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
-          #     openssl_arch: 'xrossimulator-xcrun',
-          #     otp_arch: 'aarch64-apple-visionos-sim',
-          #     rust_target: 'aarch64-apple-visionos-sim',
-          #   }
-          # - {
-          #     id: 'visionos_sim_x86_64',
-          #     name: 'visionOS Simulator x86_64',
-          #     sdk: xrsimulator,
-          #     arch: x86_64,
-          #     base_arch: xrossim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
-          #     openssl_arch: 'xrossimulator-xcrun',
-          #     otp_arch: 'x86_64-apple-ios',
-          #   }
+          - {
+              id: 'visionos_sim_arm64',
+              name: 'visionOS Simulator arm64',
+              sdk: xrsimulator,
+              arch: arm64,
+              base_arch: xrossim,
+              openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
+              openssl_arch: 'xrossimulator-xcrun',
+              otp_arch: 'aarch64-apple-visionos-sim',
+              # rust_target: 'aarch64-apple-visionos-sim',
+              rust_target: 'aarch64-apple-ios',
+              # rust_is_3rd_tier: true,
+            }
+          - {
+              id: 'visionos_sim_x86_64',
+              name: 'visionOS Simulator x86_64',
+              sdk: xrsimulator,
+              arch: x86_64,
+              base_arch: xrossim,
+              openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
+              openssl_arch: 'xrossimulator-xcrun',
+              otp_arch: 'x86_64-apple-visionos',
+              rust_target: 'aarch64-apple-ios',
+              # rust_is_3rd_tier: true,
+            }
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -523,6 +529,7 @@ jobs:
         with:
           toolchain: ${{ env.TOOLCHAIN }}
           targets: ${{ matrix.platform.rust_target }}
+          # llvm-tools-preview stuff is essential, breaks the build otherwise
           components: rust-src, llvm-tools-preview
 
       - name: Install Rust Nightly (Explicit Version) 3rd tier
