@@ -677,6 +677,7 @@ jobs:
             CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
 
             if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
+              echo "CARGO_CMD using -Zbuild-std"
               CARGO_CMD="cargo rustc -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
             fi
 
@@ -751,15 +752,20 @@ jobs:
             "static-no-precompiled" \
             "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
+
+            echo LINK_NIF_LIBS="$LINK_NIF_LIBS -lbtleplug_client " >> $GITHUB_ENV
+
           debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
           # https://github.com/bytecodealliance/rustix/issues/1424
-          if [[ "${{ env.IS_3RD_TIER_TARGET }}" != "true" ]]; then
+          if [[ -z $IS_3RD_TIER_TARGET ]]; then
             build_rustler_lib \
               "wasmex" \
               "wasmex" \
               "https://github.com/adiibanez/wasmex.git" \
               "static-no-precompiled"
+
+              echo LINK_NIF_LIBS="$LINK_NIF_LIBS -lwasmex" >> $GITHUB_ENV
 
             debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
           fi
@@ -887,7 +893,7 @@ jobs:
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -lbtleplug_client -lwasmex -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs $LINK_NIF_LIBS -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
