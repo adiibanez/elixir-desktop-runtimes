@@ -720,8 +720,8 @@ jobs:
                 RUSTFLAGS="$RUSTFLAGS" \
                 $CARGO_CMD
               else 
-                CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib"
-                RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib"
+                CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort"
+                RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
                 
                 echo "CARGO_CMD: $CARGO_CMD"
                 echo "RUSTFLAGS: $RUSTFLAGS"
