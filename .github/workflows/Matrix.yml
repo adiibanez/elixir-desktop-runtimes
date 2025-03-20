@@ -563,293 +563,293 @@ jobs:
           path: ${{ env.CARGO_CACHE_PATH }}
           key: cargo-${{ github.workflow }}-${{ github.job }}-${{runner.os}}-${{runner.arch}}
 
-  #     - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
-  #       # if: false
-  #       id: build-nifs
-  #       shell: bash
-  #       env:
-  #         RUSTLER_BTLEPLUG_BUILD: 1
-  #         WASMEX_BUILD: 1
-  #       run: |
+      - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+        # if: false
+        id: build-nifs
+        shell: bash
+        env:
+          RUSTLER_BTLEPLUG_BUILD: 1
+          WASMEX_BUILD: 1
+        run: |
 
-  #         echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
-  #         export MK_FILE=`find _build/otp_builder/erts/ -name "vsn.mk"`
-  #         export ERTS_VERSION="`sed -nE 's/VSN *= *([0-9.]+)/\1/p' $MK_FILE`"
-  #         export STATIC_ERLANG_NIF="yes"
-  #         export ERLANG_PATH="_build/otp_builder/release/${{matrix.platform.otp_arch}}/include"
-  #         export ERTS_INCLUDE_DIR="_build/otp_builder/release/${{matrix.platform.otp_arch}}/erts-$ERTS_VERSION/include"
-  #         export SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path`
-  #         export CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch ${{ matrix.platform.arch }}"
-  #         export CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++"
-  #         export LD="xcrun -sdk ${{ matrix.platform.sdk }} ld"
-  #         export LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v"
-  #         export DED_LD=$LD
-  #         export DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v"
-  #         export RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib"
-  #         export AR="xcrun -sdk ${{ matrix.platform.sdk }} ar"
-  #         export ARCH=${{ matrix.platform.arch }}
-  #         export MAKEFLAGS="-j10 -O"
-  #         export OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}
+          echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
+          export MK_FILE=`find _build/otp_builder/erts/ -name "vsn.mk"`
+          export ERTS_VERSION="`sed -nE 's/VSN *= *([0-9.]+)/\1/p' $MK_FILE`"
+          export STATIC_ERLANG_NIF="yes"
+          export ERLANG_PATH="_build/otp_builder/release/${{matrix.platform.otp_arch}}/include"
+          export ERTS_INCLUDE_DIR="_build/otp_builder/release/${{matrix.platform.otp_arch}}/erts-$ERTS_VERSION/include"
+          export SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path`
+          export CC="xcrun -sdk ${{ matrix.platform.sdk }} cc -arch ${{ matrix.platform.arch }}"
+          export CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++"
+          export LD="xcrun -sdk ${{ matrix.platform.sdk }} ld"
+          export LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v"
+          export DED_LD=$LD
+          export DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v"
+          export RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib"
+          export AR="xcrun -sdk ${{ matrix.platform.sdk }} ar"
+          export ARCH=${{ matrix.platform.arch }}
+          export MAKEFLAGS="-j10 -O"
+          export OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}
 
-  #         check_symbol() {
-  #           local lib_path="$1"
-  #           local symbol_name="$2"
-  #           local expected_type="$3"
-  #           local log_file="$4"
+          check_symbol() {
+            local lib_path="$1"
+            local symbol_name="$2"
+            local expected_type="$3"
+            local log_file="$4"
 
-  #           echo "Checking for symbol '$symbol_name' (expecting type '$expected_type') in '$lib_path'..."
+            echo "Checking for symbol '$symbol_name' (expecting type '$expected_type') in '$lib_path'..."
 
-  #           # if ! xcrun nm "$lib_path" &> "$log_file"; then
-  #           #     echo "Error: 'xcrun nm' command failed.  See '$log_file' for details." >&2
-  #           #     return 1  # Return failure status
-  #           # fi
-  #           nm $LIB_PATH &> "$log_file"
+            # if ! xcrun nm "$lib_path" &> "$log_file"; then
+            #     echo "Error: 'xcrun nm' command failed.  See '$log_file' for details." >&2
+            #     return 1  # Return failure status
+            # fi
+            nm $LIB_PATH &> "$log_file"
 
-  #           if ! grep "${symbol_name}" "$log_file" | grep -E "${expected_type}" > /dev/null; then
-  #             echo "Error: Symbol '$symbol_name' not found or has incorrect type.  See '$log_file' for details." >&2
-  #             return 1 # Return failure status
-  #           else
-  #             grep "${symbol_name}" "$log_file" | grep -E "${expected_type}"
-  #           fi
+            if ! grep "${symbol_name}" "$log_file" | grep -E "${expected_type}" > /dev/null; then
+              echo "Error: Symbol '$symbol_name' not found or has incorrect type.  See '$log_file' for details." >&2
+              return 1 # Return failure status
+            else
+              grep "${symbol_name}" "$log_file" | grep -E "${expected_type}"
+            fi
 
-  #           echo "Symbol '$symbol_name' found with expected type '$expected_type'."
-  #           return 0  # Return success status
-  #         }
+            echo "Symbol '$symbol_name' found with expected type '$expected_type'."
+            return 0  # Return success status
+          }
 
-  #         debug_lib()
-  #         {
-  #           LIB_NAME="$1"
-  #           LIB_PATH="$2"
-  #           if [[ -f $LIB_PATH ]]; then
-  #             file $LIB_PATH
-  #             lipo -info $LIB_PATH
-  #             # ar -t $LIB_PATH
+          debug_lib()
+          {
+            LIB_NAME="$1"
+            LIB_PATH="$2"
+            if [[ -f $LIB_PATH ]]; then
+              file $LIB_PATH
+              lipo -info $LIB_PATH
+              # ar -t $LIB_PATH
 
-  #             # nm $LIB_PATH > lib-$LIB_NAME-symbols.log 2> /dev/null || 1
+              # nm $LIB_PATH > lib-$LIB_NAME-symbols.log 2> /dev/null || 1
 
-  #             if ! check_symbol "$LIB_PATH" "_${LIB_NAME}_nif_init" "T |U " "debug_lib_stderr_1.log"; then
-  #               # Check for any nif_init as a fallback
-  #               if ! check_symbol "$LIB_PATH" "_nif_init" "T |U " "debug_lib_stderr_2.log"; then
-  #                 exit 1
-  #               fi
-  #             fi
+              if ! check_symbol "$LIB_PATH" "_${LIB_NAME}_nif_init" "T |U " "debug_lib_stderr_1.log"; then
+                # Check for any nif_init as a fallback
+                if ! check_symbol "$LIB_PATH" "_nif_init" "T |U " "debug_lib_stderr_2.log"; then
+                  exit 1
+                fi
+              fi
 
-  #           else
-  #             echo "LIB $LIB_NAME $LIB_PATH doesn't exist"
-  #             echo "LIB $LIB_NAME $LIB_PATH doesn't exist" >> debug_lib.log
-  #             find ${{github.workspace}}/_build/nifs -name "*.a" >> debug_lib.log
-  #             find ${{github.workspace}}/_build/nifs -name "*.a" -exec ls -lah {} \; >> debug_lib.log
-  #             exit 1
-  #           fi
-  #         }
+            else
+              echo "LIB $LIB_NAME $LIB_PATH doesn't exist"
+              echo "LIB $LIB_NAME $LIB_PATH doesn't exist" >> debug_lib.log
+              find ${{github.workspace}}/_build/nifs -name "*.a" >> debug_lib.log
+              find ${{github.workspace}}/_build/nifs -name "*.a" -exec ls -lah {} \; >> debug_lib.log
+              exit 1
+            fi
+          }
 
-  #         FIRST_RUSTLER_BUILT=0
+          FIRST_RUSTLER_BUILT=0
 
-  #         build_rustler_lib()
-  #         {
-  #           LIBNAME=$1
-  #           NATIVE_NAME=$2
-  #           GIT_REPO=$3
-  #           GIT_REF=$4
-  #           CUSTOM_LDFLAGS="$5"
+          build_rustler_lib()
+          {
+            LIBNAME=$1
+            NATIVE_NAME=$2
+            GIT_REPO=$3
+            GIT_REF=$4
+            CUSTOM_LDFLAGS="$5"
 
-  #           echo "LIBNAME: $LIBNAME"
-  #           echo "NATIVE_NAME: $NATIVE_NAME"
-  #           echo "GIT_REPO: $GIT_REPO"
-  #           echo "GIT_REF: $GIT_REF"
-  #           echo "CUSTOM_LDFLAGS: $CUSTOM_LDFLAGS"
+            echo "LIBNAME: $LIBNAME"
+            echo "NATIVE_NAME: $NATIVE_NAME"
+            echo "GIT_REPO: $GIT_REPO"
+            echo "GIT_REF: $GIT_REF"
+            echo "CUSTOM_LDFLAGS: $CUSTOM_LDFLAGS"
 
-  #           cd ${{github.workspace}}
+            cd ${{github.workspace}}
 
-  #           #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
-  #           # -C lto=fat -C embed-bitcode=yes filesize 26MB!
-  #           # -C lto=thin -C embed-bitcode=yes
-  #           # -C codegen-units=1 this disables lto: https://doc.rust-lang.org/rustc/codegen-options/index.html#lto
+            #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
+            # -C lto=fat -C embed-bitcode=yes filesize 26MB!
+            # -C lto=thin -C embed-bitcode=yes
+            # -C codegen-units=1 this disables lto: https://doc.rust-lang.org/rustc/codegen-options/index.html#lto
 
-  #           # release profile
-  #           # debug = false
-  #           # split-debuginfo = '...'  # Platform-specific.
-  #           # strip = "none"
-  #           # debug-assertions = false
-  #           # overflow-checks = false
-  #           # lto = false
-  #           # panic = 'unwind'
-  #           # incremental = false
-  #           # codegen-units = 16
-  #           # rpath = false
+            # release profile
+            # debug = false
+            # split-debuginfo = '...'  # Platform-specific.
+            # strip = "none"
+            # debug-assertions = false
+            # overflow-checks = false
+            # lto = false
+            # panic = 'unwind'
+            # incremental = false
+            # codegen-units = 16
+            # rpath = false
 
-  #           CARGO_OPTIMIZATION_FLAGS="-C debuginfo=0 -C lto=off -C embed-bitcode=no -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
-  #           # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
-  #           # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            CARGO_OPTIMIZATION_FLAGS="-C debuginfo=0 -C lto=off -C embed-bitcode=no -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
-  #           rustup target add ${{matrix.platform.rust_target}}
-  #           # https://github.com/rust-lang/rust/issues/44322
-  #           # CARGO_CMD="cargo +${{env.TOOLCHAIN}} rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C target-feature=-crt-static -C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
-  #           #CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --release --features rustler/staticlib -- -C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
-  #           CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
+            rustup target add ${{matrix.platform.rust_target}}
+            # https://github.com/rust-lang/rust/issues/44322
+            # CARGO_CMD="cargo +${{env.TOOLCHAIN}} rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C target-feature=-crt-static -C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            #CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --release --features rustler/staticlib -- -C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
 
-  #           if [[ "${{ env.IS_3RD_TIER_RUST_TARGET }}" == true ]]; then
-  #             echo "CARGO_CMD using -Zbuild-std"
-  #             CARGO_CMD="cargo +nightly rustc -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
-  #           fi
+            if [[ "${{ env.IS_3RD_TIER_RUST_TARGET }}" == true ]]; then
+              echo "CARGO_CMD using -Zbuild-std"
+              CARGO_CMD="cargo +nightly rustc -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
+            fi
 
-  #           #export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
-  #           #export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
+            #export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
+            #export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
 
-  #           # if [[ $FIRST_RUSTLER_BUILT == 1 ]]; then
-  #           #   export CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort"
-  #           #   export RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
-  #           # fi
+            # if [[ $FIRST_RUSTLER_BUILT == 1 ]]; then
+            #   export CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort"
+            #   export RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
+            # fi
 
-  #           #RUSTFLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            #RUSTFLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
-  #           git clone --depth 1 $GIT_REPO --branch $GIT_REF
-  #           cd $LIBNAME
-  #           if [[ -d "native/$NATIVE_NAME" ]]; then
-  #             cd native/$NATIVE_NAME
+            git clone --depth 1 $GIT_REPO --branch $GIT_REF
+            cd $LIBNAME
+            if [[ -d "native/$NATIVE_NAME" ]]; then
+              cd native/$NATIVE_NAME
 
-  #             # :/ back tracking on rust version due to xcode LLVM 15
-  #             rm -f Cargo.lock
-  #             cargo clean
+              # :/ back tracking on rust version due to xcode LLVM 15
+              rm -f Cargo.lock
+              cargo clean
 
-  #             RUSTFLAGS="$CARGO_OPTIMIZATION_FLAGS"
+              RUSTFLAGS="$CARGO_OPTIMIZATION_FLAGS"
 
-  #             #RUSTFLAGS="$RUSTFLAGS -C lto=fat -C embed-bitcode=yes" \
-  #             if [[ $FIRST_RUSTLER_BUILT == 0 ]]; then
-  #               echo "CARGO_CMD: $CARGO_CMD"
-  #               echo "RUSTFLAGS: $RUSTFLAGS"
-  #               echo "LDFLAGS: $CUSTOM_LDFLAGS"
+              #RUSTFLAGS="$RUSTFLAGS -C lto=fat -C embed-bitcode=yes" \
+              if [[ $FIRST_RUSTLER_BUILT == 0 ]]; then
+                echo "CARGO_CMD: $CARGO_CMD"
+                echo "RUSTFLAGS: $RUSTFLAGS"
+                echo "LDFLAGS: $CUSTOM_LDFLAGS"
 
-  #               LDFLAGS="$CUSTOM_LDFLAGS" \
-  #               RUSTFLAGS="$RUSTFLAGS" \
-  #               $CARGO_CMD
-  #             else
-  #               CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort"
-  #               RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
+                LDFLAGS="$CUSTOM_LDFLAGS" \
+                RUSTFLAGS="$RUSTFLAGS" \
+                $CARGO_CMD
+              else
+                CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort"
+                RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
 
-  #               echo "CARGO_CMD: $CARGO_CMD"
-  #               echo "RUSTFLAGS: $RUSTFLAGS"
-  #               echo "LDFLAGS: $CUSTOM_LDFLAGS"
+                echo "CARGO_CMD: $CARGO_CMD"
+                echo "RUSTFLAGS: $RUSTFLAGS"
+                echo "LDFLAGS: $CUSTOM_LDFLAGS"
 
-  #               LDFLAGS="$CUSTOM_LDFLAGS" \
-  #               RUSTFLAGS="$RUSTFLAGS" \
-  #               $CARGO_CMD
-  #             fi
+                LDFLAGS="$CUSTOM_LDFLAGS" \
+                RUSTFLAGS="$RUSTFLAGS" \
+                $CARGO_CMD
+              fi
 
-  #             LIB_NAME=`find . -name "*.a" | head -1`
-  #             # debug_lib $LIB_NAME
-  #             cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
-  #           else
-  #             echo "native/$NATIVE_NAME doesn't exist, abort building $LIBNAME"
-  #           fi
+              LIB_NAME=`find . -name "*.a" | head -1`
+              # debug_lib $LIB_NAME
+              cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
+            else
+              echo "native/$NATIVE_NAME doesn't exist, abort building $LIBNAME"
+            fi
 
-  #           if [[ $FIRST_RUSTLER_BUILT = 0 ]]; then
-  #             FIRST_RUSTLER_BUILT=1
-  #           fi
+            if [[ $FIRST_RUSTLER_BUILT = 0 ]]; then
+              FIRST_RUSTLER_BUILT=1
+            fi
 
-  #           cd ${{github.workspace}}
-  #         }
+            cd ${{github.workspace}}
+          }
 
-  #         # export CFLAGS="-fno-common -Os -D__IOS__=yes"
+          # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
-  #         mkdir -p _build/nifs/
+          mkdir -p _build/nifs/
 
-  #         # -L${OPENSSL_PREFIX}/lib -lcrypto
-  #         # -L${{github.workspace}}/_build/nifs
+          # -L${OPENSSL_PREFIX}/lib -lcrypto
+          # -L${{github.workspace}}/_build/nifs
 
-  #         build_rustler_lib \
-  #           "rustler_btleplug" \
-  #           "btleplug_client" \
-  #           "https://github.com/adiibanez/rustler_btleplug.git" \
-  #           "static-no-precompiled" \
-  #           "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
+          build_rustler_lib \
+            "rustler_btleplug" \
+            "btleplug_client" \
+            "https://github.com/adiibanez/rustler_btleplug.git" \
+            "static-no-precompiled" \
+            "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
-  #           echo LINK_NIF_LIBS="$LINK_NIF_LIBS -lbtleplug_client " >> $GITHUB_ENV
+            echo LINK_NIF_LIBS="$LINK_NIF_LIBS -lbtleplug_client " >> $GITHUB_ENV
 
-  #         debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
+          debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
-  #         # https://github.com/bytecodealliance/rustix/issues/1424
-  #         if [[ "${{ matrix.platform.rust_is_3rd_tier }}" == "true" ]]; then
-  #           build_rustler_lib \
-  #             "wasmex" \
-  #             "wasmex" \
-  #             "https://github.com/adiibanez/wasmex.git" \
-  #             "static-no-precompiled"
+          # https://github.com/bytecodealliance/rustix/issues/1424
+          if [[ "${{ matrix.platform.rust_is_3rd_tier }}" == "true" ]]; then
+            build_rustler_lib \
+              "wasmex" \
+              "wasmex" \
+              "https://github.com/adiibanez/wasmex.git" \
+              "static-no-precompiled"
 
-  #             echo LINK_NIF_LIBS="$LINK_NIF_LIBS -lwasmex" >> $GITHUB_ENV
+              echo LINK_NIF_LIBS="$LINK_NIF_LIBS -lwasmex" >> $GITHUB_ENV
 
-  #           debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
-  #         fi
+            debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
+          fi
 
-  #         # https://github.com/elixir-desktop/exqlite.git
-  #         git clone --depth 1 https://github.com/elixir-sqlite/exqlite
-  #         cd exqlite
-  #         mix deps.get
-  #         mix release
-  #         LIB_NAME=`find . -name "*.a" | head -1`
-  #         lipo -info $LIB_NAME
-  #         cp $LIB_NAME ${{github.workspace}}/_build/nifs/
-  #         cd ${{github.workspace}}
+          # https://github.com/elixir-desktop/exqlite.git
+          git clone --depth 1 https://github.com/elixir-sqlite/exqlite
+          cd exqlite
+          mix deps.get
+          mix release
+          LIB_NAME=`find . -name "*.a" | head -1`
+          lipo -info $LIB_NAME
+          cp $LIB_NAME ${{github.workspace}}/_build/nifs/
+          cd ${{github.workspace}}
 
-  #         debug_lib "sqlite3_nif" "${{github.workspace}}/_build/nifs/sqlite3_nif.a"
+          debug_lib "sqlite3_nif" "${{github.workspace}}/_build/nifs/sqlite3_nif.a"
 
-  #         # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
-  #         # cd libsecp256k1
-  #         # mix deps.get
-  #         # mix release
-  #         # cd ${{github.workspace}}/_build/nifs/
+          # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
+          # cd libsecp256k1
+          # mix deps.get
+          # mix release
+          # cd ${{github.workspace}}/_build/nifs/
 
-  #         # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
-  #         # cd explorer
-  #         # mix deps.get
-  #         # mix release
-  #         # cd ${{github.workspace}}/_build/nifs/
+          # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
+          # cd explorer
+          # mix deps.get
+          # mix release
+          # cd ${{github.workspace}}/_build/nifs/
 
-  #         cd ${{github.workspace}}
+          cd ${{github.workspace}}
 
-  #         find _build/nifs -type f -name "*.a" || 1
+          find _build/nifs -type f -name "*.a" || 1
 
-  #     # - name: Upload Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}} ELX-${{matrix.erlixir.elixir-version}}
-  #     #   uses: actions/upload-artifact@v4
-  #     #   with:
-  #     #     name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-nifs
-  #     #     path: |
-  #     #       _build/nifs/**/**.a
+      # - name: Upload Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}} ELX-${{matrix.erlixir.elixir-version}}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-nifs
+      #     path: |
+      #       _build/nifs/**/**.a
 
-  #     - name: Upload debug Artifact for Round 2 build
-  #       continue-on-error: true
-  #       if: always() && steps.build-nifs.outcome != 'success'
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: debug-build-nifs-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.sha}}
-  #         path: |
-  #           **/*.log
+      - name: Upload debug Artifact for Round 2 build
+        continue-on-error: true
+        if: always() && steps.build-nifs.outcome != 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-build-nifs-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.sha}}
+          path: |
+            **/*.log
 
-  #     - name: Verify nif libs
-  #       continue-on-error: true
-  #       shell: bash
-  #       run: |
-  #         cd _build/nifs
+      - name: Verify nif libs
+        continue-on-error: true
+        shell: bash
+        run: |
+          cd _build/nifs
 
-  #         # nm ../elixir-desktop-ios-example-app/liberlang.xcframework/ios-arm64/liberlang.a | grep _client_nif_init
+          # nm ../elixir-desktop-ios-example-app/liberlang.xcframework/ios-arm64/liberlang.a | grep _client_nif_init
 
-  #         find ~+ -type f -name "*.a" -exec ls -lah {} \;
-  #         find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }'
-  #         NIF_LIBS=$(find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }')
-  #         echo $NIF_LIBS
+          find ~+ -type f -name "*.a" -exec ls -lah {} \;
+          find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }'
+          NIF_LIBS=$(find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }')
+          echo $NIF_LIBS
 
-  #     - name: Strip nif libs
-  #       continue-on-error: true
-  #       shell: bash
-  #       run: |
-  #         cd _build/nifs
-  #         find ~+ -type f -name "*.a" -exec ls -lah {} \;
+      - name: Strip nif libs
+        continue-on-error: true
+        shell: bash
+        run: |
+          cd _build/nifs
+          find ~+ -type f -name "*.a" -exec ls -lah {} \;
 
-  #         if [[ "${{env.ENABLE_STRIPPING_NIFS}}" == "true" ]]; then
-  #           echo "Nif stripping enabled"
-  #           find ~+ -type f -name "*.a" -exec $STRIP_CMD {} \;
-  #           find ~+ -type f -name "*.a" -exec ls -lah {} \;
-  #         fi
+          if [[ "${{env.ENABLE_STRIPPING_NIFS}}" == "true" ]]; then
+            echo "Nif stripping enabled"
+            find ~+ -type f -name "*.a" -exec $STRIP_CMD {} \;
+            find ~+ -type f -name "*.a" -exec ls -lah {} \;
+          fi
 
   #     - name: Build OTP Round 2
   #       id: otp-setup-round2
