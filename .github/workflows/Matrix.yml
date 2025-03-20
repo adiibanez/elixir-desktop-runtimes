@@ -993,9 +993,9 @@ jobs:
             rm -rf temp_objects
 
             # Compare the sizes:
-            ls -lh liberlang.a liberlang_repacked.a
+            ls -lh liberlang_repacked.a
 
-            mv liberlang_repacked.a liberlang.a
+            mv liberlang_repacked.a $OUTPUT_LIB
 
             AFTER_STRIPPING=`ls -lah $OUTPUT_LIB | awk '{print $5}'`
             echo "Stripping: $OUTPUT_LIB before: $BEFORE_STRIPPING, after: $AFTER_STRIPPING"
