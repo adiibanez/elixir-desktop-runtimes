@@ -176,7 +176,7 @@ jobs:
               base_arch: tvos,
               openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
               openssl_arch: 'tvos-xcrun',
-              otp_arch: 'aarch64-apple-tvos',
+              otp_arch: 'aarch64-apple-ios-tvos',
               rust_target: 'aarch64-apple-tvos',
             }
           # - {
@@ -211,7 +211,7 @@ jobs:
               base_arch: xros,
               openssl_prefix: '_build/ios-openssl/build/openssl.xros',
               openssl_arch: 'xros-xcrun',
-              otp_arch: 'aarch64-apple-visionos',
+              otp_arch: 'aarch64-apple-ios-visionos',
               rust_target: 'aarch64-apple-visionos',
             }
           # - {
