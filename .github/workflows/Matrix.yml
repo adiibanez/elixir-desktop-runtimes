@@ -213,6 +213,7 @@ jobs:
               openssl_arch: 'xros-xcrun',
               otp_arch: 'aarch64-apple-visionos',
               rust_target: 'aarch64-apple-visionos',
+              rust_is_3rd_tier: true,
             }
           # - {
           #     id: 'visionos_sim_arm64',
@@ -507,7 +508,8 @@ jobs:
           path: '**/*.log'
 
       - name: Set 3rd tier rust target flag
-        if: ${{ contains(matrix.platform.rust_target, 'tvos') || contains(matrix.platform.rust_target, 'xros') }}
+        #if: ${{ contains(matrix.platform.rust_target, 'tvos') || contains(matrix.platform.rust_target, 'xros') }}
+        if: ${{ matrix.platform.rust_is_3rd_tier == true }}
         shell: bash
         run: |
           echo "IS_3RD_TIER_RUST_TARGET=true" >> $GITHUB_ENV
@@ -515,7 +517,8 @@ jobs:
           echo "CARGO_MAKE_TOOLCHAIN=nightly" >> $GITHUB_ENV
 
       - name: Install Rust Nightly (Explicit Version)
-        if: ${{ env.IS_3RD_TIER_RUST_TARGET == false }}
+        # if: ${{ env.IS_3RD_TIER_RUST_TARGET == false }}
+        if: ${{ matrix.platform.rust_is_3rd_tier != true }}
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.TOOLCHAIN }}
@@ -523,7 +526,8 @@ jobs:
           components: rust-src, llvm-tools-preview
 
       - name: Install Rust Nightly (Explicit Version) 3rd tier
-        if: ${{ env.IS_3RD_TIER_RUST_TARGET == true }}
+        #if: ${{ env.IS_3RD_TIER_RUST_TARGET == true }}
+        if: ${{ matrix.platform.rust_is_3rd_tier == true }}
         shell: bash
         run: |
           rustup toolchain install nightly --target ${{ matrix.platform.rust_target }} --profile minimal
@@ -685,7 +689,7 @@ jobs:
             #CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --release --features rustler/staticlib -- -C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
 
-            if [[ "${{ env.IS_3RD_TIER_RUST_TARGET }}" == "true" ]]; then
+            if [[ "${{ env.IS_3RD_TIER_RUST_TARGET }}" == true ]]; then
               echo "CARGO_CMD using -Zbuild-std"
               CARGO_CMD="cargo rustc -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
             fi
@@ -894,6 +898,8 @@ jobs:
           ls -l $(xcrun --sdk iphoneos --show-sdk-path)/usr/lib/libobjc.tbd
 
           # funky business: -Wl,--allow-multiple-definition 
+
+          echo "LINK_NIF_LIBS: $LINK_NIF_LIBS"
 
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
