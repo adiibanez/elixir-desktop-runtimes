@@ -12,7 +12,8 @@ env:
   TOOLCHAIN: nightly-2025-01-01 # 1.85.0
   CARGO_MAKE_TOOLCHAIN: nightly-2025-01-01
   ENABLE_STRIPPING: true
-  STRIP_CMD: 'strip -x'
+  ENABLE_STRIPPING_NIFS: false
+  STRIP_CMD: 'xcrun strip -x'
   # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
   CARGO_CACHE_PATH: |
     ~/.cargo/.crates.toml
@@ -31,6 +32,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - name: Cache ASDF and Toolchains
         uses: actions/cache@v4
@@ -608,7 +613,7 @@ jobs:
 
 
             #OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
-            OPTIMIZATION_FLAGS="-C lto=off -C embed-bitcode=no"
+            OPTIMIZATION_FLAGS="-C lto=off -C embed-bitcode=no -Clinker=rust-lld"
 
             #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
             # -C lto=fat -C embed-bitcode=yes filesize 26MB!
@@ -741,7 +746,7 @@ jobs:
           cd _build/nifs
           find ~+ -type f -name "*.a" -exec ls -lah {} \;
 
-          if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+          if [[ "$ENABLE_STRIPPING_NIFS" == "true" ]]; then
             find ~+ -type f -name "*.a" -exec $STRIP_CMD {} \;
             find ~+ -type f -name "*.a" -exec ls -lah {} \;
           fi
