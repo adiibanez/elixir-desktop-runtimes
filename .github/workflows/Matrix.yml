@@ -701,6 +701,15 @@ jobs:
           # -L${OPENSSL_PREFIX}/lib -lcrypto 
           # -L${{github.workspace}}/_build/nifs 
 
+
+          build_rustler_lib \
+            "wasmex" \
+            "wasmex" \
+            "https://github.com/adiibanez/wasmex.git" \
+            "static-no-precompiled"
+
+          debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
+
           build_rustler_lib \
             "rustler_btleplug" \
             "btleplug_client" \
@@ -714,14 +723,6 @@ jobs:
           # -rw-r--r--  1 runner  staff    97M Mar 20 00:26 /Users/runner/work/elixir-desktop-runtimes/elixir-desktop-runtimes/_build/nifs/libbtleplug_client.a
 
           debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
-
-          build_rustler_lib \
-            "wasmex" \
-            "wasmex" \
-            "https://github.com/adiibanez/wasmex.git" \
-            "static-no-precompiled"
-
-          debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
 
           # https://github.com/elixir-desktop/exqlite.git
           git clone --depth 1 https://github.com/elixir-sqlite/exqlite
