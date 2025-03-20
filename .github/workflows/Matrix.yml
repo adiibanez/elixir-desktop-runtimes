@@ -168,17 +168,17 @@ jobs:
           #     otp_arch: 'aarch64-apple-ios',
           #     rust_target: 'aarch64-apple-watchos-sim',
           #   }
-          # - {
-          #     id: 'tvos',
-          #     name: 'tvOS',
-          #     sdk: appletvos,
-          #     arch: arm64,
-          #     base_arch: tvos,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
-          #     openssl_arch: 'tvos-xcrun',
-          #     otp_arch: 'aarch64-apple-tvos',
-          #     rust_target: 'aarch64-apple-tvos',
-          #   }
+          - {
+              id: 'tvos',
+              name: 'tvOS',
+              sdk: appletvos,
+              arch: arm64,
+              base_arch: tvos,
+              openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
+              openssl_arch: 'tvos-xcrun',
+              otp_arch: 'aarch64-apple-tvos',
+              rust_target: 'aarch64-apple-tvos',
+            }
           # - {
           #     id: 'tvos_sim_arm64',
           #     name: 'tvOS Simulator arm64',
@@ -203,17 +203,17 @@ jobs:
           #   }
           # # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
           # # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {
-          #     id: 'visionos',
-          #     name: 'visionOS',
-          #     sdk: xros,
-          #     arch: arm64,
-          #     base_arch: xros,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.xros',
-          #     openssl_arch: 'xros-xcrun',
-          #     otp_arch: 'aarch64-apple-visionos',
-          #     rust_target: 'aarch64-apple-visionos',
-          #   }
+          - {
+              id: 'visionos',
+              name: 'visionOS',
+              sdk: xros,
+              arch: arm64,
+              base_arch: xros,
+              openssl_prefix: '_build/ios-openssl/build/openssl.xros',
+              openssl_arch: 'xros-xcrun',
+              otp_arch: 'aarch64-apple-visionos',
+              rust_target: 'aarch64-apple-visionos',
+            }
           # - {
           #     id: 'visionos_sim_arm64',
           #     name: 'visionOS Simulator arm64',
@@ -675,7 +675,7 @@ jobs:
             # codegen-units = 16
             # rpath = false
 
-            CARGO_OPTIMIZATION_FLAGS="-C lto=off -C embed-bitcode=no -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            CARGO_OPTIMIZATION_FLAGS="-C debuginfo=0 -C lto=off -C embed-bitcode=no -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
