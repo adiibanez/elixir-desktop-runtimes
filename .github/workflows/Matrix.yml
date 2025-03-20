@@ -523,55 +523,55 @@ jobs:
           echo "TOOLCHAIN=nightly" >> $GITHUB_ENV
           echo "CARGO_MAKE_TOOLCHAIN=nightly" >> $GITHUB_ENV
 
-      - name: Install Rust Nightly (Explicit Version)
-        # if: ${{ env.IS_3RD_TIER_RUST_TARGET == false }}
-        if: ${{ matrix.platform.rust_is_3rd_tier != true }}
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.TOOLCHAIN }}
-          targets: ${{ matrix.platform.rust_target }}
-          # llvm-tools-preview stuff is essential, breaks the build otherwise
-          components: rust-src, llvm-tools-preview
+      # - name: Install Rust Nightly (Explicit Version)
+      #   # if: ${{ env.IS_3RD_TIER_RUST_TARGET == false }}
+      #   if: ${{ matrix.platform.rust_is_3rd_tier != true }}
+      #   uses: dtolnay/rust-toolchain@master
+      #   with:
+      #     toolchain: ${{ env.TOOLCHAIN }}
+      #     targets: ${{ matrix.platform.rust_target }}
+      #     # llvm-tools-preview stuff is essential, breaks the build otherwise
+      #     components: rust-src, llvm-tools-preview
 
-      - name: Install Rust Nightly (Explicit Version) 3rd tier
-        #if: ${{ env.IS_3RD_TIER_RUST_TARGET == true }}
-        if: ${{ matrix.platform.rust_is_3rd_tier == true }}
-        shell: bash
-        run: |
-          rustup toolchain install nightly --target ${{ matrix.platform.rust_target }}
-          # --profile minimal
-          rustup component add rust-src --toolchain nightly
-
-      - name: Check LLVM Bitcode Support
-        run: |
-          rustc -C embed-bitcode=yes --print cfg
-
-      - name: Show Rustup Info
-        run: |
-          rustup show
-          echo "TOOLCHAIN: ${{ env.TOOLCHAIN }}"
-
-      - name: Install LLVM tools
-        if: runner.os == 'macOS'
-        continue-on-error: true
-        run: rustup component add llvm-tools-preview
-
-      # rustup toolchain install ${{env.TOOLCHAIN}} --target ${{matrix.platform.rust_target}}
-
-      # rustup toolchain list
-      # rustup target list
-
-      # - name: Install Rust Nightly std-lib
-      #   if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
+      # - name: Install Rust Nightly (Explicit Version) 3rd tier
+      #   #if: ${{ env.IS_3RD_TIER_RUST_TARGET == true }}
+      #   if: ${{ matrix.platform.rust_is_3rd_tier == true }}
       #   shell: bash
       #   run: |
-      #     rustup component add rust-src --toolchain nightly-${{ matrix.platform.rust_target }}
+      #     rustup toolchain install nightly --target ${{ matrix.platform.rust_target }}
+      #     # --profile minimal
+      #     rustup component add rust-src --toolchain nightly
 
-      - name: Rust Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.CARGO_CACHE_PATH }}
-          key: cargo-${{ github.workflow }}-${{ github.job }}-${{runner.os}}-${{runner.arch}}
+      # - name: Check LLVM Bitcode Support
+      #   run: |
+      #     rustc -C embed-bitcode=yes --print cfg
+
+      # - name: Show Rustup Info
+      #   run: |
+      #     rustup show
+      #     echo "TOOLCHAIN: ${{ env.TOOLCHAIN }}"
+
+      # - name: Install LLVM tools
+      #   if: runner.os == 'macOS'
+      #   continue-on-error: true
+      #   run: rustup component add llvm-tools-preview
+
+      # # rustup toolchain install ${{env.TOOLCHAIN}} --target ${{matrix.platform.rust_target}}
+
+      # # rustup toolchain list
+      # # rustup target list
+
+      # # - name: Install Rust Nightly std-lib
+      # #   if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
+      # #   shell: bash
+      # #   run: |
+      # #     rustup component add rust-src --toolchain nightly-${{ matrix.platform.rust_target }}
+
+      # - name: Rust Cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ${{ env.CARGO_CACHE_PATH }}
+      #     key: cargo-${{ github.workflow }}-${{ github.job }}-${{runner.os}}-${{runner.arch}}
 
   #     - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
   #       # if: false
