@@ -632,9 +632,8 @@ jobs:
 
             cd ${{github.workspace}}
 
-
-            #OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
-            OPTIMIZATION_FLAGS="-C lto=off -C embed-bitcode=no -C opt-level=z"
+            OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            # OPTIMIZATION_FLAGS="-C lto=off -C embed-bitcode=no -C opt-level=z"
             # -Clinker=rust-lld
 
             #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
@@ -703,6 +702,14 @@ jobs:
           # -L${OPENSSL_PREFIX}/lib -lcrypto 
           # -L${{github.workspace}}/_build/nifs 
 
+          build_rustler_lib \
+            "rustler_btleplug" \
+            "btleplug_client" \
+            "https://github.com/adiibanez/rustler_btleplug.git" \
+            "static-no-precompiled" \
+            "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
+
+          debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
           build_rustler_lib \
             "wasmex" \
@@ -711,20 +718,6 @@ jobs:
             "static-no-precompiled"
 
           debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
-
-          build_rustler_lib \
-            "rustler_btleplug" \
-            "btleplug_client" \
-            "https://github.com/adiibanez/rustler_btleplug.git" \
-            "static-no-precompiled" \
-            "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
-
-
-          # -rw-r--r--  1 runner  staff   580M Mar 20 00:28 /Users/runner/work/elixir-desktop-runtimes/elixir-desktop-runtimes/_build/nifs/libwasmex.a
-          # -rw-r--r--  1 runner  staff   2.1M Mar 20 00:29 /Users/runner/work/elixir-desktop-runtimes/elixir-desktop-runtimes/_build/nifs/sqlite3_nif.a
-          # -rw-r--r--  1 runner  staff    97M Mar 20 00:26 /Users/runner/work/elixir-desktop-runtimes/elixir-desktop-runtimes/_build/nifs/libbtleplug_client.a
-
-          debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
           # https://github.com/elixir-desktop/exqlite.git
           git clone --depth 1 https://github.com/elixir-sqlite/exqlite
