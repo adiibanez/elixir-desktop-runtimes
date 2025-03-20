@@ -801,7 +801,8 @@ jobs:
           cd _build/nifs
           find ~+ -type f -name "*.a" -exec ls -lah {} \;
 
-          if [[ "$ENABLE_STRIPPING_NIFS" == "true" ]]; then
+          if [[ "${{env.ENABLE_STRIPPING_NIFS}}" == "true" ]]; then
+            echo "Nif stripping enabled"
             find ~+ -type f -name "*.a" -exec $STRIP_CMD {} \;
             find ~+ -type f -name "*.a" -exec ls -lah {} \;
           fi
@@ -966,6 +967,7 @@ jobs:
         run: |
           file ${{ github.workspace }}/_build/liberlang.a
           lipo -info ${{ github.workspace }}/_build/liberlang.a
+          ls -lah ${{ github.workspace }}/_build/liberlang.a
 
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
