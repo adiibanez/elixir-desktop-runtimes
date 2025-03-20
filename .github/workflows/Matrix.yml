@@ -557,6 +557,7 @@ jobs:
 
       - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         # if: false
+        id: build-nifs
         shell: bash
         env:
           RUSTLER_BTLEPLUG_BUILD: 1
@@ -591,13 +592,11 @@ jobs:
               lipo -info $LIB_PATH
               # ar -t $LIB_PATH
 
-              if ! ( xcrun nm $LIB_PATH 2> stderr.log | grep "_${LIB_NAME}_nif_init" | grep "U " > /dev/null ); then
-                echo "Error: Undefined symbol _${LIB_NAME}_nif_init. See stderr.log for details."
-                cat stderr.log
+              if ! ( xcrun nm $LIB_PATH 2> debug_lib_stderr_1.log | grep "_${LIB_NAME}_nif_init" | grep "U " > /dev/null ); then
+                echo "Error: Undefined symbol _${LIB_NAME}_nif_init. See debug_lib_stderr_1.log for details."
 
-                if ! ( xcrun nm $LIB_PATH 2> stderr.log | grep _nif_init | grep "U " > /dev/null ); then
-                  echo "Error: Undefined symbol '*_nif_init'. See stderr.log for details."
-                  cat stderr.log
+                if ! ( xcrun nm $LIB_PATH 2> debug_lib_stderr_2.lo | grep _nif_init | grep "U " > /dev/null ); then
+                  echo "Error: Undefined symbol '*_nif_init'. See debug_lib_stderr_2.lo for details."
                   exit 1
                 fi
               else 
@@ -606,6 +605,9 @@ jobs:
 
             else 
               echo "LIB $LIB_NAME $LIB_PATH doesn't exist"
+              echo "LIB $LIB_NAME $LIB_PATH doesn't exist" >> debug_lib.log
+              find ${{github.workspace}}/_build/nifs -name "*.a" >> debug_lib.log
+              find ${{github.workspace}}/_build/nifs -name "*.a" -exec ls -lah {} \; >> debug_lib.log
               exit 1
             fi
           }
@@ -757,6 +759,15 @@ jobs:
       #     name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-nifs
       #     path: |
       #       _build/nifs/**/**.a
+
+      - name: Upload debug Artifact for Round 2 build
+        continue-on-error: true
+        if: always() && steps.build-nifs.outcome != 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-build-nifs-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{env.TIMESTAMP}}
+          path: |
+            **/*.log
 
       - name: Verify nif libs
         continue-on-error: true
