@@ -662,7 +662,20 @@ jobs:
             # -C lto=thin -C embed-bitcode=yes
             # -C codegen-units=1 this disables lto: https://doc.rust-lang.org/rustc/codegen-options/index.html#lto
 
-            CARGO_OPTIMIZATION_FLAGS="-C lto=off -C embed-bitcode=no -C opt-level=s -C codegen-units=16 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+
+            # release profile
+            # debug = false
+            # split-debuginfo = '...'  # Platform-specific.
+            # strip = "none"
+            # debug-assertions = false
+            # overflow-checks = false
+            # lto = false
+            # panic = 'unwind'
+            # incremental = false
+            # codegen-units = 16
+            # rpath = false
+
+            CARGO_OPTIMIZATION_FLAGS="-C lto=off -C embed-bitcode=no -C opt-level=z -C codegen-units=1 -C debug=false -C debug-assertions=false -C incremental=false -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
