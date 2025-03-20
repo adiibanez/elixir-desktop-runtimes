@@ -584,12 +584,32 @@ jobs:
 
           debug_lib()
           {
-            if [[ -f $1 ]]; then
-              file $1
-              lipo -info $1
-              ar -t $1
+            LIB_NAME="$1"
+            LIB_PATH="$2"
+            if [[ -f $LIB_PATH ]]; then
+              file $LIB_PATH
+              lipo -info $LIB_PATH
+              # ar -t $LIB_PATH
+
+              if ! ( nm $LIB_PATH 2> stderr.log | grep _$LIB_NAME_nif_init | grep "U " > /dev/null ); then
+                echo "Error: Undefined symbol '_$LIB_NAME_nif_init'. See stderr.log for details."
+                cat stderr.log
+
+                if ! ( nm $LIB_PATH 2> stderr.log | grep _nif_init | grep "U " > /dev/null ); then
+                  echo "Error: Undefined symbol '*_nif_init'. See stderr.log for details."
+                  cat stderr.log
+                  exit 1
+                fi
+
+                exit 1
+              fi
+
+              echo "Found symbol '_$LIB_NAME_nif_init' ."
+              exit 0
+
             else 
-              echo "LIB $1 doesn't exist"
+              echo "LIB $LIB_NAME $LIB_PATH doesn't exist"
+              exit 1
             fi
           }
 
@@ -689,11 +709,16 @@ jobs:
             "static-no-precompiled" \
             "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
+
+          debug_lib "libbtleplug_client" "_/build/nifs/libbtleplug_client.a"
+
           build_rustler_lib \
             "wasmex" \
             "wasmex" \
             "https://github.com/adiibanez/wasmex.git" \
             "static-no-precompiled"
+
+          debug_lib "libwasmex" "_/build/nifs/libwasmex.a"
 
           # https://github.com/elixir-desktop/exqlite.git
           git clone --depth 1 https://github.com/elixir-sqlite/exqlite
@@ -734,6 +759,9 @@ jobs:
         shell: bash
         run: |
           cd _build/nifs
+
+          # nm ../elixir-desktop-ios-example-app/liberlang.xcframework/ios-arm64/liberlang.a | grep _client_nif_init
+
           find ~+ -type f -name "*.a" -exec ls -lah {} \;
           find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }'
           NIF_LIBS=$(find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }')
