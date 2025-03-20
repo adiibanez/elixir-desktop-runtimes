@@ -9,8 +9,10 @@ env:
   TIMESTAMP: ${{ github.event.repository.updated_at}}
   OPENSSL_VERSION: '3.4.0'
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
-  TOOLCHAIN: nightly-2025-01-01 # 1.85.0
-  CARGO_MAKE_TOOLCHAIN: nightly-2025-01-01
+  # TOOLCHAIN: nightly-2025-01-01 # 1.85.0
+  # CARGO_MAKE_TOOLCHAIN: nightly-2025-01-01
+  TOOLCHAIN: nightly-2025-03-01 # 1.85.0
+  CARGO_MAKE_TOOLCHAIN: nightly-2025-03-01
   ENABLE_STRIPPING: true
   ENABLE_STRIPPING_NIFS: false
   STRIP_CMD: 'xcrun strip -x'
