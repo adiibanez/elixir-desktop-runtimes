@@ -677,7 +677,7 @@ jobs:
             CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
 
             if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
-              CARGO_CMD="rustup run +${{env.TOOLCHAIN}} cargo build -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
+              CARGO_CMD="cargo rustc -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
             fi
 
             #export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
@@ -753,13 +753,16 @@ jobs:
 
           debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
-          build_rustler_lib \
-            "wasmex" \
-            "wasmex" \
-            "https://github.com/adiibanez/wasmex.git" \
-            "static-no-precompiled"
+          # https://github.com/bytecodealliance/rustix/issues/1424
+          if [[ "${{ env.IS_3RD_TIER_TARGET }}" != "true" ]]; then
+            build_rustler_lib \
+              "wasmex" \
+              "wasmex" \
+              "https://github.com/adiibanez/wasmex.git" \
+              "static-no-precompiled"
 
-          debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
+            debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
+          fi
 
           # https://github.com/elixir-desktop/exqlite.git
           git clone --depth 1 https://github.com/elixir-sqlite/exqlite
