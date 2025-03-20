@@ -592,10 +592,11 @@ jobs:
 
             echo "Checking for symbol '$symbol_name' (expecting type '$expected_type') in '$lib_path'..."
 
-            if ! xcrun nm "$lib_path" &> "$log_file"; then
-                echo "Error: 'xcrun nm' command failed.  See '$log_file' for details." >&2
-                return 1  # Return failure status
-            fi
+            # if ! xcrun nm "$lib_path" &> "$log_file"; then
+            #     echo "Error: 'xcrun nm' command failed.  See '$log_file' for details." >&2
+            #     return 1  # Return failure status
+            # fi
+            nm $LIB_PATH &> "$log_file"
 
             if ! grep "${symbol_name}" "$log_file" | grep -E "${expected_type}" > /dev/null; then
               echo "Error: Symbol '$symbol_name' not found or has incorrect type.  See '$log_file' for details." >&2
