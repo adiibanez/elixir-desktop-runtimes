@@ -541,10 +541,10 @@ jobs:
           rustup show
           echo "TOOLCHAIN: ${{ env.TOOLCHAIN }}"
 
-      # - name: Install LLVM tools
-      #   if: runner.os == 'macOS'
-      #   continue-on-error: true
-      #   run: rustup component add llvm-tools-preview
+      - name: Install LLVM tools
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        run: rustup component add llvm-tools-preview
 
       # rustup toolchain install ${{env.TOOLCHAIN}} --target ${{matrix.platform.rust_target}}
 
@@ -552,7 +552,7 @@ jobs:
       # rustup target list
 
       # - name: Install Rust Nightly std-lib
-      #   if: ${{env.IS_3RD_TIER_RUST_TARGET}} != 'true'
+      #   if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
       #   shell: bash
       #   run: |
       #     rustup component add rust-src --toolchain nightly-${{ matrix.platform.rust_target }}
