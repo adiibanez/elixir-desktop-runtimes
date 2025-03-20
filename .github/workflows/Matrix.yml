@@ -658,7 +658,7 @@ jobs:
             #   export RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
             # fi
 
-            RUSTFLAGS="$OPTIMIZATION_FLAGS"
+            #RUSTFLAGS="$OPTIMIZATION_FLAGS"
 
             git clone --depth 1 $GIT_REPO --branch $GIT_REF
             cd $LIBNAME
@@ -671,13 +671,14 @@ jobs:
 
               #RUSTFLAGS="$RUSTFLAGS -C lto=fat -C embed-bitcode=yes" \
               if [[ $FIRST_RUSTLER_BUILT == 0 ]]; then
+                # RUSTFLAGS="$RUSTFLAGS" \
                 LDFLAGS="$CUSTOM_LDFLAGS" \
-                RUSTFLAGS="$RUSTFLAGS" \
                 $CARGO_CMD
               else 
+                #RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib" \
                 CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib"
+                
                 LDFLAGS="$CUSTOM_LDFLAGS" \
-                RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib" \
                 $CARGO_CMD
               fi
 
