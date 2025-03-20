@@ -675,7 +675,7 @@ jobs:
             # codegen-units = 16
             # rpath = false
 
-            CARGO_OPTIMIZATION_FLAGS="-C lto=off -C embed-bitcode=no -C opt-level=z -C codegen-units=1 -C debug=false -C debug-assertions=false -C incremental=false -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            CARGO_OPTIMIZATION_FLAGS="-C lto=off -C embed-bitcode=no -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
@@ -708,7 +708,7 @@ jobs:
               rm -f Cargo.lock
               cargo clean
 
-              RUSTFLAGS="$CARGO_OPTIMIZATION_FLAGS"
+              RUSTFLAGS="$CARGO_OPTIMIZATION_FLAGS -C debug=false -C debug-assertions=false -C incremental=false"
 
               #RUSTFLAGS="$RUSTFLAGS -C lto=fat -C embed-bitcode=yes" \
               if [[ $FIRST_RUSTLER_BUILT == 0 ]]; then
