@@ -594,7 +594,7 @@ jobs:
               lipo -info $LIB_PATH
               # ar -t $LIB_PATH
 
-              nm $LIB_PATH > "lib-$LIB_NAME-symbols.log" 2> /dev/null || 1
+              nm $LIB_PATH > lib-$LIB_NAME-symbols.log 2> /dev/null || 1
 
               if ! ( xcrun nm $LIB_PATH 2> debug_lib_stderr_1.log | grep "_${LIB_NAME}_nif_init" | grep "T " > /dev/null ); then
                 echo "Error: Undefined symbol _${LIB_NAME}_nif_init. See debug_lib_stderr_1.log for details."
