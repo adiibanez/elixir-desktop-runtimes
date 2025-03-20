@@ -168,17 +168,17 @@ jobs:
           #     otp_arch: 'aarch64-apple-ios',
           #     rust_target: 'aarch64-apple-watchos-sim',
           #   }
-          - {
-              id: 'tvos',
-              name: 'tvOS',
-              sdk: appletvos,
-              arch: arm64,
-              base_arch: tvos,
-              openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
-              openssl_arch: 'tvos-xcrun',
-              otp_arch: 'aarch64-apple-ios-tvos',
-              rust_target: 'aarch64-apple-tvos',
-            }
+          # - {
+          #     id: 'tvos',
+          #     name: 'tvOS',
+          #     sdk: appletvos,
+          #     arch: arm64,
+          #     base_arch: tvos,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
+          #     openssl_arch: 'tvos-xcrun',
+          #     otp_arch: 'aarch64-apple-tvos',
+          #     rust_target: 'aarch64-apple-tvos',
+          #   }
           # - {
           #     id: 'tvos_sim_arm64',
           #     name: 'tvOS Simulator arm64',
@@ -211,7 +211,7 @@ jobs:
               base_arch: xros,
               openssl_prefix: '_build/ios-openssl/build/openssl.xros',
               openssl_arch: 'xros-xcrun',
-              otp_arch: 'aarch64-apple-ios-visionos',
+              otp_arch: 'aarch64-apple-visionos',
               rust_target: 'aarch64-apple-visionos',
             }
           # - {
