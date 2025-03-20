@@ -499,7 +499,7 @@ jobs:
         if: always() && steps.otp-setup-round1.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.ref}}
+          name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.sha}}
           path: '**/*.log'
 
       # - name: Set IS_TVOS environment variable
@@ -675,7 +675,6 @@ jobs:
                 $CARGO_CMD
               else 
                 CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib"
-
                 LDFLAGS="$CUSTOM_LDFLAGS" \
                 RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib" \
                 $CARGO_CMD
@@ -765,7 +764,7 @@ jobs:
         if: always() && steps.build-nifs.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: debug-build-nifs-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.ref}}
+          name: debug-build-nifs-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.sha}}
           path: |
             **/*.log
 
@@ -879,7 +878,7 @@ jobs:
         if: always() && steps.otp-setup-round2.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: debug-round2-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.ref}}
+          name: debug-round2-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.sha}}
           #path: _build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a
           path: |
             **/*.log
