@@ -771,7 +771,7 @@ jobs:
           debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
           # https://github.com/bytecodealliance/rustix/issues/1424
-          if [[ -z $IS_3RD_TIER_RUST_TARGET ]]; then
+          if [[ "${{ matrix.platform.rust_is_3rd_tier }}" == "true" ]]; then
             build_rustler_lib \
               "wasmex" \
               "wasmex" \
