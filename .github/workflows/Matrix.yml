@@ -671,13 +671,20 @@ jobs:
 
               #RUSTFLAGS="$RUSTFLAGS -C lto=fat -C embed-bitcode=yes" \
               if [[ $FIRST_RUSTLER_BUILT == 0 ]]; then
+
+                echo "CARGO_CMD: $CARGO_CMD"
+                echo "CUSTOM_LDFLAGS: $CUSTOM_LDFLAGS"
+
                 # RUSTFLAGS="$RUSTFLAGS" \
                 LDFLAGS="$CUSTOM_LDFLAGS" \
                 $CARGO_CMD
               else 
                 #RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib" \
                 CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib"
-                
+
+                echo "CARGO_CMD: $CARGO_CMD"
+                echo "CUSTOM_LDFLAGS: $CUSTOM_LDFLAGS"
+
                 LDFLAGS="$CUSTOM_LDFLAGS" \
                 $CARGO_CMD
               fi
