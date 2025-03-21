@@ -8,10 +8,16 @@ on:
 env:
   OPENSSL_VERSION: '3.4.0'
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
-  TOOLCHAIN: nightly
+  # TOOLCHAIN: nightly
+  # CARGO_MAKE_TOOLCHAIN: nightly
+
+  # rust 1.85.0 for xcode llvm
+  TOOLCHAIN: nightly-2025-01-01
+  CARGO_MAKE_TOOLCHAIN: nightly-2025-01-01
+
   ENABLE_STRIPPING: true
-  STRIP_CMD: 'strip -x'
-  CARGO_MAKE_TOOLCHAIN: nightly
+  ENABLE_STRIPPING_NIFS: true
+  STRIP_CMD: 'xcrun strip -x -S'
   # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
   CARGO_CACHE_PATH: |
     ~/.cargo/.crates.toml
@@ -30,6 +36,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      # - uses: maxim-lobanov/setup-xcode@v1
+      #   with:
+      #     xcode-version: latest
 
       - name: Cache ASDF and Toolchains
         uses: actions/cache@v4
@@ -137,26 +147,46 @@ jobs:
               otp_arch: 'x86_64-apple-iossimulator',
               rust_target: 'x86_64-apple-ios',
             }
+
           # - {
           #     id: 'watchos',
           #     name: 'watchOS',
           #     sdk: watchos,
           #     arch: arm64,
-          #     base_arch: ios,
+          #     base_arch: watchos,
           #     openssl_prefix: '_build/ios-openssl/build/openssl.watchos',
-          #     openssl_arch: 'watchos-arm64_32-xcrun',
-          #     otp_arch: 'aarch64-apple-ios',
+          #     #openssl_arch: 'watchos-arm64_32-xcrun',
+          #     openssl_arch: 'watchos-arm64-xcrun',
+          #     otp_arch: 'aarch64-apple-watchos',
           #     rust_target: 'aarch64-apple-watchos',
+          #     rust_is_3rd_tier: true,
+          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
           #   }
           # - {
           #     id: 'watchos_sim',
           #     name: 'watchOS Simulator',
           #     sdk: watchsimulator,
           #     arch: x86_64,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchos',
+          #     base_arch: watchos_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchossim.x86_64',
           #     openssl_arch: 'watchsimulator-xcrun',
-          #     otp_arch: 'aarch64-apple-ios',
+          #     otp_arch: 'x86_64-apple-watchossim',
+          #     rust_target: 'x86_64-apple-watchos-sim',
+          #     rust_is_3rd_tier: true,
+          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
+          #   }
+          # - {
+          #     id: 'watchos_sim',
+          #     name: 'watchOS Simulator',
+          #     sdk: watchsimulator,
+          #     arch: arm64,
+          #     base_arch: watchos_sim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchossim.arm64',
+          #     openssl_arch: 'watchsimulator-xcrun',
+          #     otp_arch: 'aarch64-apple-watchossim',
           #     rust_target: 'aarch64-apple-watchos-sim',
+          #     rust_is_3rd_tier: true,
+          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
           #   }
           # - {
           #     id: 'tvos',
@@ -168,6 +198,8 @@ jobs:
           #     openssl_arch: 'tvos-xcrun',
           #     otp_arch: 'aarch64-apple-tvos',
           #     rust_target: 'aarch64-apple-tvos',
+          #     rust_is_3rd_tier: true,
+          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
           #   }
           # - {
           #     id: 'tvos_sim_arm64',
@@ -179,6 +211,8 @@ jobs:
           #     openssl_arch: 'tvossimulator-xcrun',
           #     otp_arch: 'aarch64-apple-tvossimulator',
           #     rust_target: 'aarch64-apple-tvos-sim',
+          #     rust_is_3rd_tier: true,
+          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
           #   }
           # - {
           #     id: 'tvos_sim_x86_64',
@@ -190,31 +224,35 @@ jobs:
           #     openssl_arch: 'tvossimulator-x86_64-xcrun',
           #     otp_arch: 'x86_64-apple-tvos',
           #     rust_target: 'x86_64-apple-tvos',
+          #     rust_is_3rd_tier: true,
+          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
           #   }
-          # # - {id: "visionos", name: "visionOS", sdk: visionos, arch: arm64, openssl_arch: "ios64-xcrun", otp_arch: "aarch64-apple-ios", xcomp: "arm64-ios"}
-          # # # # - {id: "visionos_sim", name: "visionOS Simulator", sdk: visionsimulator, arch: x86_64, openssl_arch: "iossimulator-x86_64-xcrun", xcomp: "x86_64-iossimulator"}
-          # - {
-          #     id: 'visionos',
-          #     name: 'visionOS',
-          #     sdk: xros,
-          #     arch: arm64,
-          #     base_arch: xros,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.xros',
-          #     openssl_arch: 'xros-xcrun',
-          #     otp_arch: 'aarch64-apple-visionos',
-          #     rust_target: 'aarch64-apple-visionos',
-          #   }
-          # - {
-          #     id: 'visionos_sim_arm64',
-          #     name: 'visionOS Simulator arm64',
-          #     sdk: xrsimulator,
-          #     arch: arm64,
-          #     base_arch: xrossim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
-          #     openssl_arch: 'xrossimulator-xcrun',
-          #     otp_arch: 'aarch64-apple-visionos-sim',
-          #     rust_target: 'aarch64-apple-visionos-sim',
-          #   }
+
+          - {
+              id: 'visionos',
+              name: 'visionOS',
+              sdk: xros,
+              arch: arm64,
+              base_arch: xros,
+              openssl_prefix: '_build/ios-openssl/build/openssl.xros',
+              openssl_arch: 'xros-xcrun',
+              otp_arch: 'aarch64-apple-visionos',
+              rust_target: 'aarch64-apple-visionos',
+              rust_is_3rd_tier: true,
+            }
+          - {
+              id: 'visionos_sim_arm64',
+              name: 'visionOS Simulator arm64',
+              sdk: xrsimulator,
+              arch: arm64,
+              base_arch: xrossim,
+              openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
+              openssl_arch: 'xrossimulator-xcrun',
+              #otp_arch: 'aarch64-apple-visionos-sim',
+              otp_arch: 'aarch64-apple-visionossim',
+              rust_target: 'aarch64-apple-visionos-sim',
+              rust_is_3rd_tier: true,
+            }
           # - {
           #     id: 'visionos_sim_x86_64',
           #     name: 'visionOS Simulator x86_64',
@@ -223,7 +261,9 @@ jobs:
           #     base_arch: xrossim,
           #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
           #     openssl_arch: 'xrossimulator-xcrun',
-          #     otp_arch: 'x86_64-apple-ios',
+          #     otp_arch: 'x86_64-apple-visionos',
+          #     rust_target: 'x86_64-apple-visionos',
+          #     rust_is_3rd_tier: true,
           #   }
     steps:
       - name: Checkout code
@@ -287,45 +327,6 @@ jobs:
           echo "OPENSSL_PREFIX=${{ github.workspace }}/${{matrix.platform.openssl_prefix }}" >> "$GITHUB_ENV"
           #echo "OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
           echo "OPENSSL_SRC_PREFIX=${{ github.workspace }}/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
-
-      # - name: Build OpenSSL
-      #   if: false
-      #   id: openssl-build
-      #   # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
-      #   run: |
-
-      #     mkdir -p _build/openssl-${{ env.OPENSSL_VERSION }}
-      #     # https://github.com/erlang/otp/issues/5706
-      #     cp patch/openssl-ios.conf openssl-${{ env.OPENSSL_VERSION }}/Configurations/15-ios.conf
-
-      #     # CXXFLAGS=$CFLAGS \
-      #     # CFLAGS="-fno-common -Os -D__IOS__=yes" \
-      #     # OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
-      #     # ARCH=${{ matrix.platform.openssl_arch }} \
-      #     # MAKEFLAGS="-j10 -O" \
-      #     # OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-      #     # ./scripts/install_openssl_new.sh
-
-      #     # https://wiki.openssl.org/index.php/Compilation_and_Installation
-      #     # # CXXFLAGS=$CFLAGS \
-      #     # # CFLAGS="-fno-common -Os -D__IOS__=yes" \
-      #     OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
-      #     SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path` \
-      #     CC="xcrun -sdk ${{ matrix.platform.sdk }} cc" \
-      #     CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++" \
-      #     LD="xcrun -sdk ${{ matrix.platform.sdk }} ld" \
-      #     LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v" \
-      #     DED_LD=$LD \
-      #     DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v" \
-      #     RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib" \
-      #     AR="xcrun -sdk ${{ matrix.platform.sdk }} ar" \
-      #     ARCH=${{ matrix.platform.openssl_arch }} \
-      #     MAKEFLAGS="-j10 -O" \
-      #     OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-      #     ./scripts/install_openssl_new.sh
-
-      #     ls -lah _build/openssl-$OPENSSL_VERSION
-      #     find _build/openssl-$OPENSSL_VERSION -name "*.a"
 
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
@@ -391,10 +392,10 @@ jobs:
             rm -rf otp_src_${{matrix.erlixir.otp-version}}
           fi
 
-          if [[ "$USE_GIT" == "true" ]]; then 
+          if [[ "$USE_GIT" == "true" ]]; then
             # --branch OTP-${{matrix.erlixir.otp-version}}
             git clone --depth 1 https://github.com/${{matrix.erlixir.git-repo}} --branch ${{matrix.erlixir.git-ref}} otp_src_${{matrix.erlixir.otp-version}}
-          else 
+          else
             curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
             tar -xzf otp_src_${{matrix.erlixir.otp-version}}.tar.gz
           fi
@@ -453,7 +454,7 @@ jobs:
           #./test_compiler
           file test_compiler
 
-          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
+          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}${{matrix.platform.kerl-opts}}" \
           LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
@@ -493,35 +494,51 @@ jobs:
         if: always() && steps.otp-setup-round1.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+          name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.sha}}
           path: '**/*.log'
 
-      # - name: Set IS_TVOS environment variable
-      #   run: |
-      #     if [[ ${{ matrix.platform.rust_target }} == *"tvos"* ]]; then
-      #       echo "IS_TVOS=true" >> "$GITHUB_ENV"
-      #     else
-      #       echo "IS_TVOS=false" >> "$GITHUB_ENV"
-      #     fi
-      #   shell: bash
-
       - name: Set 3rd tier rust target flag
-        if: ${{ ! contains(matrix.platform.rust_target, 'tvos') && ! contains(matrix.platform.rust_target, 'xros') }}
+        #if: ${{ contains(matrix.platform.rust_target, 'tvos') || contains(matrix.platform.rust_target, 'xros') || contains(matrix.platform.rust_target, 'watchos') }}
+        if: ${{ matrix.platform.rust_is_3rd_tier == true }}
         shell: bash
         run: |
-          echo "IS_3RD_TIER_TARGET=true" >> $GITHUB_ENV
+          echo "IS_3RD_TIER_RUST_TARGET=true" >> $GITHUB_ENV
+          echo "TOOLCHAIN=nightly" >> $GITHUB_ENV
+          echo "CARGO_MAKE_TOOLCHAIN=nightly" >> $GITHUB_ENV
 
-      - name: Install Rust Nightly
+      - name: Install Rust Nightly (Explicit Version)
+        # if: ${{ env.IS_3RD_TIER_RUST_TARGET == false }}
+        if: ${{ matrix.platform.rust_is_3rd_tier != true }}
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.TOOLCHAIN }}
           targets: ${{ matrix.platform.rust_target }}
+          # llvm-tools-preview stuff is essential, breaks the build otherwise
+          components: rust-src, llvm-tools-preview
 
-      # - name: Install Rust Nightly std-lib
-      #   if: ${{env.IS_3RD_TIER_TARGET}} != 'true'
-      #   shell: bash
-      #   run: |
-      #     rustup component add rust-src --toolchain nightly-${{ matrix.platform.rust_target }}
+      - name: Install Rust Nightly (Explicit Version) 3rd tier
+        #if: ${{ env.IS_3RD_TIER_RUST_TARGET == true }}
+        if: ${{ matrix.platform.rust_is_3rd_tier == true }}
+        shell: bash
+        run: |
+          rustup toolchain install nightly
+          # --target ${{ matrix.platform.rust_target }}
+          # --profile minimal
+          rustup component add rust-src --toolchain nightly
+
+      - name: Check LLVM Bitcode Support
+        run: |
+          rustc -C embed-bitcode=yes --print cfg
+
+      - name: Show Rustup Info
+        run: |
+          rustup show
+          echo "TOOLCHAIN: ${{ env.TOOLCHAIN }}"
+
+      - name: Install LLVM tools
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        run: rustup component add llvm-tools-preview
 
       - name: Rust Cache
         uses: actions/cache@v4
@@ -531,11 +548,13 @@ jobs:
 
       - name: Build NIFs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
         # if: false
+        id: build-nifs
         shell: bash
         env:
           RUSTLER_BTLEPLUG_BUILD: 1
           WASMEX_BUILD: 1
         run: |
+
           echo "Building NIFs for ${{ matrix.platform.name }} - ${{ matrix.platform.sdk }} - ${{ matrix.platform.arch }}"
           export MK_FILE=`find _build/otp_builder/erts/ -name "vsn.mk"`
           export ERTS_VERSION="`sed -nE 's/VSN *= *([0-9.]+)/\1/p' $MK_FILE`"
@@ -555,14 +574,55 @@ jobs:
           export MAKEFLAGS="-j10 -O"
           export OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}
 
+          check_symbol() {
+            local lib_path="$1"
+            local symbol_name="$2"
+            local expected_type="$3"
+            local log_file="$4"
+
+            echo "Checking for symbol '$symbol_name' (expecting type '$expected_type') in '$lib_path'..."
+
+            # if ! xcrun nm "$lib_path" &> "$log_file"; then
+            #     echo "Error: 'xcrun nm' command failed.  See '$log_file' for details." >&2
+            #     return 1  # Return failure status
+            # fi
+            nm $LIB_PATH &> "$log_file"
+
+            if ! grep "${symbol_name}" "$log_file" | grep -E "${expected_type}" > /dev/null; then
+              echo "Error: Symbol '$symbol_name' not found or has incorrect type.  See '$log_file' for details." >&2
+              return 1 # Return failure status
+            else
+              grep "${symbol_name}" "$log_file" | grep -E "${expected_type}"
+            fi
+
+            echo "Symbol '$symbol_name' found with expected type '$expected_type'."
+            return 0  # Return success status
+          }
+
           debug_lib()
           {
-            if [[ -f $1 ]]; then
-              file $1
-              lipo -info $1
-              ar -t $1
-            else 
-              echo "LIB $1 doesn't exist"
+            LIB_NAME="$1"
+            LIB_PATH="$2"
+            if [[ -f $LIB_PATH ]]; then
+              file $LIB_PATH
+              lipo -info $LIB_PATH
+              # ar -t $LIB_PATH
+
+              # nm $LIB_PATH > lib-$LIB_NAME-symbols.log 2> /dev/null || 1
+
+              if ! check_symbol "$LIB_PATH" "_${LIB_NAME}_nif_init" "T |U " "debug_lib_stderr_1.log"; then
+                # Check for any nif_init as a fallback
+                if ! check_symbol "$LIB_PATH" "_nif_init" "T |U " "debug_lib_stderr_2.log"; then
+                  exit 1
+                fi
+              fi
+
+            else
+              echo "LIB $LIB_NAME $LIB_PATH doesn't exist"
+              echo "LIB $LIB_NAME $LIB_PATH doesn't exist" >> debug_lib.log
+              find ${{github.workspace}}/_build/nifs -name "*.a" >> debug_lib.log
+              find ${{github.workspace}}/_build/nifs -name "*.a" -exec ls -lah {} \; >> debug_lib.log
+              exit 1
             fi
           }
 
@@ -576,31 +636,95 @@ jobs:
             GIT_REF=$4
             CUSTOM_LDFLAGS="$5"
 
+            echo "LIBNAME: $LIBNAME"
+            echo "NATIVE_NAME: $NATIVE_NAME"
+            echo "GIT_REPO: $GIT_REPO"
+            echo "GIT_REF: $GIT_REF"
+            echo "CUSTOM_LDFLAGS: $CUSTOM_LDFLAGS"
+
             cd ${{github.workspace}}
 
             #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
-            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
+            # -C lto=fat -C embed-bitcode=yes filesize 26MB!
+            # -C lto=thin -C embed-bitcode=yes
+            # -C codegen-units=1 this disables lto: https://doc.rust-lang.org/rustc/codegen-options/index.html#lto
 
-            # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
-            #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
+            # release profile
+            # debug = false
+            # split-debuginfo = '...'  # Platform-specific.
+            # strip = "none"
+            # debug-assertions = false
+            # overflow-checks = false
+            # lto = false
+            # panic = 'unwind'
+            # incremental = false
+            # codegen-units = 16
+            # rpath = false
+
+            CARGO_OPTIMIZATION_FLAGS="-C debuginfo=0 -C lto=off -C embed-bitcode=no -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+
+            # https://github.com/rust-lang/rust/issues/44322
+            # CARGO_CMD="cargo +${{env.TOOLCHAIN}} rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C target-feature=-crt-static -C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            #CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --release --features rustler/staticlib -- -C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
+
+            echo "CARGO target is 3rd tier: ${{ matrix.platform.rust_is_3rd_tier }}"
+            if [[ "${{ matrix.platform.rust_is_3rd_tier }}" == "true" ]]; then
+              echo "CARGO_CMD using -Zbuild-std"
+              CARGO_CMD="cargo +nightly rustc -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
+            else
+              echo "Non 3rd tier ensure installed target ${{matrix.platform.rust_target}}"
+              # only add for supported targets, 3rd tier need to build stdlib
+              rustup target add ${{matrix.platform.rust_target}}
+            fi
+
+            #export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
+            #export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
+
+            # if [[ $FIRST_RUSTLER_BUILT == 1 ]]; then
+            #   export CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort"
+            #   export RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
             # fi
 
-            if [[ $FIRST_RUSTLER_BUILT == 0 ]]; then
-              RUSTFLAGS="-C target-feature=-crt-static"
-            else 
-              RUSTFLAGS="-C target-feature=-crt-static -C link-arg=-nostdlib -C panic=abort"
-            fi
+            #RUSTFLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
             git clone --depth 1 $GIT_REPO --branch $GIT_REF
             cd $LIBNAME
             if [[ -d "native/$NATIVE_NAME" ]]; then
               cd native/$NATIVE_NAME
-              LDFLAGS="$CUSTOM_LDFLAGS" \
-              RUSTFLAGS="$RUSTFLAGS" \
-              $CARGO_CMD
+
+              # :/ back tracking on rust version due to xcode LLVM 15
+              rm -f Cargo.lock
+              cargo clean
+
+              RUSTFLAGS="$CARGO_OPTIMIZATION_FLAGS"
+
+              #RUSTFLAGS="$RUSTFLAGS -C lto=fat -C embed-bitcode=yes" \
+              if [[ $FIRST_RUSTLER_BUILT == 0 ]]; then
+                echo "CARGO_CMD: $CARGO_CMD"
+                echo "RUSTFLAGS: $RUSTFLAGS"
+                echo "LDFLAGS: $CUSTOM_LDFLAGS"
+
+                LDFLAGS="$CUSTOM_LDFLAGS" \
+                RUSTFLAGS="$RUSTFLAGS" \
+                $CARGO_CMD
+              else
+                CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort"
+                RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
+
+                echo "CARGO_CMD: $CARGO_CMD"
+                echo "RUSTFLAGS: $RUSTFLAGS"
+                echo "LDFLAGS: $CUSTOM_LDFLAGS"
+
+                LDFLAGS="$CUSTOM_LDFLAGS" \
+                RUSTFLAGS="$RUSTFLAGS" \
+                $CARGO_CMD
+              fi
 
               LIB_NAME=`find . -name "*.a" | head -1`
-              debug_lib $LIB_NAME
+              # debug_lib $LIB_NAME
               cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
             else
               echo "native/$NATIVE_NAME doesn't exist, abort building $LIBNAME"
@@ -615,7 +739,53 @@ jobs:
 
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
+          LINK_RUSTLER_NIF_LIBS=""
+
           mkdir -p _build/nifs/
+
+          # -L${OPENSSL_PREFIX}/lib -lcrypto
+          # -L${{github.workspace}}/_build/nifs
+
+          build_rustler_lib \
+            "rustler_btleplug" \
+            "btleplug_client" \
+            "https://github.com/adiibanez/rustler_btleplug.git" \
+            "static-no-precompiled" \
+            "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
+
+            export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lbtleplug_client"
+
+          debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
+
+          # https://github.com/bytecodealliance/rustix/issues/1424
+          if [[ "${{ matrix.platform.rust_is_3rd_tier }}" != "true" ]]; then
+
+            # Wasmex nif
+            build_rustler_lib \
+              "wasmex" \
+              "wasmex" \
+              "https://github.com/adiibanez/wasmex.git" \
+              "static-no-precompiled"
+
+            export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lwasmex"
+
+            debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
+
+            # # KUZU nif
+            # build_rustler_lib \
+            # "kuzu_nif" \
+            # "kuzu_ex" \
+            # "https://github.com/adiibanez/kuzu_nif.git" \
+            # "static-no-precompiled" \
+            # ""
+
+            # export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -llibkuzu_ex"
+
+            # debug_lib "libkuzu_ex" "${{github.workspace}}/_build/nifs/libkuzu_ex.a"
+          fi
+
+
+
 
           # https://github.com/elixir-desktop/exqlite.git
           git clone --depth 1 https://github.com/elixir-sqlite/exqlite
@@ -627,26 +797,16 @@ jobs:
           cp $LIB_NAME ${{github.workspace}}/_build/nifs/
           cd ${{github.workspace}}
 
+          debug_lib "sqlite3_nif" "${{github.workspace}}/_build/nifs/sqlite3_nif.a"
+
+          # disable, breaks builds and doesn't seem required anyway
+          # export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lsqlite3_nif"
+
           # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
           # cd libsecp256k1
           # mix deps.get
           # mix release
           # cd ${{github.workspace}}/_build/nifs/
-
-          # -L${OPENSSL_PREFIX}/lib -lcrypto 
-          # -L${{github.workspace}}/_build/nifs 
-          build_rustler_lib \
-            "rustler_btleplug" \
-            "btleplug_client" \
-            "https://github.com/adiibanez/rustler_btleplug.git" \
-            "static-no-precompiled" \
-            "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
-
-          build_rustler_lib \
-            "wasmex" \
-            "wasmex" \
-            "https://github.com/adiibanez/wasmex.git" \
-            "static-no-precompiled"
 
           # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
           # cd explorer
@@ -655,6 +815,8 @@ jobs:
           # cd ${{github.workspace}}/_build/nifs/
 
           cd ${{github.workspace}}
+
+          echo LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS" >> $GITHUB_ENV
 
           find _build/nifs -type f -name "*.a" || 1
 
@@ -665,11 +827,23 @@ jobs:
       #     path: |
       #       _build/nifs/**/**.a
 
+      - name: Upload debug Artifact for Round 2 build
+        continue-on-error: true
+        if: always() && steps.build-nifs.outcome != 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-build-nifs-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.sha}}
+          path: |
+            **/*.log
+
       - name: Verify nif libs
         continue-on-error: true
         shell: bash
         run: |
           cd _build/nifs
+
+          # nm ../elixir-desktop-ios-example-app/liberlang.xcframework/ios-arm64/liberlang.a | grep _client_nif_init
+
           find ~+ -type f -name "*.a" -exec ls -lah {} \;
           find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }'
           NIF_LIBS=$(find ~+ -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }')
@@ -682,7 +856,8 @@ jobs:
           cd _build/nifs
           find ~+ -type f -name "*.a" -exec ls -lah {} \;
 
-          if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+          if [[ "${{env.ENABLE_STRIPPING_NIFS}}" == "true" ]]; then
+            echo "Nif stripping enabled"
             find ~+ -type f -name "*.a" -exec $STRIP_CMD {} \;
             find ~+ -type f -name "*.a" -exec ls -lah {} \;
           fi
@@ -730,14 +905,18 @@ jobs:
 
           ls -l $(xcrun --sdk iphoneos --show-sdk-path)/usr/lib/libobjc.tbd
 
-          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
+          # funky business: -Wl,--allow-multiple-definition
+
+          echo "LINK_RUSTLER_NIF_LIBS: $LINK_RUSTLER_NIF_LIBS"
+
+          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}${{matrix.platform.kerl-opts}}" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -lbtleplug_client -lwasmex -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs $LINK_RUSTLER_NIF_LIBS -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
@@ -770,12 +949,13 @@ jobs:
         if: always() && steps.otp-setup-round2.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: debug-round2-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+          name: debug-round2-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.sha}}
           #path: _build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a
           path: |
-            **/*.a
             **/*.log
-            _build/nifs/**
+
+        # **/*.a
+        # _build/nifs/**
 
       - name: Combine static OTP libs
         continue-on-error: false
@@ -834,6 +1014,25 @@ jobs:
           if [[ "$ENABLE_STRIPPING" == "true" ]]; then
             BEFORE_STRIPPING=`ls -lah $OUTPUT_LIB | awk '{print $5}'`
             $STRIP_CMD $OUTPUT_LIB
+
+            mkdir temp_objects
+            cd temp_objects
+
+            # Extract all object files from the stripped library
+            ar x $OUTPUT_LIB
+
+            # Recreate the archive from the extracted (and now smaller) object files
+            ar -rcs ../liberlang_repacked.a *.o
+
+            # Clean up the temporary directory
+            cd ..
+            rm -rf temp_objects
+
+            # Compare the sizes:
+            ls -lh liberlang_repacked.a
+
+            mv liberlang_repacked.a $OUTPUT_LIB
+
             AFTER_STRIPPING=`ls -lah $OUTPUT_LIB | awk '{print $5}'`
             echo "Stripping: $OUTPUT_LIB before: $BEFORE_STRIPPING, after: $AFTER_STRIPPING"
           fi
@@ -844,6 +1043,7 @@ jobs:
         run: |
           file ${{ github.workspace }}/_build/liberlang.a
           lipo -info ${{ github.workspace }}/_build/liberlang.a
+          ls -lah ${{ github.workspace }}/_build/liberlang.a
 
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
@@ -897,7 +1097,7 @@ jobs:
           echo "WATCHOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos/liberlang.a" >> $GITHUB_ENV
           echo "WATCHOS_SIMULATOR_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos_sim/liberlang.a" >> $GITHUB_ENV
           echo "VISIONOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos/liberlang.a" >> $GITHUB_ENV
-          echo "VISIONOS_SIMULATOR_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos_sim/liberlang.a" >> $GITHUB_ENV
+          echo "VISIONOS_SIMULATOR_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos_sim_arm64/liberlang.a" >> $GITHUB_ENV
 
       - name: Create Combined xcframework
         id: assemble-xcframework
@@ -965,5 +1165,5 @@ jobs:
         uses: actions/upload-artifact@v4
         if: steps.assemble-xcframework.outcome == 'success'
         with:
-          name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+          name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{github.sha}}
           path: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}

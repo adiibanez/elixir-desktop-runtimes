@@ -99,6 +99,7 @@ jobs:
       arch: ${{matrix.platform.arch}}
       otp_arch: ${{matrix.platform.otp_arch}}
       rust_target: ${{matrix.platform.rust_target}}
+      rust_is_3rd_tier: ${{matrix.platform.rust_is_3rd_tier}}
 
   build_otp_round_2:
     strategy:

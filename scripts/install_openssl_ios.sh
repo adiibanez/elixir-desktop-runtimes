@@ -135,7 +135,8 @@ build_tvos_libs()
 {
 	# --openssldir="$BUILD_DIR/build/ssl"
 	if [[ ! -d $BUILD_DIR/build/lib.tvos ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.tvos" no-shared no-dso no-hw no-engine tvos-xcrun -fembed-bitcode -mios-version-min=13.4
+		./Configure --prefix="$BUILD_DIR/build/openssl.tvos" no-tests no-apps no-shared no-dso no-hw no-engine tvos-xcrun -fembed-bitcode
+		# -mios-version-min=13.4
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -151,7 +152,42 @@ build_tvos_sim_libs()
 {
 	# --openssldir="$BUILD_DIR/build/ssl" 
 	if [[ ! -d $BUILD_DIR/build/lib.tvossim-$1 ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.tvossim.$1" no-shared tvossimulator-xcrun CFLAGS="-arch $1 -mios-simulator-version-min=13.4"
+		./Configure --prefix="$BUILD_DIR/build/openssl.tvossim.$1" no-tests no-apps no-shared no-dso no-hw no-engine tvossimulator-xcrun CFLAGS="-arch $1"
+		# -mios-simulator-version-min=13.4
+		make clean
+		make -j$THREAD_COUNT
+		make install
+
+		# mkdir $BUILD_DIR/build/lib.iossim-$1
+		# cp libssl.a $BUILD_DIR/build/lib.iossim-$1/
+		# cp libcrypto.a $BUILD_DIR/build/lib.iossim-$1/
+		make clean
+	fi
+}
+
+build_watchos_libs()
+{
+	# --openssldir="$BUILD_DIR/build/ssl"
+	if [[ ! -d $BUILD_DIR/build/lib.tvos ]]; then
+		./Configure --prefix="$BUILD_DIR/build/openssl.watchos" no-tests no-apps no-shared no-dso no-hw no-engine watchos-xcrun -fembed-bitcode 
+		# -mios-version-min=13.4
+		make clean
+		make -j$THREAD_COUNT
+		make install
+
+		mkdir $BUILD_DIR/build/lib.watchos
+		# cp libssl.a $BUILD_DIR/build/lib.ios/
+		# cp libcrypto.a $BUILD_DIR/build/lib.ios/
+		make clean
+	fi
+}
+
+build_watchos_sim_libs()
+{
+	# --openssldir="$BUILD_DIR/build/ssl" 
+	if [[ ! -d $BUILD_DIR/build/lib.tvossim-$1 ]]; then
+		./Configure --prefix="$BUILD_DIR/build/openssl.watchossim.$1" no-tests no-apps no-shared no-dso no-hw no-engine watchossimulator-xcrun CFLAGS="-arch $1"
+		# -mios-simulator-version-min=13.4
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -253,7 +289,14 @@ case "$BUILD_ARCH" in
         build_tvos_sim_libs arm64
         build_tvos_sim_libs x86_64
         ;;
-    "xros")
+    "watchos")
+        build_watchos_libs
+        ;;
+    "watchos_sim")
+        build_watchos_sim_libs arm64
+        build_watchos_sim_libs x86_64
+        ;;
+	"xros")
         build_xros_libs
         ;;
     "xrossim")

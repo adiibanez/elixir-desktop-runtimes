@@ -35,6 +35,9 @@ on:
       rust_target:
         required: true
         type: string
+      rust_is_3rd_tier:
+        required: true
+        type: string
 
 jobs:
   build-nifs:
@@ -97,35 +100,59 @@ jobs:
 
           mkdir ${{inputs.platform_id}}_${{ env.NAME }}_${{inputs.otp_version}}_${{matrix.nifs.package}}
 
-          echo "Building NIFs for ${{ inputs.name }} - ${{ inputs.sdk }} - ${{ inputs.arch }}"
-          export MK_FILE=`find _build/otp_builder/erts/ -name "vsn.mk"`
-          export ERTS_VERSION="`sed -nE 's/VSN *= *([0-9.]+)/\1/p' $MK_FILE`"
-          export STATIC_ERLANG_NIF="yes"
-          export ERLANG_PATH="_build/otp_builder/release/${{inputs.otp_arch}}/include"
-          export ERTS_INCLUDE_DIR="_build/otp_builder/release/${{inputs.otp_arch}}/erts-$ERTS_VERSION/include"
-          export SDKROOT=`xcrun -sdk ${{ inputs.sdk }} --show-sdk-path`
-          export CC="xcrun -sdk ${{ inputs.sdk }} cc -arch ${{ inputs.arch }}"
-          export CXX="xcrun -sdk ${{ inputs.sdk }} c++"
-          export LD="xcrun -sdk ${{ inputs.sdk }} ld"
-          export LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v"
-          export DED_LD=$LD
-          export DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v"
-          export RANLIB="xcrun -sdk ${{ inputs.sdk }} ranlib"
-          export AR="xcrun -sdk ${{ inputs.sdk }} ar"
-          export ARCH=${{ inputs.arch }}
-          export MAKEFLAGS="-j10 -O"
-          export OPENSSL_PREFIX=${{inputs.openssl_prefix}}
+          check_symbol() {
+            local lib_path="$1"
+            local symbol_name="$2"
+            local expected_type="$3"
+            local log_file="$4"
+
+            echo "Checking for symbol '$symbol_name' (expecting type '$expected_type') in '$lib_path'..."
+
+            # if ! xcrun nm "$lib_path" &> "$log_file"; then
+            #     echo "Error: 'xcrun nm' command failed.  See '$log_file' for details." >&2
+            #     return 1  # Return failure status
+            # fi
+            nm $LIB_PATH &> "$log_file"
+
+            if ! grep "${symbol_name}" "$log_file" | grep -E "${expected_type}" > /dev/null; then
+              echo "Error: Symbol '$symbol_name' not found or has incorrect type.  See '$log_file' for details." >&2
+              return 1 # Return failure status
+            else
+              grep "${symbol_name}" "$log_file" | grep -E "${expected_type}"
+            fi
+
+            echo "Symbol '$symbol_name' found with expected type '$expected_type'."
+            return 0  # Return success status
+          }
 
           debug_lib()
           {
-            if [[ -f $1 ]]; then
-              file $1
-              lipo -info $1
-              ar -t $1
-            else 
-              echo "LIB $1 doesn't exist"
+            LIB_NAME="$1"
+            LIB_PATH="$2"
+            if [[ -f $LIB_PATH ]]; then
+              file $LIB_PATH
+              lipo -info $LIB_PATH
+              # ar -t $LIB_PATH
+
+              # nm $LIB_PATH > lib-$LIB_NAME-symbols.log 2> /dev/null || 1
+
+              if ! check_symbol "$LIB_PATH" "_${LIB_NAME}_nif_init" "T |U " "debug_lib_stderr_1.log"; then
+                # Check for any nif_init as a fallback
+                if ! check_symbol "$LIB_PATH" "_nif_init" "T |U " "debug_lib_stderr_2.log"; then
+                  exit 1
+                fi
+              fi
+
+            else
+              echo "LIB $LIB_NAME $LIB_PATH doesn't exist"
+              echo "LIB $LIB_NAME $LIB_PATH doesn't exist" >> debug_lib.log
+              find ${{github.workspace}}/_build/nifs -name "*.a" >> debug_lib.log
+              find ${{github.workspace}}/_build/nifs -name "*.a" -exec ls -lah {} \; >> debug_lib.log
+              exit 1
             fi
           }
+
+          FIRST_RUSTLER_BUILT=0
 
           build_rustler_lib()
           {
@@ -134,44 +161,96 @@ jobs:
             GIT_REPO=$3
             GIT_REF=$4
             CUSTOM_LDFLAGS="$5"
-            INCLUDE_STDLIB=$6
+
+            echo "LIBNAME: $LIBNAME"
+            echo "NATIVE_NAME: $NATIVE_NAME"
+            echo "GIT_REPO: $GIT_REPO"
+            echo "GIT_REF: $GIT_REF"
+            echo "CUSTOM_LDFLAGS: $CUSTOM_LDFLAGS"
 
             cd ${{github.workspace}}
 
             #  -C lto=yes: error: options `-C embed-bitcode=no` and `-C lto` are incompatible
-            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{inputs.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1 -C lto=fat -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            # -C lto=fat -C embed-bitcode=yes filesize 26MB!
+            # -C lto=thin -C embed-bitcode=yes
+            # -C codegen-units=1 this disables lto: https://doc.rust-lang.org/rustc/codegen-options/index.html#lto
 
-            # cargo rustc --crate-type staticlib --release \
-            # --target=aarch64-apple-ios \
-            # -- \
-            # -C opt-level=z \
-            # -C lto=fat \
-            # -C strip=symbols \
-            # -C codegen-units=1 \
-            # -C panic=abort \
-            # -C link-arg=-Wl,-dead_strip \
-            # -C link-arg=-Wl,--gc-sections
+            # release profile
+            # debug = false
+            # split-debuginfo = '...'  # Platform-specific.
+            # strip = "none"
+            # debug-assertions = false
+            # overflow-checks = false
+            # lto = false
+            # panic = 'unwind'
+            # incremental = false
+            # codegen-units = 16
+            # rpath = false
 
-            # if [[ "${{ env.IS_3RD_TIER_TARGET }}" == "true" ]]; then
-            #   CARGO_CMD="rustup run nightly cargo build -Zbuild-std --crate-type staticlib --target=${{inputs.rust_target}} --features rustler/staticlib -- -C opt-level=z -C codegen-units=1"
+            CARGO_OPTIMIZATION_FLAGS="-C debuginfo=0 -C lto=off -C embed-bitcode=no -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+
+            # https://github.com/rust-lang/rust/issues/44322
+            # CARGO_CMD="cargo +${{env.TOOLCHAIN}} rustc --crate-type staticlib --target=${{inputs.rust_target}} --features rustler/staticlib -- -C target-feature=-crt-static -C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            #CARGO_CMD="cargo rustc --crate-type staticlib --target=${{inputs.rust_target}} --release --features rustler/staticlib -- -C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
+            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{inputs.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
+
+            echo "CARGO target is 3rd tier: ${{ inputs.rust_is_3rd_tier }}"
+            if [[ "${{ inputs.rust_is_3rd_tier }}" == "true" ]]; then
+              echo "CARGO_CMD using -Zbuild-std"
+              CARGO_CMD="cargo +nightly rustc -Zbuild-std --crate-type staticlib --target=${{inputs.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
+            else
+              echo "Non 3rd tier ensure installed target ${{inputs.rust_target}}"
+              # only add for supported targets, 3rd tier need to build stdlib
+              rustup target add ${{inputs.rust_target}}
+            fi
+
+            #export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
+            #export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
+
+            # if [[ $FIRST_RUSTLER_BUILT == 1 ]]; then
+            #   export CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort"
+            #   export RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
             # fi
 
-            if [[ $INCLUDE_STDLIB == 1 ]]; then
-              RUSTFLAGS="-C target-feature=-crt-static"
-            else 
-              RUSTFLAGS="-C target-feature=-crt-static -C link-arg=-nostdlib -C panic=abort"
-            fi
+            #RUSTFLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
             git clone --depth 1 $GIT_REPO --branch $GIT_REF
             cd $LIBNAME
             if [[ -d "native/$NATIVE_NAME" ]]; then
               cd native/$NATIVE_NAME
-              LDFLAGS="$CUSTOM_LDFLAGS" \
-              RUSTFLAGS="$RUSTFLAGS" \
-              $CARGO_CMD
+
+              # :/ back tracking on rust version due to xcode LLVM 15
+              rm -f Cargo.lock
+              cargo clean
+
+              RUSTFLAGS="$CARGO_OPTIMIZATION_FLAGS"
+
+              #RUSTFLAGS="$RUSTFLAGS -C lto=fat -C embed-bitcode=yes" \
+              if [[ $FIRST_RUSTLER_BUILT == 0 ]]; then
+                echo "CARGO_CMD: $CARGO_CMD"
+                echo "RUSTFLAGS: $RUSTFLAGS"
+                echo "LDFLAGS: $CUSTOM_LDFLAGS"
+
+                LDFLAGS="$CUSTOM_LDFLAGS" \
+                RUSTFLAGS="$RUSTFLAGS" \
+                $CARGO_CMD
+              else
+                CARGO_CMD="$CARGO_CMD -C link-arg=-nostdlib -C panic=abort"
+                RUSTFLAGS="$RUSTFLAGS -C link-arg=-nostdlib -C panic=abort"
+
+                echo "CARGO_CMD: $CARGO_CMD"
+                echo "RUSTFLAGS: $RUSTFLAGS"
+                echo "LDFLAGS: $CUSTOM_LDFLAGS"
+
+                LDFLAGS="$CUSTOM_LDFLAGS" \
+                RUSTFLAGS="$RUSTFLAGS" \
+                $CARGO_CMD
+              fi
 
               LIB_NAME=`find . -name "*.a" | head -1`
-              debug_lib $LIB_NAME
+              # debug_lib $LIB_NAME
               cp `find target -name "*.a" | grep -v "/deps" | head -1` ${{github.workspace}}/_build/nifs/
             else
               echo "native/$NATIVE_NAME doesn't exist, abort building $LIBNAME"
@@ -186,45 +265,86 @@ jobs:
 
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
+          LINK_RUSTLER_NIF_LIBS=""
+
           mkdir -p _build/nifs/
 
-          if [[ "${{matrix.nifs.type}}" == "mix" ]]; then
+          # -L${OPENSSL_PREFIX}/lib -lcrypto
+          # -L${{github.workspace}}/_build/nifs
 
-            if [[ ! -z "${{matrix.nifs.ref}}" ]]; then
-              GIT_REF="--branch ${{matrix.nifs.ref}}"
-            fi
+          build_rustler_lib \
+            "rustler_btleplug" \
+            "btleplug_client" \
+            "https://github.com/adiibanez/rustler_btleplug.git" \
+            "static-no-precompiled" \
+            "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
-            # https://github.com/elixir-desktop/exqlite.git
-            git clone --depth 1 ${{matrix.nifs.repo}} $GIT_REF
-            cd exqlite
-            mix deps.get
-            mix release
-            LIB_NAME=`find . -name "*.a" | head -1`
-            lipo -info $LIB_NAME
-            cp $LIB_NAME ${{github.workspace}}/_build/nifs/
+            export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lbtleplug_client"
 
-          fi
+          debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
-          if [[ "${{matrix.nifs.type}}" == "rustler" ]]; then
+          # https://github.com/bytecodealliance/rustix/issues/1424
+          if [[ "${{ inputs.rust_is_3rd_tier }}" != "true" ]]; then
+
+            # Wasmex nif
             build_rustler_lib \
-            "${{matrix.nifs.name}}" \
-            "${{matrix.nifs.native_name}}" \
-            "${{matrix.nifs.repo}}" \
-            "${{matrix.nifs.ref}}" \
-            "${{matrix.nifs.ldflags}}" \
-            "${{matrix.nifs.rust_stdlib}}"
+              "wasmex" \
+              "wasmex" \
+              "https://github.com/adiibanez/wasmex.git" \
+              "static-no-precompiled"
+
+            export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lwasmex"
+
+            debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
+
+            # # KUZU nif
+            # build_rustler_lib \
+            # "kuzu_nif" \
+            # "kuzu_ex" \
+            # "https://github.com/adiibanez/kuzu_nif.git" \
+            # "static-no-precompiled" \
+            # ""
+
+            # export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -llibkuzu_ex"
+
+            # debug_lib "libkuzu_ex" "${{github.workspace}}/_build/nifs/libkuzu_ex.a"
           fi
+
+
+
+
+          # https://github.com/elixir-desktop/exqlite.git
+          git clone --depth 1 https://github.com/elixir-sqlite/exqlite
+          cd exqlite
+          mix deps.get
+          mix release
+          LIB_NAME=`find . -name "*.a" | head -1`
+          lipo -info $LIB_NAME
+          cp $LIB_NAME ${{github.workspace}}/_build/nifs/
+          cd ${{github.workspace}}
+
+          debug_lib "sqlite3_nif" "${{github.workspace}}/_build/nifs/sqlite3_nif.a"
+
+          # disable, breaks builds and doesn't seem required anyway
+          # export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lsqlite3_nif"
+
+          # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
+          # cd libsecp256k1
+          # mix deps.get
+          # mix release
+          # cd ${{github.workspace}}/_build/nifs/
+
+          # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
+          # cd explorer
+          # mix deps.get
+          # mix release
+          # cd ${{github.workspace}}/_build/nifs/
 
           cd ${{github.workspace}}
 
-          find _build/nifs -type f -name "*.a" || 1
+          echo LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS" >> $GITHUB_ENV
 
-      # - name: Upload Nifs for ${{ inputs.name }} OTP-${{inputs.otp_version}} ELX-${{inputs.elixir_version}}
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: libs-OTP-${{inputs.otp_version}}-ELX-${{inputs.elixir_version}}-${{ inputs.platform.id }}-nifs
-      #     path: |
-      #       _build/nifs/**/**.a
+          find _build/nifs -type f -name "*.a" || 1
 
       - name: Verify nif libs
         continue-on-error: true
@@ -248,10 +368,10 @@ jobs:
             find ~+ -type f -name "*.a" -exec ls -lah {} \;
           fi
 
-      # - name: Upload Nifs for ${{ matrix.platform.name }} OTP-${{matrix.erlixir.otp-version}} ELX-${{matrix.erlixir.elixir-version}}
+      # - name: Upload Nifs for ${{ inputs.name }} OTP-${{matrix.erlixir.otp-version}} ELX-${{matrix.erlixir.elixir-version}}
       #   uses: actions/upload-artifact@v4
       #   with:
-      #     name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-nifs
+      #     name: libs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ inputs.id }}-nifs
       #     path: |
       #       _build/nifs/**/**.a
 

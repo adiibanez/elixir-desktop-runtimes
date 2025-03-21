@@ -21,6 +21,7 @@ platform:
     otp_arch: 'aarch64-apple-darwin'
     xcomp: 'aarch64-darwin'
     rust_target: 'aarch64-apple-darwin'
+    rust_is_3rd_tier: false
 
   - platform_id: 'macos_x86_64'
     name: 'macOS x86_64'
