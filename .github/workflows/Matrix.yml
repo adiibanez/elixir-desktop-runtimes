@@ -148,89 +148,89 @@ jobs:
               rust_target: 'x86_64-apple-ios',
             }
 
-          # - {
-          #     id: 'watchos',
-          #     name: 'watchOS',
-          #     sdk: watchos,
-          #     arch: arm64,
-          #     base_arch: ios,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchos',
-          #     openssl_arch: 'watchos-arm64_32-xcrun',
-          #     otp_arch: 'aarch64-apple-ios',
-          #     rust_target: 'aarch64-apple-watchos',
-          #   }
-          # - {
-          #     id: 'watchos_sim',
-          #     name: 'watchOS Simulator',
-          #     sdk: watchsimulator,
-          #     arch: x86_64,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchos',
-          #     openssl_arch: 'watchsimulator-xcrun',
-          #     otp_arch: 'aarch64-apple-ios',
-          #     rust_target: 'aarch64-apple-watchos-sim',
-          #   }
-          # - {
-          #     id: 'tvos',
-          #     name: 'tvOS',
-          #     sdk: appletvos,
-          #     arch: arm64,
-          #     base_arch: tvos,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
-          #     openssl_arch: 'tvos-xcrun',
-          #     otp_arch: 'aarch64-apple-tvos',
-          #     rust_target: 'aarch64-apple-tvos',
-          #     rust_is_3rd_tier: true,
-          #   }
-          # - {
-          #     id: 'tvos_sim_arm64',
-          #     name: 'tvOS Simulator arm64',
-          #     sdk: appletvsimulator,
-          #     arch: arm64,
-          #     base_arch: tvos_sim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.arm64',
-          #     openssl_arch: 'tvossimulator-xcrun',
-          #     otp_arch: 'aarch64-apple-tvossimulator',
-          #     rust_target: 'aarch64-apple-tvos-sim',
-          #     rust_is_3rd_tier: true,
-          #   }
-          # - {
-          #     id: 'tvos_sim_x86_64',
-          #     name: 'tvOS Simulator x86_64',
-          #     sdk: appletvsimulator,
-          #     arch: x86_64,
-          #     base_arch: tvos_sim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.x86_64',
-          #     openssl_arch: 'tvossimulator-x86_64-xcrun',
-          #     otp_arch: 'x86_64-apple-tvos',
-          #     rust_target: 'x86_64-apple-tvos',
-          #     rust_is_3rd_tier: true,
-          #   }
+          - {
+              id: 'watchos',
+              name: 'watchOS',
+              sdk: watchos,
+              arch: arm64,
+              base_arch: ios,
+              openssl_prefix: '_build/ios-openssl/build/openssl.watchos',
+              openssl_arch: 'watchos-arm64_32-xcrun',
+              otp_arch: 'aarch64-apple-ios',
+              rust_target: 'aarch64-apple-watchos',
+            }
+          - {
+              id: 'watchos_sim',
+              name: 'watchOS Simulator',
+              sdk: watchsimulator,
+              arch: x86_64,
+              openssl_prefix: '_build/ios-openssl/build/openssl.watchos',
+              openssl_arch: 'watchsimulator-xcrun',
+              otp_arch: 'aarch64-apple-ios',
+              rust_target: 'aarch64-apple-watchos-sim',
+            }
+          - {
+              id: 'tvos',
+              name: 'tvOS',
+              sdk: appletvos,
+              arch: arm64,
+              base_arch: tvos,
+              openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
+              openssl_arch: 'tvos-xcrun',
+              otp_arch: 'aarch64-apple-tvos',
+              rust_target: 'aarch64-apple-tvos',
+              rust_is_3rd_tier: true,
+            }
+          - {
+              id: 'tvos_sim_arm64',
+              name: 'tvOS Simulator arm64',
+              sdk: appletvsimulator,
+              arch: arm64,
+              base_arch: tvos_sim,
+              openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.arm64',
+              openssl_arch: 'tvossimulator-xcrun',
+              otp_arch: 'aarch64-apple-tvossimulator',
+              rust_target: 'aarch64-apple-tvos-sim',
+              rust_is_3rd_tier: true,
+            }
+          - {
+              id: 'tvos_sim_x86_64',
+              name: 'tvOS Simulator x86_64',
+              sdk: appletvsimulator,
+              arch: x86_64,
+              base_arch: tvos_sim,
+              openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.x86_64',
+              openssl_arch: 'tvossimulator-x86_64-xcrun',
+              otp_arch: 'x86_64-apple-tvos',
+              rust_target: 'x86_64-apple-tvos',
+              rust_is_3rd_tier: true,
+            }
 
-          - {
-              id: 'visionos',
-              name: 'visionOS',
-              sdk: xros,
-              arch: arm64,
-              base_arch: xros,
-              openssl_prefix: '_build/ios-openssl/build/openssl.xros',
-              openssl_arch: 'xros-xcrun',
-              otp_arch: 'aarch64-apple-visionos',
-              rust_target: 'aarch64-apple-visionos',
-              rust_is_3rd_tier: true,
-            }
-          - {
-              id: 'visionos_sim_arm64',
-              name: 'visionOS Simulator arm64',
-              sdk: xrsimulator,
-              arch: arm64,
-              base_arch: xrossim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
-              openssl_arch: 'xrossimulator-xcrun',
-              #otp_arch: 'aarch64-apple-visionos-sim',
-              otp_arch: 'aarch64-apple-visionossim',
-              rust_target: 'aarch64-apple-visionos-sim',
-              rust_is_3rd_tier: true,
-            }
+          # - {
+          #     id: 'visionos',
+          #     name: 'visionOS',
+          #     sdk: xros,
+          #     arch: arm64,
+          #     base_arch: xros,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xros',
+          #     openssl_arch: 'xros-xcrun',
+          #     otp_arch: 'aarch64-apple-visionos',
+          #     rust_target: 'aarch64-apple-visionos',
+          #     rust_is_3rd_tier: true,
+          #   }
+          # - {
+          #     id: 'visionos_sim_arm64',
+          #     name: 'visionOS Simulator arm64',
+          #     sdk: xrsimulator,
+          #     arch: arm64,
+          #     base_arch: xrossim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
+          #     openssl_arch: 'xrossimulator-xcrun',
+          #     #otp_arch: 'aarch64-apple-visionos-sim',
+          #     otp_arch: 'aarch64-apple-visionossim',
+          #     rust_target: 'aarch64-apple-visionos-sim',
+          #     rust_is_3rd_tier: true,
+          #   }
           # - {
           #     id: 'visionos_sim_x86_64',
           #     name: 'visionOS Simulator x86_64',
@@ -756,7 +756,7 @@ jobs:
 
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
-          LINK_NIF_LIBS=""
+          LINK_RUSTLER_NIF_LIBS=""
 
           mkdir -p _build/nifs/
 
@@ -770,7 +770,7 @@ jobs:
             "static-no-precompiled" \
             "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
-            export LINK_NIF_LIBS="$LINK_NIF_LIBS -lbtleplug_client"
+            export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lbtleplug_client"
 
           debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
@@ -782,7 +782,7 @@ jobs:
               "https://github.com/adiibanez/wasmex.git" \
               "static-no-precompiled"
 
-              export LINK_NIF_LIBS="$LINK_NIF_LIBS -lwasmex"
+              export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lwasmex"
 
             debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
           fi
@@ -800,7 +800,7 @@ jobs:
           debug_lib "sqlite3_nif" "${{github.workspace}}/_build/nifs/sqlite3_nif.a"
 
           # disable, breaks builds and doesn't seem required anyway
-          # export LINK_NIF_LIBS="$LINK_NIF_LIBS -lsqlite3_nif"
+          # export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lsqlite3_nif"
 
           # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
           # cd libsecp256k1
@@ -816,7 +816,7 @@ jobs:
 
           cd ${{github.workspace}}
 
-          echo LINK_NIF_LIBS="$LINK_NIF_LIBS" >> $GITHUB_ENV
+          echo LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS" >> $GITHUB_ENV
 
           find _build/nifs -type f -name "*.a" || 1
 
@@ -907,7 +907,7 @@ jobs:
 
           # funky business: -Wl,--allow-multiple-definition
 
-          echo "LINK_NIF_LIBS: $LINK_NIF_LIBS"
+          echo "LINK_RUSTLER_NIF_LIBS: $LINK_RUSTLER_NIF_LIBS"
 
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
@@ -916,7 +916,7 @@ jobs:
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs $LINK_NIF_LIBS -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs $LINK_RUSTLER_NIF_LIBS -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \

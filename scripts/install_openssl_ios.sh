@@ -163,6 +163,38 @@ build_tvos_sim_libs()
 	fi
 }
 
+build_watchos_libs()
+{
+	# --openssldir="$BUILD_DIR/build/ssl"
+	if [[ ! -d $BUILD_DIR/build/lib.tvos ]]; then
+		./Configure --prefix="$BUILD_DIR/build/openssl.watchos" no-shared no-dso no-hw no-engine watchos-xcrun -fembed-bitcode -mios-version-min=13.4
+		make clean
+		make -j$THREAD_COUNT
+		make install
+
+		mkdir $BUILD_DIR/build/lib.watchos
+		# cp libssl.a $BUILD_DIR/build/lib.ios/
+		# cp libcrypto.a $BUILD_DIR/build/lib.ios/
+		make clean
+	fi
+}
+
+build_watchos_sim_libs()
+{
+	# --openssldir="$BUILD_DIR/build/ssl" 
+	if [[ ! -d $BUILD_DIR/build/lib.tvossim-$1 ]]; then
+		./Configure --prefix="$BUILD_DIR/build/openssl.watchossim.$1" no-shared watchossimulator-xcrun CFLAGS="-arch $1 -mios-simulator-version-min=13.4"
+		make clean
+		make -j$THREAD_COUNT
+		make install
+
+		# mkdir $BUILD_DIR/build/lib.iossim-$1
+		# cp libssl.a $BUILD_DIR/build/lib.iossim-$1/
+		# cp libcrypto.a $BUILD_DIR/build/lib.iossim-$1/
+		make clean
+	fi
+}
+
 build_xros_libs()
 {
 	# --openssldir="$BUILD_DIR/build/ssl"
