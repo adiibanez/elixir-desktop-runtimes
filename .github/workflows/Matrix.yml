@@ -160,6 +160,7 @@ jobs:
               otp_arch: 'aarch64-apple-watchos',
               rust_target: 'aarch64-apple-watchos',
               rust_is_3rd_tier: true,
+              erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
             }
           - {
               id: 'watchos_sim',
@@ -172,6 +173,7 @@ jobs:
               otp_arch: 'x86_64-apple-watchossim',
               rust_target: 'x86_64-apple-watchos-sim',
               rust_is_3rd_tier: true,
+              erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
             }
           - {
               id: 'watchos_sim',
@@ -184,6 +186,7 @@ jobs:
               otp_arch: 'aarch64-apple-watchossim',
               rust_target: 'aarch64-apple-watchos-sim',
               rust_is_3rd_tier: true,
+              erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
             }
           - {
               id: 'tvos',
@@ -196,6 +199,7 @@ jobs:
               otp_arch: 'aarch64-apple-tvos',
               rust_target: 'aarch64-apple-tvos',
               rust_is_3rd_tier: true,
+              erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
             }
           - {
               id: 'tvos_sim_arm64',
@@ -208,6 +212,7 @@ jobs:
               otp_arch: 'aarch64-apple-tvossimulator',
               rust_target: 'aarch64-apple-tvos-sim',
               rust_is_3rd_tier: true,
+              erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
             }
           - {
               id: 'tvos_sim_x86_64',
@@ -220,6 +225,7 @@ jobs:
               otp_arch: 'x86_64-apple-tvos',
               rust_target: 'x86_64-apple-tvos',
               rust_is_3rd_tier: true,
+              erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
             }
 
           # - {
@@ -448,7 +454,7 @@ jobs:
           #./test_compiler
           file test_compiler
 
-          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
+          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}${{matrix.platform.kerl-opts}}" \
           LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
@@ -886,7 +892,7 @@ jobs:
 
   #         echo "LINK_RUSTLER_NIF_LIBS: $LINK_RUSTLER_NIF_LIBS"
 
-  #         KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
+  #         KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}${{matrix.platform.kerl-opts}}" \
   #         INCLUDE_PATH="$OPENSSL_PREFIX/include" \
   #         LIB_PATH="$OPENSSL_PREFIX/lib" \
   #         LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
