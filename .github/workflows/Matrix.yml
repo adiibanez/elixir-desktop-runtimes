@@ -272,8 +272,7 @@ jobs:
       - name: Install brew tools
         shell: bash
         run: |
-          brew install autoconf
-          whereis autoreconf
+          brew install automake autoconf libtool
 
       - name: Cache Openssl source
         uses: actions/cache@v4
