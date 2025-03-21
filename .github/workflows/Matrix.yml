@@ -799,7 +799,7 @@ jobs:
 
           debug_lib "sqlite3_nif" "${{github.workspace}}/_build/nifs/sqlite3_nif.a"
 
-          export LINK_NIF_LIBS="$LINK_NIF_LIBS -sqlite3_nif"
+          export LINK_NIF_LIBS="$LINK_NIF_LIBS -lsqlite3_nif"
 
           # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
           # cd libsecp256k1
