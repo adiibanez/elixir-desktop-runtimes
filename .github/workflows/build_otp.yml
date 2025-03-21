@@ -82,6 +82,10 @@ jobs:
         run: |
           ls -alh _build/ios-openssl
           find _build/ios-openssl -name "libcrypto.a"
+      - name: Openssl Env
+        shell: bash
+        run: |
+          echo "OPENSSL_PREFIX=${{ github.workspace }}/${{inputs.openssl_prefix }}" >> "$GITHUB_ENV"
 
       - name: Configure erl options
         if: ${{ inputs.erl_opts }} != ''
