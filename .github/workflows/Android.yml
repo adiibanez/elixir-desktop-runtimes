@@ -1,24 +1,24 @@
 name: "Android"
 on:
   workflow_dispatch:
-  push:
-    branches: 
-      - ci_mods
-      - refactoring
-    paths:
-    # Just run on main branch if "native" path changed.
-    #- "native/**"
-    - "**"
-    # Also run if this file changes.
-    #- ".github/workflows/release.yml"
-    #- ".github/workflows/**"
-    tags:
-    # Tags will always run.
-    - "*"
-  pull_request:
-    paths:
-      # In PRs we only run if this file changes.
-      - ".github/workflows/**"
+  # push:
+  #   branches: 
+  #     - ci_mods
+  #     - refactoring
+  #   paths:
+  #   # Just run on main branch if "native" path changed.
+  #   #- "native/**"
+  #   - "**"
+  #   # Also run if this file changes.
+  #   #- ".github/workflows/release.yml"
+  #   #- ".github/workflows/**"
+  #   tags:
+  #   # Tags will always run.
+  #   - "*"
+  # pull_request:
+  #   paths:
+  #     # In PRs we only run if this file changes.
+  #     - ".github/workflows/**"
 
 # concurrency:
 #   group: ${{ github.workflow }}-${{ github.ref }}

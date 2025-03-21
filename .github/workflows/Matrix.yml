@@ -1,10 +1,11 @@
 name: Build Apple targets liberlang.xframework
 on:
-  push:
-    branches:
-      - main
-      - refactoring
-  pull_request:
+  # push:
+  #   branches:
+  #     - main
+  #     - refactoring
+  # pull_request:
+    workflow_dispatch:
 env:
   OPENSSL_VERSION: '3.4.0'
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
