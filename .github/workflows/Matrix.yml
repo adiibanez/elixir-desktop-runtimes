@@ -253,18 +253,18 @@ jobs:
               rust_target: 'aarch64-apple-visionos-sim',
               rust_is_3rd_tier: true,
             }
-          - {
-              id: 'visionos_sim_x86_64',
-              name: 'visionOS Simulator x86_64',
-              sdk: xrsimulator,
-              arch: x86_64,
-              base_arch: xrossim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
-              openssl_arch: 'xrossimulator-xcrun',
-              otp_arch: 'x86_64-apple-visionos',
-              rust_target: 'x86_64-apple-visionos',
-              rust_is_3rd_tier: true,
-            }
+          # - {
+          #     id: 'visionos_sim_x86_64',
+          #     name: 'visionOS Simulator x86_64',
+          #     sdk: xrsimulator,
+          #     arch: x86_64,
+          #     base_arch: xrossim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
+          #     openssl_arch: 'xrossimulator-xcrun',
+          #     otp_arch: 'x86_64-apple-visionos',
+          #     rust_target: 'x86_64-apple-visionos',
+          #     rust_is_3rd_tier: true,
+          #   }
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -769,6 +769,18 @@ jobs:
 
             debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
           fi
+
+          build_rustler_lib \
+            "kuzu_nif" \
+            "kuzu_ex" \
+            "https://github.com/adiibanez/kuzu_nif.git" \
+            "static-no-precompiled" \
+            ""
+
+            export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -llibkuzu_ex"
+
+          debug_lib "libkuzu_ex" "${{github.workspace}}/_build/nifs/libkuzu_ex.a"
+
 
           # https://github.com/elixir-desktop/exqlite.git
           git clone --depth 1 https://github.com/elixir-sqlite/exqlite
