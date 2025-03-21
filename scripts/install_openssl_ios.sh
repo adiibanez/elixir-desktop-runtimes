@@ -1,4 +1,4 @@
-g#!/bin/bash
+#!/bin/bash
 set -e
 ################## SETUP BEGIN
 # brew install git git-lfs
