@@ -799,7 +799,8 @@ jobs:
 
           debug_lib "sqlite3_nif" "${{github.workspace}}/_build/nifs/sqlite3_nif.a"
 
-          export LINK_NIF_LIBS="$LINK_NIF_LIBS -lsqlite3_nif"
+          # disable, breaks builds and doesn't seem required anyway
+          # export LINK_NIF_LIBS="$LINK_NIF_LIBS -lsqlite3_nif"
 
           # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
           # cd libsecp256k1
@@ -907,7 +908,6 @@ jobs:
           # funky business: -Wl,--allow-multiple-definition
 
           echo "LINK_NIF_LIBS: $LINK_NIF_LIBS"
-          # $LINK_NIF_LIBS
 
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
@@ -916,7 +916,7 @@ jobs:
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs $LINK_NIF_LIBS -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
