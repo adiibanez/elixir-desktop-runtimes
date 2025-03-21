@@ -682,7 +682,6 @@ jobs:
             # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=thin -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             # breaks build: CARGO_OPTIMIZATION_FLAGS="-C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
 
-            rustup target add ${{matrix.platform.rust_target}}
             # https://github.com/rust-lang/rust/issues/44322
             # CARGO_CMD="cargo +${{env.TOOLCHAIN}} rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C target-feature=-crt-static -C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             #CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --release --features rustler/staticlib -- -C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
@@ -692,6 +691,9 @@ jobs:
             if [[ "${{ matrix.platform.rust_is_3rd_tier }}" == "true" ]]; then
               echo "CARGO_CMD using -Zbuild-std"
               CARGO_CMD="cargo +nightly rustc -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
+            else
+              # only add for supported targets, 3rd tier need to build stdlib 
+              rustup target add ${{matrix.platform.rust_target}}
             fi
 
             #export RUSTFLAGS="-C lto=fat -C embed-bitcode=yes"
