@@ -59,12 +59,14 @@ on:
       static_libs:
         required: false
         type: string
+      static_link_flags:
+        required: false
+        type: string
 
 jobs:
   build-otp:
     env:
       NAME: 'build-otp'
-      OPENSSL_PREFIX: ${{inputs.openssl_prefix}}
     runs-on: macos-latest
     steps:
       - name: Checkout repository
@@ -93,43 +95,43 @@ jobs:
           # echo KERL_CONFIGURE_OPTIONS="${{inputs.erl_opts}}" >> "$GITHUB_ENV"
           # used for hashing cache key
           echo "${{inputs.erl_opts}}" > .kerl_configuration_options
-      - name: Setup asdf .tool-versions
-        id: asdf-setup
-        run: |
-          echo "" > .tool-versions
-          echo "erlang ${{inputs.otp_version}}" >> .tool-versions
-          echo "elixir ${{inputs.elixir_version}}" >> .tool-versions
-          echo PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH" >> "$GITHUB_ENV"
-      - name: Setup asdf
-        uses: asdf-vm/actions/setup@master
-      - name: asdf cache
-        id: asdf-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.asdf/
-          key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions', '.kerl_configuration_options') }}
-      - name: Install CD tools from .tool-versions
-        continue-on-error: true
-        if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@master
-      - name: Test asdf tools
-        id: asdf-test
-        run: |
-          erl -version
-          elixir --version
-          mix --version
-      - name: Ensure mix dependencies
-        shell: bash
-        run: mix deps.get
+      # - name: Setup asdf .tool-versions
+      #   id: asdf-setup
+      #   run: |
+      #     echo "" > .tool-versions
+      #     echo "erlang ${{inputs.otp_version}}" >> .tool-versions
+      #     echo "elixir ${{inputs.elixir_version}}" >> .tool-versions
+      #     echo PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH" >> "$GITHUB_ENV"
+      # - name: Setup asdf
+      #   uses: asdf-vm/actions/setup@master
+      # - name: asdf cache
+      #   id: asdf-cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ~/.asdf/
+      #     key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions', '.kerl_configuration_options') }}
+      # - name: Install CD tools from .tool-versions
+      #   continue-on-error: true
+      #   if: steps.asdf-cache.outputs.cache-hit != 'true'
+      #   uses: asdf-vm/actions/install@master
+      # - name: Test asdf tools
+      #   id: asdf-test
+      #   run: |
+      #     erl -version
+      #     elixir --version
+      #     mix --version
+      # - name: Ensure mix dependencies
+      #   shell: bash
+      #   run: mix deps.get
 
-      # save even if later jobs fail
-      - name: Cache ASDF and Toolchains
-        uses: actions/cache/save@v4
-        if: steps.asdf-cache.outputs.cache-hit != 'true'
-        id: asdf-cache-save
-        with:
-          path: ~/.asdf
-          key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+      # # save even if later jobs fail
+      # - name: Cache ASDF and Toolchains
+      #   uses: actions/cache/save@v4
+      #   if: steps.asdf-cache.outputs.cache-hit != 'true'
+      #   id: asdf-cache-save
+      #   with:
+      #     path: ~/.asdf
+      #     key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
 
       - name: OTP Cache
         uses: actions/cache@v3
@@ -222,19 +224,19 @@ jobs:
           file test_compiler
 
           KERL_CONFIGURE_OPTIONS="${{inputs.erl_opts}}" \
-          LDFLAGS="-L${{inputs.openssl_prefix}}/lib -lcrypto" \
+          LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto" \
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
           LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
           XCOMP_HOST=${{inputs.otp_arch}} \
           XCOMP_SDK="${{inputs.sdk}}" \
           XCOMP_ARCH="-arch ${{inputs.arch}}" \
-          LIBS="${{ inputs.openssl_prefix }}/lib/libcrypto.a" \
+          LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{inputs.otp_version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
           --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
           --disable-dynamic-ssl-lib \
-          --with-ssl="${{ inputs.openssl_prefix }}" \
+          --with-ssl="${{ env.OPENSSL_PREFIX }}" \
           --enable-static-nifs="$STATIC_NIFS"
 
           ./otp_build boot -a
