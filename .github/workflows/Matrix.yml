@@ -158,6 +158,7 @@ jobs:
               openssl_arch: 'watchos-arm64_32-xcrun',
               otp_arch: 'aarch64-apple-ios',
               rust_target: 'aarch64-apple-watchos',
+              rust_is_3rd_tier: true,
             }
           - {
               id: 'watchos_sim',
@@ -168,6 +169,7 @@ jobs:
               openssl_arch: 'watchsimulator-xcrun',
               otp_arch: 'aarch64-apple-ios',
               rust_target: 'aarch64-apple-watchos-sim',
+              rust_is_3rd_tier: true,
             }
           - {
               id: 'tvos',
@@ -515,7 +517,7 @@ jobs:
           path: '**/*.log'
 
       - name: Set 3rd tier rust target flag
-        #if: ${{ contains(matrix.platform.rust_target, 'tvos') || contains(matrix.platform.rust_target, 'xros') }}
+        #if: ${{ contains(matrix.platform.rust_target, 'tvos') || contains(matrix.platform.rust_target, 'xros') || contains(matrix.platform.rust_target, 'watchos') }}
         if: ${{ matrix.platform.rust_is_3rd_tier == true }}
         shell: bash
         run: |

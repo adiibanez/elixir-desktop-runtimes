@@ -285,7 +285,14 @@ case "$BUILD_ARCH" in
         build_tvos_sim_libs arm64
         build_tvos_sim_libs x86_64
         ;;
-    "xros")
+    "watchos")
+        build_watchos_libs
+        ;;
+    "watchos_sim")
+        build_watchos_sim_libs arm64
+        build_watchos_sim_libs x86_64
+        ;;
+	"xros")
         build_xros_libs
         ;;
     "xrossim")
