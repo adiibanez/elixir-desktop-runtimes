@@ -69,11 +69,10 @@ runs:
         # ls -alh ${{github.workspace}}/patch/openssl_http_server.patch
 
         # get rid of any fork(), not supported on tvos / watchos
-        cp ${{github.workspace}}/patch/openssl_http_server.c openssl-${{ inputs.version }}/apps/lib/http_server.c
-
-        echo '' > openssl-${{ inputs.version }}/test/drbgtest.c
-        echo '' > openssl-${{ inputs.version }}/apps/ocsp.c
-        echo '' > openssl-${{ inputs.version }}/apps/speed.c
+        # cp ${{github.workspace}}/patch/openssl_http_server.c openssl-${{ inputs.version }}/apps/lib/http_server.c
+        # echo '' > openssl-${{ inputs.version }}/test/drbgtest.c
+        # echo '' > openssl-${{ inputs.version }}/apps/ocsp.c
+        # echo '' > openssl-${{ inputs.version }}/apps/speed.c
 
         # patch openssl-${{ inputs.version }}/apps/lib/http_server.c ${{github.workspace}}/patch/openssl_http_server.patch
 
