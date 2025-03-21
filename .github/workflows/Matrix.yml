@@ -322,213 +322,174 @@ jobs:
           #echo "OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
           echo "OPENSSL_SRC_PREFIX=${{ github.workspace }}/openssl-${{ env.OPENSSL_VERSION }}" >> "$GITHUB_ENV"
 
-      # - name: Build OpenSSL
-      #   if: false
-      #   id: openssl-build
-      #   # if: steps.openssl-build-cache.outputs.cache-hit != 'true'
-      #   run: |
+      - name: Configure erl options
+        if: ${{ matrix.erlixir.erl-opts }} != ''
+        run: |
+          # echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}" >> "$GITHUB_ENV"
+          # used for hashing cache key
+          echo "${{matrix.erlixir.erl-opts}}" > .kerl_configuration_options
+      - name: Setup asdf .tool-versions
+        id: asdf-setup
+        run: |
+          echo "" > .tool-versions
+          echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
+          echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
+          echo PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH" >> "$GITHUB_ENV"
+      - name: Setup asdf
+        uses: asdf-vm/actions/setup@master
+      - name: asdf cache
+        id: asdf-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.asdf/
+          key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions', '.kerl_configuration_options') }}
+      - name: Install CD tools from .tool-versions
+        continue-on-error: true
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@master
+      - name: Test asdf tools
+        id: asdf-test
+        run: |
+          erl -version
+          elixir --version
+          mix --version
+      - name: Ensure mix dependencies
+        shell: bash
+        run: mix deps.get
 
-      #     mkdir -p _build/openssl-${{ env.OPENSSL_VERSION }}
-      #     # https://github.com/erlang/otp/issues/5706
-      #     cp patch/openssl-ios.conf openssl-${{ env.OPENSSL_VERSION }}/Configurations/15-ios.conf
+      # save even if later jobs fail
+      - name: Cache ASDF and Toolchains
+        uses: actions/cache/save@v4
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        id: asdf-cache-save
+        with:
+          path: ~/.asdf
+          key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
 
-      #     # CXXFLAGS=$CFLAGS \
-      #     # CFLAGS="-fno-common -Os -D__IOS__=yes" \
-      #     # OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
-      #     # ARCH=${{ matrix.platform.openssl_arch }} \
-      #     # MAKEFLAGS="-j10 -O" \
-      #     # OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-      #     # ./scripts/install_openssl_new.sh
+      - name: OTP Cache
+        uses: actions/cache@v3
+        id: otp-cache
+        with:
+          path: |
+            otp_src_${{matrix.erlixir.otp-version}}
+            _build/otp_release_${{matrix.erlixir.otp-version}}
+            _build/otp_builder
+          key: macos-otp-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts-description }}
+      - name: Download OTP
+        shell: bash
+        if: steps.otp-cache.outputs.cache-hit != 'true'
+        run: |
+          USE_GIT="${{ matrix.erlixir.use-git }}"
 
-      #     # https://wiki.openssl.org/index.php/Compilation_and_Installation
-      #     # # CXXFLAGS=$CFLAGS \
-      #     # # CFLAGS="-fno-common -Os -D__IOS__=yes" \
-      #     OPENSSL_OPTS="${{matrix.platform.openssl_opts}}" \
-      #     SDKROOT=`xcrun -sdk ${{ matrix.platform.sdk }} --show-sdk-path` \
-      #     CC="xcrun -sdk ${{ matrix.platform.sdk }} cc" \
-      #     CXX="xcrun -sdk ${{ matrix.platform.sdk }} c++" \
-      #     LD="xcrun -sdk ${{ matrix.platform.sdk }} ld" \
-      #     LDFLAGS="-L$SDKROOT/usr/lib/ -lc++ -v" \
-      #     DED_LD=$LD \
-      #     DED_LDFLAGS="-L$SDKROOT/usr/lib/ -r -v" \
-      #     RANLIB="xcrun -sdk ${{ matrix.platform.sdk }} ranlib" \
-      #     AR="xcrun -sdk ${{ matrix.platform.sdk }} ar" \
-      #     ARCH=${{ matrix.platform.openssl_arch }} \
-      #     MAKEFLAGS="-j10 -O" \
-      #     OPENSSL_PREFIX=${{ github.workspace }}/_build/openssl-${{ env.OPENSSL_VERSION }} \
-      #     ./scripts/install_openssl_new.sh
+          if [ -e otp_src_${{matrix.erlixir.otp-version}} ]; then
+            exit 0
+            rm -rf otp_src_${{matrix.erlixir.otp-version}}
+          fi
 
-      #     ls -lah _build/openssl-$OPENSSL_VERSION
-      #     find _build/openssl-$OPENSSL_VERSION -name "*.a"
+          if [[ "$USE_GIT" == "true" ]]; then
+            # --branch OTP-${{matrix.erlixir.otp-version}}
+            git clone --depth 1 https://github.com/${{matrix.erlixir.git-repo}} --branch ${{matrix.erlixir.git-ref}} otp_src_${{matrix.erlixir.otp-version}}
+          else
+            curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
+            tar -xzf otp_src_${{matrix.erlixir.otp-version}}.tar.gz
+          fi
 
-  #     - name: Configure erl options
-  #       if: ${{ matrix.erlixir.erl-opts }} != ''
-  #       run: |
-  #         # echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}" >> "$GITHUB_ENV"
-  #         # used for hashing cache key
-  #         echo "${{matrix.erlixir.erl-opts}}" > .kerl_configuration_options
-  #     - name: Setup asdf .tool-versions
-  #       id: asdf-setup
-  #       run: |
-  #         echo "" > .tool-versions
-  #         echo "erlang ${{matrix.erlixir.otp-version}}" >> .tool-versions
-  #         echo "elixir ${{matrix.erlixir.elixir-version}}" >> .tool-versions
-  #         echo PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH" >> "$GITHUB_ENV"
-  #     - name: Setup asdf
-  #       uses: asdf-vm/actions/setup@master
-  #     - name: asdf cache
-  #       id: asdf-cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ~/.asdf/
-  #         key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions', '.kerl_configuration_options') }}
-  #     - name: Install CD tools from .tool-versions
-  #       continue-on-error: true
-  #       if: steps.asdf-cache.outputs.cache-hit != 'true'
-  #       uses: asdf-vm/actions/install@master
-  #     - name: Test asdf tools
-  #       id: asdf-test
-  #       run: |
-  #         erl -version
-  #         elixir --version
-  #         mix --version
-  #     - name: Ensure mix dependencies
-  #       shell: bash
-  #       run: mix deps.get
+      - name: Build OTP Round 1
+        id: otp-setup-round1
+        # if: false
+        if: steps.otp-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
 
-  #     # save even if later jobs fail
-  #     - name: Cache ASDF and Toolchains
-  #       uses: actions/cache/save@v4
-  #       if: steps.asdf-cache.outputs.cache-hit != 'true'
-  #       id: asdf-cache-save
-  #       with:
-  #         path: ~/.asdf
-  #         key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+          ulimit -n 65536
+          STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
+          echo $STATIC_NIFS
 
-  #     - name: OTP Cache
-  #       uses: actions/cache@v3
-  #       id: otp-cache
-  #       with:
-  #         path: |
-  #           otp_src_${{matrix.erlixir.otp-version}}
-  #           _build/otp_release_${{matrix.erlixir.otp-version}}
-  #           _build/otp_builder
-  #         key: macos-otp-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts-description }}
-  #     - name: Download OTP
-  #       shell: bash
-  #       if: steps.otp-cache.outputs.cache-hit != 'true'
-  #       run: |
-  #         USE_GIT="${{ matrix.erlixir.use-git }}"
+          mkdir -p _build
 
-  #         if [ -e otp_src_${{matrix.erlixir.otp-version}} ]; then
-  #           exit 0
-  #           rm -rf otp_src_${{matrix.erlixir.otp-version}}
-  #         fi
+          if [ -e _build/otp_builder ]; then
+              echo "Otp builder exists."
+          else
+              cp -r otp_src_${{matrix.erlixir.otp-version}} _build/otp_builder
+          fi
 
-  #         if [[ "$USE_GIT" == "true" ]]; then
-  #           # --branch OTP-${{matrix.erlixir.otp-version}}
-  #           git clone --depth 1 https://github.com/${{matrix.erlixir.git-repo}} --branch ${{matrix.erlixir.git-ref}} otp_src_${{matrix.erlixir.otp-version}}
-  #         else
-  #           curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
-  #           tar -xzf otp_src_${{matrix.erlixir.otp-version}}.tar.gz
-  #         fi
+          ls -lah $OPENSSL_PREFIX/lib
+          echo $OPENSSL_PREFIX
 
-  #     - name: Build OTP Round 1
-  #       id: otp-setup-round1
-  #       # if: false
-  #       if: steps.otp-cache.outputs.cache-hit != 'true'
-  #       shell: bash
-  #       run: |
+          if [ -e $OPENSSL_PREFIX ]; then
+              echo "Openssl $OPENSSL_PREFIX exists."
+              file "$OPENSSL_PREFIX/lib/libcrypto.a"
+              lipo -info "$OPENSSL_PREFIX/lib/libcrypto.a"
+              # otool -L "$OPENSSL_PREFIX/lib/libcrypto.a"
+          else
+              echo "Openssl $OPENSSL_PREFIX doesn't exists."
+              exit 1
+          fi
 
-  #         ulimit -n 65536
-  #         STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
-  #         echo $STATIC_NIFS
+          export OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}}
 
-  #         mkdir -p _build
+          cp patch/erl-xcomp-*.conf _build/otp_builder/xcomp/
+          cd _build/otp_builder
 
-  #         if [ -e _build/otp_builder ]; then
-  #             echo "Otp builder exists."
-  #         else
-  #             cp -r otp_src_${{matrix.erlixir.otp-version}} _build/otp_builder
-  #         fi
+          # exit 1
 
-  #         ls -lah $OPENSSL_PREFIX/lib
-  #         echo $OPENSSL_PREFIX
+          #KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
+          #KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" \
 
-  #         if [ -e $OPENSSL_PREFIX ]; then
-  #             echo "Openssl $OPENSSL_PREFIX exists."
-  #             file "$OPENSSL_PREFIX/lib/libcrypto.a"
-  #             lipo -info "$OPENSSL_PREFIX/lib/libcrypto.a"
-  #             # otool -L "$OPENSSL_PREFIX/lib/libcrypto.a"
-  #         else
-  #             echo "Openssl $OPENSSL_PREFIX doesn't exists."
-  #             exit 1
-  #         fi
+          # KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
+          # KERL_CONFIGURE_DISABLE_APPLICATIONS https://github.com/kerl/kerl/blob/master/kerl
+          # https://www.erlang.org/docs/19/applications
 
-  #         export OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}}
+          xcodebuild -showsdks
+          xcrun --sdk ${{matrix.platform.sdk}} --show-sdk-path
 
-  #         cp patch/erl-xcomp-*.conf _build/otp_builder/xcomp/
-  #         cd _build/otp_builder
+          echo 'int main() { return 0; }' > test_compiler.c
+          xcrun -sdk iphoneos cc -arch ${{matrix.platform.arch}} -o test_compiler test_compiler.c
+          #./test_compiler
+          file test_compiler
 
-  #         # exit 1
+          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
+          LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto" \
+          INCLUDE_PATH="$OPENSSL_PREFIX/include" \
+          LIB_PATH="$OPENSSL_PREFIX/lib" \
+          LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
+          XCOMP_HOST=${{matrix.platform.otp_arch}} \
+          XCOMP_SDK="${{matrix.platform.sdk}}" \
+          XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
+          LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
+          OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
+          RELEASE_LIBBEAM="yes" ./otp_build configure \
+          --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
+          --disable-dynamic-ssl-lib \
+          --with-ssl="${{ env.OPENSSL_PREFIX }}" \
+          --enable-static-nifs="$STATIC_NIFS"
 
-  #         #KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
-  #         #KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" \
+          ./otp_build boot -a
+          ./otp_build release -a
 
-  #         # KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
-  #         # KERL_CONFIGURE_DISABLE_APPLICATIONS https://github.com/kerl/kerl/blob/master/kerl
-  #         # https://www.erlang.org/docs/19/applications
+          find . -type d -name release
 
-  #         xcodebuild -showsdks
-  #         xcrun --sdk ${{matrix.platform.sdk}} --show-sdk-path
+          find ~+ -name libbeam.a
+          find ~+ -name asn1rt_nif.a
+          find ~+ -name crypto.a
 
-  #         echo 'int main() { return 0; }' > test_compiler.c
-  #         xcrun -sdk iphoneos cc -arch ${{matrix.platform.arch}} -o test_compiler test_compiler.c
-  #         #./test_compiler
-  #         file test_compiler
+          cd ${{ github.workspace }}
+          ls -lah _build/otp_builder
 
-  #         KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}" \
-  #         LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto" \
-  #         INCLUDE_PATH="$OPENSSL_PREFIX/include" \
-  #         LIB_PATH="$OPENSSL_PREFIX/lib" \
-  #         LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
-  #         XCOMP_HOST=${{matrix.platform.otp_arch}} \
-  #         XCOMP_SDK="${{matrix.platform.sdk}}" \
-  #         XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-  #         LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
-  #         OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
-  #         RELEASE_LIBBEAM="yes" ./otp_build configure \
-  #         --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
-  #         --disable-dynamic-ssl-lib \
-  #         --with-ssl="${{ env.OPENSSL_PREFIX }}" \
-  #         --enable-static-nifs="$STATIC_NIFS"
+      - name: Show libs for ${{ matrix.platform.name }}
+        continue-on-error: true
+        if: always() && steps.otp-setup-round1.outcome != 'success'
+        shell: bash
+        run: |
+          find _build/otp_builder -name "*.a"
 
-  #         ./otp_build boot -a
-  #         ./otp_build release -a
-
-  #         find . -type d -name release
-
-  #         find ~+ -name libbeam.a
-  #         find ~+ -name asn1rt_nif.a
-  #         find ~+ -name crypto.a
-
-  #         cd ${{ github.workspace }}
-  #         ls -lah _build/otp_builder
-
-  #     - name: Show libs for ${{ matrix.platform.name }}
-  #       continue-on-error: true
-  #       if: always() && steps.otp-setup-round1.outcome != 'success'
-  #       shell: bash
-  #       run: |
-  #         find _build/otp_builder -name "*.a"
-
-  #     - name: Extract logs for ${{ matrix.platform.name }}
-  #       continue-on-error: true
-  #       if: always() && steps.otp-setup-round1.outcome != 'success'
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.sha}}
-  #         path: '**/*.log'
+      - name: Extract logs for ${{ matrix.platform.name }}
+        continue-on-error: true
+        if: always() && steps.otp-setup-round1.outcome != 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-logs-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.sha}}
+          path: '**/*.log'
 
   #     - name: Set 3rd tier rust target flag
   #       #if: ${{ contains(matrix.platform.rust_target, 'tvos') || contains(matrix.platform.rust_target, 'xros') || contains(matrix.platform.rust_target, 'watchos') }}
