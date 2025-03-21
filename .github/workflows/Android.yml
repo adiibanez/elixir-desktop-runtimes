@@ -1,10 +1,10 @@
-name: "Android"
-on: 
+name: 'Android'
+on:
   #workflow_dispatch:
   push:
-    branches: 
-      - ci_mods
-      - refactoring
+    branches:
+      - ci_mods_
+      - refactoring_
   #   paths:
   #   # Just run on main branch if "native" path changed.
   #   #- "native/**"
@@ -45,13 +45,13 @@ jobs:
           #   type: "armeabi-v7a"
           # }
           - {
-            id: "arm64",
-            abi: 23,
-            cpu: "aarch64",
-            pc: "aarch64-unknown",
-            name: "android",
-            type: "arm64-v8a"
-          }
+              id: 'arm64',
+              abi: 23,
+              cpu: 'aarch64',
+              pc: 'aarch64-unknown',
+              name: 'android',
+              type: 'arm64-v8a',
+            }
           # - {
           #   id: "x86_64",
           #   abi: 23,
@@ -61,7 +61,11 @@ jobs:
           #   type: "x86_64"
           # }
         erlixir:
-          - { otp-version: 27.3, elixir-version: 1.18.2, erl-opts: '--disable-debug --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba'}
+          - {
+              otp-version: 27.3,
+              elixir-version: 1.18.2,
+              erl-opts: '--disable-debug --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
+            }
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
           # - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
@@ -69,8 +73,8 @@ jobs:
       OTP_VERSION: ${{ matrix.erlixir.otp-version }}
       ARCH_IDENTIFIER: ${{matrix.archs.id}}-${{matrix.archs.name}}-${{matrix.archs.abi}}
 
-    name: "Android erlang runtimes"
-    runs-on: "ubuntu-latest"
+    name: 'Android erlang runtimes'
+    runs-on: 'ubuntu-latest'
 
     steps:
       # - name: Configure erl options
@@ -123,19 +127,19 @@ jobs:
           restore-keys: |
             android-otp-${{ matrix.archs.id }}-${{ matrix.erlixir.otp-version }}-
             android-otp-${{ matrix.archs.id }}-
-      
+
       # - name: Checkout opt ${{matrix.erlixir.otp-version}}
       #   uses: actions/checkout@v3
       #   if: steps.otp-cache.outputs.cache-hit != 'true'
-      #   with: 
+      #   with:
       #     path: _build/otp_cache/otp
       #     repository: erlang/otp
       #     ref: ${{ env.OTP_TAG }}
 
-      - name: Download OTP 
+      - name: Download OTP
         shell: bash
         if: steps.otp-cache.outputs.cache-hit != 'true'
-        run: | 
+        run: |
           curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{matrix.erlixir.otp-version}}/otp_src_${{matrix.erlixir.otp-version}}.tar.gz
           mkdir -p _build/otp_cache/
           mv otp_src_${{matrix.erlixir.otp-version}}.tar.gz _build/otp_cache/
@@ -147,9 +151,9 @@ jobs:
         with:
           path: |
             _build/otp_cache/
-          key: android-otp-${{ matrix.archs.id }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}      
+          key: android-otp-${{ matrix.archs.id }}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts }}
 
-      - name: Check otp 
+      - name: Check otp
         shell: bash
         run: |
           ls -lah _build/otp_cache/
@@ -173,7 +177,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-
       - name: Debug kerl opts
         shell: bash
         run: |
@@ -189,8 +192,8 @@ jobs:
           password: ${{secrets.GITHUB_TOKEN}}
           registry: ghcr.io
           image_name: android_beam
-          image_tag: "arch_${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}"
-          dockerfile: "_build/Dockerfile_android-beam-${{matrix.archs.id}}"
+          image_tag: 'arch_${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}'
+          dockerfile: '_build/Dockerfile_android-beam-${{matrix.archs.id}}'
           build_extra_args: |
             --platform=linux/amd64
             --build-arg ARCH=${{matrix.archs.id}}
@@ -209,7 +212,7 @@ jobs:
 
       - name: Build Android ${{env.ARCH_IDENTIFIER}} runtimes
         if: steps.buildx-beam.outcome == 'success'
-        env: 
+        env:
           ARCH: ${{matrix.archs.id}}
           BASE_IMAGE: ghcr.io/adiibanez/android_beam:arch_${{env.ARCH_IDENTIFIER}}-${{ matrix.erlixir.otp-version }}-erl-opts-${{matrix.erlixir.erl-opts}}-${{ matrix.erlixir.elixir-version }}
         run: |
@@ -256,4 +259,3 @@ jobs:
           body: |
             Android Checksums:
             ${{ steps.android-checksums.outputs.android_checksums }}
-  
