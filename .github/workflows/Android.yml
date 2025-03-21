@@ -1,10 +1,10 @@
 name: "Android"
 on: 
-  workflow_dispatch:
+  #workflow_dispatch:
   push:
     branches: 
       - ci_mods
-      - refactoring_
+      - refactoring
   #   paths:
   #   # Just run on main branch if "native" path changed.
   #   #- "native/**"
