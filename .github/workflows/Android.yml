@@ -159,6 +159,7 @@ jobs:
         shell: bash
         run: |
           pwd
+          mix deps.get
           MIX_TARGET=prod mix compile
           mix run -e 'Mix.Tasks.Package.Android.Runtime.write_beam_dockerfile("${{matrix.archs.id}}", "${{github.workspace}}/_build/Dockerfile_android-beam-${{matrix.archs.id}}")'
           echo "${{github.workspace}}/_build/Dockerfile_android-beam-${{matrix.archs.id}}"
