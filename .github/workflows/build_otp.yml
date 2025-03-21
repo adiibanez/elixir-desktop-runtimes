@@ -77,6 +77,12 @@ jobs:
             _build/ios-openssl
           key: openssl-ios-build-cache-${{ inputs.openssl_version }}-${{ runner.os }}-${{inputs.base_arch}}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
 
+      - name: Check openssl
+        shell: bash
+        run: |
+          ls -alh _build/ios-openssl
+          find _build/ios-openssl -name "libcrypto.a"
+
       - name: Configure erl options
         if: ${{ inputs.erl_opts }} != ''
         run: |
