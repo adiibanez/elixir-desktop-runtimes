@@ -1,4 +1,4 @@
-#!/bin/bash
+g#!/bin/bash
 set -e
 ################## SETUP BEGIN
 # brew install git git-lfs
@@ -152,7 +152,7 @@ build_tvos_sim_libs()
 {
 	# --openssldir="$BUILD_DIR/build/ssl" 
 	if [[ ! -d $BUILD_DIR/build/lib.tvossim-$1 ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.tvossim.$1" no-shared tvossimulator-xcrun CFLAGS="-arch $1"
+		./Configure --prefix="$BUILD_DIR/build/openssl.tvossim.$1" no-shared no-dso no-hw no-engine tvossimulator-xcrun CFLAGS="-arch $1"
 		# -mios-simulator-version-min=13.4
 		make clean
 		make -j$THREAD_COUNT
@@ -186,7 +186,7 @@ build_watchos_sim_libs()
 {
 	# --openssldir="$BUILD_DIR/build/ssl" 
 	if [[ ! -d $BUILD_DIR/build/lib.tvossim-$1 ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.watchossim.$1" no-shared watchossimulator-xcrun CFLAGS="-arch $1"
+		./Configure --prefix="$BUILD_DIR/build/openssl.watchossim.$1" no-shared no-dso no-hw no-engine watchossimulator-xcrun CFLAGS="-arch $1"
 		# -mios-simulator-version-min=13.4
 		make clean
 		make -j$THREAD_COUNT
