@@ -269,6 +269,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install brew tools
+        shell: bash
+        run: |
+          brew install autoconf
+          whereis autoreconf
+
       - name: Cache Openssl source
         uses: actions/cache@v4
         id: openssl-source-cache
