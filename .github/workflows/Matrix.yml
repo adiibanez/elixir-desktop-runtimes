@@ -807,16 +807,16 @@ jobs:
           # disable, breaks builds and doesn't seem required anyway
           # export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lsqlite3_nif"
 
-          git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
-          cd libsecp256k1
-          mix deps.get
-          mix release
-          LIB_NAME=`find . -name "*.a" | head -1`
-          lipo -info $LIB_NAME
-          cp $LIB_NAME ${{github.workspace}}/_build/nifs/
-          cd ${{github.workspace}}
+          # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
+          # cd libsecp256k1
+          # mix deps.get
+          # mix release
+          # LIB_NAME=`find . -name "*.a" | head -1`
+          # lipo -info $LIB_NAME
+          # cp $LIB_NAME ${{github.workspace}}/_build/nifs/
+          # cd ${{github.workspace}}
 
-          debug_lib "libsecp256k1" "${{github.workspace}}/_build/nifs/libsecp256k1.a"
+          # debug_lib "libsecp256k1" "${{github.workspace}}/_build/nifs/libsecp256k1.a"
 
           # git clone --depth 1 https://github.com/adiibanez/explorer.git --branch main
           # cd explorer
