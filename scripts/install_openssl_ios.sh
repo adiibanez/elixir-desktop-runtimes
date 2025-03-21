@@ -135,7 +135,8 @@ build_tvos_libs()
 {
 	# --openssldir="$BUILD_DIR/build/ssl"
 	if [[ ! -d $BUILD_DIR/build/lib.tvos ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.tvos" no-shared no-dso no-hw no-engine tvos-xcrun -fembed-bitcode -mios-version-min=13.4
+		./Configure --prefix="$BUILD_DIR/build/openssl.tvos" no-shared no-dso no-hw no-engine tvos-xcrun -fembed-bitcode
+		# -mios-version-min=13.4
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -151,7 +152,8 @@ build_tvos_sim_libs()
 {
 	# --openssldir="$BUILD_DIR/build/ssl" 
 	if [[ ! -d $BUILD_DIR/build/lib.tvossim-$1 ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.tvossim.$1" no-shared tvossimulator-xcrun CFLAGS="-arch $1 -mios-simulator-version-min=13.4"
+		./Configure --prefix="$BUILD_DIR/build/openssl.tvossim.$1" no-shared tvossimulator-xcrun CFLAGS="-arch $1"
+		# -mios-simulator-version-min=13.4
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -167,7 +169,8 @@ build_watchos_libs()
 {
 	# --openssldir="$BUILD_DIR/build/ssl"
 	if [[ ! -d $BUILD_DIR/build/lib.tvos ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.watchos" no-shared no-dso no-hw no-engine watchos-xcrun -fembed-bitcode -mios-version-min=13.4
+		./Configure --prefix="$BUILD_DIR/build/openssl.watchos" no-shared no-dso no-hw no-engine watchos-xcrun -fembed-bitcode 
+		# -mios-version-min=13.4
 		make clean
 		make -j$THREAD_COUNT
 		make install
@@ -183,7 +186,8 @@ build_watchos_sim_libs()
 {
 	# --openssldir="$BUILD_DIR/build/ssl" 
 	if [[ ! -d $BUILD_DIR/build/lib.tvossim-$1 ]]; then
-		./Configure --prefix="$BUILD_DIR/build/openssl.watchossim.$1" no-shared watchossimulator-xcrun CFLAGS="-arch $1 -mios-simulator-version-min=13.4"
+		./Configure --prefix="$BUILD_DIR/build/openssl.watchossim.$1" no-shared watchossimulator-xcrun CFLAGS="-arch $1"
+		# -mios-simulator-version-min=13.4
 		make clean
 		make -j$THREAD_COUNT
 		make install
