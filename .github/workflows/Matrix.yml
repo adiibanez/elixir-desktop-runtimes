@@ -759,18 +759,20 @@ jobs:
 
           # https://github.com/bytecodealliance/rustix/issues/1424
           if [[ "${{ matrix.platform.rust_is_3rd_tier }}" != "true" ]]; then
+
+            # Wasmex nif
             build_rustler_lib \
               "wasmex" \
               "wasmex" \
               "https://github.com/adiibanez/wasmex.git" \
               "static-no-precompiled"
 
-              export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lwasmex"
+            export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lwasmex"
 
             debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
-          fi
 
-          build_rustler_lib \
+            # KUZU nif
+            build_rustler_lib \
             "kuzu_nif" \
             "kuzu_ex" \
             "https://github.com/adiibanez/kuzu_nif.git" \
@@ -779,7 +781,10 @@ jobs:
 
             export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -llibkuzu_ex"
 
-          debug_lib "libkuzu_ex" "${{github.workspace}}/_build/nifs/libkuzu_ex.a"
+            debug_lib "libkuzu_ex" "${{github.workspace}}/_build/nifs/libkuzu_ex.a"
+          fi
+
+
 
 
           # https://github.com/elixir-desktop/exqlite.git
