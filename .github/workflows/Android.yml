@@ -32,7 +32,7 @@ env:
 
 jobs:
   build-android:
-    if: false
+    # if: false
     strategy:
       fail-fast: false
       matrix:
@@ -61,9 +61,9 @@ jobs:
             type: "x86_64"
           }
         erlixir:
-          #- { otp-version: 27.2.4, elixir-version: 1.18.2, erl-opts: "--disable-year2038"}
+          - { otp-version: 27.3, elixir-version: 1.18.2}
           #- { otp-version: 26.2.5.6, elixir-version: 1.16.3 }
-          - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
+          # - { otp-version: 26.2.5.6, elixir-version: 1.18.2 }
     env:
       OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
       OTP_VERSION: ${{ matrix.erlixir.otp-version }}
