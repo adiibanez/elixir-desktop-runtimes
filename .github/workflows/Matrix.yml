@@ -692,6 +692,7 @@ jobs:
               echo "CARGO_CMD using -Zbuild-std"
               CARGO_CMD="cargo +nightly rustc -Zbuild-std --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
             else
+              echo "Non 3rd tier ensure installed target ${{matrix.platform.rust_target}}"
               # only add for supported targets, 3rd tier need to build stdlib 
               rustup target add ${{matrix.platform.rust_target}}
             fi
@@ -755,6 +756,8 @@ jobs:
 
           # export CFLAGS="-fno-common -Os -D__IOS__=yes"
 
+          LINK_NIF_LIBS=""
+
           mkdir -p _build/nifs/
 
           # -L${OPENSSL_PREFIX}/lib -lcrypto
@@ -767,7 +770,7 @@ jobs:
             "static-no-precompiled" \
             "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC"
 
-            echo LINK_NIF_LIBS="$LINK_NIF_LIBS -lbtleplug_client " >> $GITHUB_ENV
+            export LINK_NIF_LIBS="$LINK_NIF_LIBS -lbtleplug_client"
 
           debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
@@ -779,7 +782,7 @@ jobs:
               "https://github.com/adiibanez/wasmex.git" \
               "static-no-precompiled"
 
-              echo LINK_NIF_LIBS="$LINK_NIF_LIBS -lwasmex" >> $GITHUB_ENV
+              export LINK_NIF_LIBS="$LINK_NIF_LIBS -lwasmex"
 
             debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
           fi
@@ -796,6 +799,8 @@ jobs:
 
           debug_lib "sqlite3_nif" "${{github.workspace}}/_build/nifs/sqlite3_nif.a"
 
+          export LINK_NIF_LIBS="$LINK_NIF_LIBS -sqlite3_nif"
+
           # git clone --depth 1 https://github.com/diodechain/libsecp256k1.git
           # cd libsecp256k1
           # mix deps.get
@@ -809,6 +814,8 @@ jobs:
           # cd ${{github.workspace}}/_build/nifs/
 
           cd ${{github.workspace}}
+
+          echo LINK_NIF_LIBS="$LINK_NIF_LIBS" >> $GITHUB_ENV
 
           find _build/nifs -type f -name "*.a" || 1
 
