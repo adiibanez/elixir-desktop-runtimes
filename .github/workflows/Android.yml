@@ -76,7 +76,7 @@ jobs:
       - name: Configure erl options
         if: ${{ matrix.erlixir.erl-opts }} != ''
         run: |
-          export KERL_CONFIGURE_OPTIONS=${{matrix.erlixir.erl-opts}}
+          echo KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.erl-opts}}" >> $GITHUB_ENV
 
       - name: erlef/setup-beam Cache
         uses: actions/cache@v3
