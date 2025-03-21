@@ -231,18 +231,18 @@ jobs:
               rust_target: 'aarch64-apple-visionos-sim',
               rust_is_3rd_tier: true,
             }
-          - {
-              id: 'visionos_sim_x86_64',
-              name: 'visionOS Simulator x86_64',
-              sdk: xrsimulator,
-              arch: x86_64,
-              base_arch: xrossim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
-              openssl_arch: 'xrossimulator-xcrun',
-              otp_arch: 'x86_64-apple-visionos',
-              rust_target: 'x86_64-apple-visionos',
-              rust_is_3rd_tier: true,
-            }
+          # - {
+          #     id: 'visionos_sim_x86_64',
+          #     name: 'visionOS Simulator x86_64',
+          #     sdk: xrsimulator,
+          #     arch: x86_64,
+          #     base_arch: xrossim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
+          #     openssl_arch: 'xrossimulator-xcrun',
+          #     otp_arch: 'x86_64-apple-visionos',
+          #     rust_target: 'x86_64-apple-visionos',
+          #     rust_is_3rd_tier: true,
+          #   }
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -772,7 +772,7 @@ jobs:
           debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
           # https://github.com/bytecodealliance/rustix/issues/1424
-          if [[ "${{ matrix.platform.rust_is_3rd_tier }}" == "true" ]]; then
+          if [[ "${{ matrix.platform.rust_is_3rd_tier }}" != "true" ]]; then
             build_rustler_lib \
               "wasmex" \
               "wasmex" \
