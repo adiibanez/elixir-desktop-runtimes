@@ -771,17 +771,17 @@ jobs:
 
             debug_lib "libwasmex" "${{github.workspace}}/_build/nifs/libwasmex.a"
 
-            # KUZU nif
-            build_rustler_lib \
-            "kuzu_nif" \
-            "kuzu_ex" \
-            "https://github.com/adiibanez/kuzu_nif.git" \
-            "static-no-precompiled" \
-            ""
+            # # KUZU nif
+            # build_rustler_lib \
+            # "kuzu_nif" \
+            # "kuzu_ex" \
+            # "https://github.com/adiibanez/kuzu_nif.git" \
+            # "static-no-precompiled" \
+            # ""
 
-            export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -llibkuzu_ex"
+            # export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -llibkuzu_ex"
 
-            debug_lib "libkuzu_ex" "${{github.workspace}}/_build/nifs/libkuzu_ex.a"
+            # debug_lib "libkuzu_ex" "${{github.workspace}}/_build/nifs/libkuzu_ex.a"
           fi
 
 
