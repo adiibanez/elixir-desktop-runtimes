@@ -765,6 +765,16 @@ jobs:
 
           debug_lib "libbtleplug_client" "${{github.workspace}}/_build/nifs/libbtleplug_client.a"
 
+          build_rustler_lib \
+            "iroh_ex" \
+            "iroh_ex" \
+            "https://github.com/adiibanez/iroh_ex.git" \
+            "main" \
+            ""
+            export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -liroh_ex"
+
+          debug_lib "libiroh_ex" "${{github.workspace}}/_build/nifs/libiroh_ex.a"
+
           # https://github.com/bytecodealliance/rustix/issues/1424
           if [[ "${{ matrix.platform.rust_is_3rd_tier }}" != "true" ]]; then
 
