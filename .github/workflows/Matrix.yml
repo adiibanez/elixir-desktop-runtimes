@@ -490,6 +490,12 @@ jobs:
           cd ${{ github.workspace }}
           ls -lah _build/otp_builder
 
+      # - name: Upload vanilla liberlang.a Artifact for ${{ matrix.platform.name }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: liberlang-vanilla-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+      #     path: _build/liberlang.a
+
       - name: Show libs for ${{ matrix.platform.name }}
         continue-on-error: true
         if: always() && steps.otp-setup-round1.outcome != 'success'
@@ -676,7 +682,7 @@ jobs:
             # https://github.com/rust-lang/rust/issues/44322
             # CARGO_CMD="cargo +${{env.TOOLCHAIN}} rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- -C target-feature=-crt-static -C lto=fat -C embed-bitcode=yes -C opt-level=z -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
             #CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --release --features rustler/staticlib -- -C lto=fat -C embed-bitcode=yes -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl,--gc-sections"
-            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
+            CARGO_CMD="cargo rustc --crate-type staticlib --target=${{matrix.platform.rust_target}} --features rustler/staticlib --lib -- $CARGO_OPTIMIZATION_FLAGS"
 
             echo "CARGO target is 3rd tier: ${{ matrix.platform.rust_is_3rd_tier }}"
             if [[ "${{ matrix.platform.rust_is_3rd_tier }}" == "true" ]]; then
