@@ -231,31 +231,31 @@ jobs:
           #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
           #   }
 
-          - {
-              id: 'visionos',
-              name: 'visionOS',
-              sdk: xros,
-              arch: arm64,
-              base_arch: xros,
-              openssl_prefix: '_build/ios-openssl/build/openssl.xros',
-              openssl_arch: 'xros-xcrun',
-              otp_arch: 'aarch64-apple-visionos',
-              rust_target: 'aarch64-apple-visionos',
-              rust_is_3rd_tier: true,
-            }
-          - {
-              id: 'visionos_sim_arm64',
-              name: 'visionOS Simulator arm64',
-              sdk: xrsimulator,
-              arch: arm64,
-              base_arch: xrossim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
-              openssl_arch: 'xrossimulator-xcrun',
-              #otp_arch: 'aarch64-apple-visionos-sim',
-              otp_arch: 'aarch64-apple-visionossim',
-              rust_target: 'aarch64-apple-visionos-sim',
-              rust_is_3rd_tier: true,
-            }
+          # - {
+          #     id: 'visionos',
+          #     name: 'visionOS',
+          #     sdk: xros,
+          #     arch: arm64,
+          #     base_arch: xros,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xros',
+          #     openssl_arch: 'xros-xcrun',
+          #     otp_arch: 'aarch64-apple-visionos',
+          #     rust_target: 'aarch64-apple-visionos',
+          #     rust_is_3rd_tier: true,
+          #   }
+          # - {
+          #     id: 'visionos_sim_arm64',
+          #     name: 'visionOS Simulator arm64',
+          #     sdk: xrsimulator,
+          #     arch: arm64,
+          #     base_arch: xrossim,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
+          #     openssl_arch: 'xrossimulator-xcrun',
+          #     #otp_arch: 'aarch64-apple-visionos-sim',
+          #     otp_arch: 'aarch64-apple-visionossim',
+          #     rust_target: 'aarch64-apple-visionos-sim',
+          #     rust_is_3rd_tier: true,
+          #   }
           # - {
           #     id: 'visionos_sim_x86_64',
           #     name: 'visionOS Simulator x86_64',
@@ -777,7 +777,7 @@ jobs:
             "iroh_ex" \
             "https://github.com/adiibanez/iroh_ex.git" \
             "main" \
-            ""
+            "-framework Security -framework CoreFoundation -framework Foundation"
             export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -liroh_ex"
 
           debug_lib "libiroh_ex" "${{github.workspace}}/_build/nifs/libiroh_ex.a"
@@ -947,7 +947,7 @@ jobs:
           XCOMP_HOST=${{matrix.platform.otp_arch}} \
           XCOMP_SDK="${{matrix.platform.sdk}}" \
           XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
-          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs $LINK_RUSTLER_NIF_LIBS -framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs $LINK_RUSTLER_NIF_LIBS -framework CoreBluetooth -framework Security -framework CoreFoundation -framework Foundation -ObjC" \
           LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
           OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
           RELEASE_LIBBEAM="yes" ./otp_build configure \
