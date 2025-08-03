@@ -86,18 +86,20 @@ jobs:
               erl-disable-applications: '',
               use-git: true,
               git-repo: 'erlang/otp',
-              git-ref: 'master',
+              git-ref: 'OTP-28.0.2',
             }
-          # - {
-          #     otp-version: 27.3,
-          #     elixir-version: 1.18.2,
-          #     erl-opts-description: 'somemods',
-          #     erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
-          #     erl-disable-applications: '',
-          #     use-git: true,
-          #     git-repo: 'adiibanez/otp',
-          #     git-ref: 'OTP-27.3-noiosminversion',
-          #   }
+          - {
+              otp-version: 27.3.4.2,
+              elixir-version: 1.18.2,
+              erl-opts-description: 'somemods',
+              erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
+              erl-disable-applications: '',
+              use-git: true,
+              # git-repo: 'adiibanez/otp',
+              # git-ref: 'OTP-27.3-noiosminversion',
+              git-repo: 'erlang/otp',
+              git-ref: 'OTP-27.3.4.2',
+            }
           # --disable-sctp --disable-stripped-runtime
           # - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
         os: [macos-latest]
@@ -127,17 +129,17 @@ jobs:
           #     otp_arch: 'x86_64-apple-darwin',
           #     rust_target: 'x86_64-apple-darwin',
           #   }
-          # - {
-          #     id: 'ios',
-          #     name: 'iOS',
-          #     sdk: iphoneos,
-          #     arch: arm64,
-          #     base_arch: ios,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.ios',
-          #     openssl_arch: 'ios64-xcrun',
-          #     otp_arch: 'aarch64-apple-ios',
-          #     rust_target: 'aarch64-apple-ios',
-          #   }
+          - {
+              id: 'ios',
+              name: 'iOS',
+              sdk: iphoneos,
+              arch: arm64,
+              base_arch: ios,
+              openssl_prefix: '_build/ios-openssl/build/openssl.ios',
+              openssl_arch: 'ios64-xcrun',
+              otp_arch: 'aarch64-apple-ios',
+              rust_target: 'aarch64-apple-ios',
+            }
           # - {
           #     id: 'ios_sim_arm64',
           #     name: 'iOS Simulator arm64',
