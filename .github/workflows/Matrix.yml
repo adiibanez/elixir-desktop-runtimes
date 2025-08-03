@@ -79,44 +79,54 @@ jobs:
       matrix:
         erlixir:
           - {
-              otp-version: 28.0.2,
+              otp-version: master,
               elixir-version: 1.18.2,
               erl-opts-description: 'somemods',
               erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
               erl-disable-applications: '',
               use-git: true,
               git-repo: 'erlang/otp',
-              git-ref: 'OTP-28.0.2',
+              git-ref: 'master',
             }
-          - {
-              otp-version: 27.3.4.2,
-              elixir-version: 1.18.2,
-              erl-opts-description: 'somemods',
-              erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
-              erl-disable-applications: '',
-              use-git: true,
-              # git-repo: 'adiibanez/otp',
-              # git-ref: 'OTP-27.3-noiosminversion',
-              git-repo: 'erlang/otp',
-              git-ref: 'OTP-27.3.4.2',
-            }
+          # - {
+          #     otp-version: 28.0.2,
+          #     elixir-version: 1.18.2,
+          #     erl-opts-description: 'somemods',
+          #     erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
+          #     erl-disable-applications: '',
+          #     use-git: true,
+          #     git-repo: 'erlang/otp',
+          #     git-ref: 'OTP-28.0.2',
+          #   }
+          # - {
+          #     otp-version: 27.3.4.2,
+          #     elixir-version: 1.18.2,
+          #     erl-opts-description: 'somemods',
+          #     erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
+          #     erl-disable-applications: '',
+          #     use-git: true,
+          #     # git-repo: 'adiibanez/otp',
+          #     # git-ref: 'OTP-27.3-noiosminversion',
+          #     git-repo: 'erlang/otp',
+          #     git-ref: 'OTP-27.3.4.2',
+          #   }
           # --disable-sctp --disable-stripped-runtime
           # - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
         os: [macos-latest]
         platform:
           # macos homebrew formula openssl setting: no-ssl3 no-ssl3-method no-zlib https://github.com/Homebrew/homebrew-core/blob/32afa4406358ffb6b9d68d47692561fc5cc63ef6/Formula/o/openssl@3.rb
-          - {
-              id: 'macos_arm64',
-              name: 'macOS arm64',
-              sdk: macosx,
-              arch: arm64,
-              base_arch: macos,
-              openssl_prefix: '_build/ios-openssl/build/openssl.macos.arm64',
-              openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
-              openssl_arch: 'darwin64-arm64',
-              otp_arch: 'aarch64-apple-darwin',
-              rust_target: 'aarch64-apple-darwin',
-            }
+          # - {
+          #     id: 'macos_arm64',
+          #     name: 'macOS arm64',
+          #     sdk: macosx,
+          #     arch: arm64,
+          #     base_arch: macos,
+          #     openssl_prefix: '_build/ios-openssl/build/openssl.macos.arm64',
+          #     openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
+          #     openssl_arch: 'darwin64-arm64',
+          #     otp_arch: 'aarch64-apple-darwin',
+          #     rust_target: 'aarch64-apple-darwin',
+          #   }
           # - {
           #     id: 'macos_x86_64',
           #     name: 'macOS x86_64',
