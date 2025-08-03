@@ -484,8 +484,10 @@ jobs:
           #./test_compiler
           file test_compiler
 
+          LDFLAGS_CLEANED="${LDFLAGS//-fstack-protector-strong/}"
+
           KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}${{matrix.platform.kerl-opts}}" \
-          LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto" \
+          LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto ${LDFLAGS_CLEANED}" \
           LD="xcrun -sdk ${{ matrix.platform.sdk }} ld"
           INCLUDE_PATH="$OPENSSL_PREFIX/include" \
           LIB_PATH="$OPENSSL_PREFIX/lib" \
