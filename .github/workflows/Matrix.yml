@@ -835,20 +835,17 @@ jobs:
             # debug_lib "libkuzu_ex" "${{github.workspace}}/_build/nifs/libkuzu_ex.a"
           fi
 
+          # # https://github.com/elixir-desktop/exqlite.git
+          # git clone --depth 1 https://github.com/elixir-sqlite/exqlite
+          # cd exqlite
+          # mix deps.get
+          # mix release
+          # LIB_NAME=`find . -name "*.a" | head -1`
+          # lipo -info $LIB_NAME
+          # cp $LIB_NAME ${{github.workspace}}/_build/nifs/
+          # cd ${{github.workspace}}
 
-
-
-          # https://github.com/elixir-desktop/exqlite.git
-          git clone --depth 1 https://github.com/elixir-sqlite/exqlite
-          cd exqlite
-          mix deps.get
-          mix release
-          LIB_NAME=`find . -name "*.a" | head -1`
-          lipo -info $LIB_NAME
-          cp $LIB_NAME ${{github.workspace}}/_build/nifs/
-          cd ${{github.workspace}}
-
-          debug_lib "sqlite3_nif" "${{github.workspace}}/_build/nifs/sqlite3_nif.a"
+          # debug_lib "sqlite3_nif" "${{github.workspace}}/_build/nifs/sqlite3_nif.a"
 
           # disable, breaks builds and doesn't seem required anyway
           # export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -lsqlite3_nif"
