@@ -92,7 +92,7 @@ jobs:
               otp-version: 28.0.2,
               elixir-version: 1.18.2,
               erl-opts-description: 'somemods',
-              erl-opts: '--disable-debugger --disable-security-hardening-flags --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
+              erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
               erl-disable-applications: '',
               use-git: true,
               git-repo: 'erlang/otp',
@@ -500,6 +500,7 @@ jobs:
           RELEASE_LIBBEAM="yes" ./otp_build configure \
           --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
           --disable-dynamic-ssl-lib \
+          --disable-security-hardening-flags \
           --with-ssl="${{ env.OPENSSL_PREFIX }}" \
           --enable-static-nifs="$STATIC_NIFS"
 
@@ -978,6 +979,7 @@ jobs:
           RELEASE_LIBBEAM="yes" ./otp_build configure \
           --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
           --disable-dynamic-ssl-lib \
+          --disable-security-hardening-flags \
           --with-ssl="${{ env.OPENSSL_PREFIX }}" \
           --enable-static-nifs="$STATIC_NIFS" -v
 
