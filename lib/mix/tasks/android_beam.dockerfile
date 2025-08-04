@@ -1,5 +1,7 @@
-FROM dockcross/android-<%= @arch.id %>
+FROM dockcross/android-<%= @arch.id %>:20250311-4bd0eec
 
+ARG OTP_SOURCE=https://github.com/adiibanez/otp
+ARG OTP_TAG=OTP-27.3-noiosminversion
 # ENV
 ENV NDK_ROOT $CROSS_ROOT
 ENV ANDROID_NDK_HOME $CROSS_ROOT
@@ -8,22 +10,24 @@ ENV PATH $NDK_ROOT/bin:$PATH
 ENV FC= CPP= LD= CXX=clang++ CC=clang AR=ar
 ENV MAKEFLAGS "-j10 -O"
 
-# Setting up openssl
-COPY scripts/install_openssl.sh /work/
-COPY patch /work/patch
-
 # OpenSSL fails to detect this: 
 RUN cp ${NDK_ROOT}/bin/llvm-ar ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-<%= @arch.android_name %>-ar
 RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-<%= @arch.android_name %>-ranlib
 
-RUN ARCH="android-<%= @arch.id %> -D__ANDROID_API__=<%= @arch.abi %>" ./install_openssl.sh
+# Setting up openssl
+COPY scripts/install_openssl.sh /work/
+COPY patch /work/patch
+
+RUN echo ARCH="android-<%= @arch.id %> -D__ANDROID_API__=<%= @arch.abi %>" ./install_openssl.sh
 
 # Fetching OTP
 #RUN git clone --depth 1 <%= @otp_source %> _build/otp_cache/otp --branch <%= @otp_version %>
-COPY _build/otp_cache/otp_src_<%= @otp_version %>.tar.gz ./
-RUN tar -xzf otp_src_<%= @otp_version %>.tar.gz \
-    && mv otp_src_<%= @otp_version %> otp \
-    && rm otp_src_<%= @otp_version %>.tar.gz
+#COPY _build/otp_cache/otp_src_<%= @otp_version %>.tar.gz ./
+# RUN tar -xzf otp_src_<%= @otp_version %>.tar.gz \
+#     && mv otp_src_<%= @otp_version %> otp \
+#     && rm otp_src_<%= @otp_version %>.tar.gz
+
+RUN echo git clone $OTP_SOURCE --branch $OTP_TAG otp
 
 ENV LIBS /usr/local/openssl/lib/libcrypto.a
 
@@ -48,10 +52,10 @@ config = "--disable-jit #{config}"
 
 RUN ls -lah || true 
 RUN ls -lah otp_build || true
-RUN ./otp_build setup <%= config %> || bash -c 'cat erts/config.log && exit 1'
-RUN ./otp_build boot -a
+RUN echo ./otp_build setup <%= config %> || bash -c 'cat erts/config.log && exit 1'
+RUN echo ./otp_build boot -a
 
 # Build run #2, now creating the arm binaries, appliying the install flags only here...
-ENV INSTALL_PROGRAM "/usr/bin/install -c -s --strip-program=llvm-strip"
-RUN ./otp_build configure <%= config %> LDFLAGS="-z global"
-RUN ./otp_build release -a
+ENV echo INSTALL_PROGRAM "/usr/bin/install -c -s --strip-program=llvm-strip"
+RUN echo ./otp_build configure <%= config %> LDFLAGS="-z global"
+RUN echo ./otp_build release -a

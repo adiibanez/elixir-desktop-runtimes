@@ -144,6 +144,12 @@ defmodule Mix.Tasks.Package.Android.Runtime do
     file
   end
 
+  def write_nif_dockerfile(arch, nif, path) do
+    {content, _args} = generate_nif_dockerfile(arch, nif)
+    file = path
+    File.write!(file, content)
+  end
+
   EEx.function_from_file(:defp, :nif_dockerfile, "#{__DIR__}/android_nif.dockerfile", [:assigns])
 
   EEx.function_from_file(:defp, :beam_dockerfile, "#{__DIR__}/android_beam.dockerfile", [:assigns])
