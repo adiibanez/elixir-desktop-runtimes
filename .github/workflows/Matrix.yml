@@ -1117,13 +1117,26 @@ jobs:
       matrix:
         erlixir:
           - {
-              otp-version: 27.3,
+              otp-version: 28.0.2,
               elixir-version: 1.18.2,
-              erl-opts-description: '-year2038;-megaco',
-              erl-opts: '--disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner',
+              erl-opts-description: 'somemods',
+              erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
+              erl-disable-applications: '',
               use-git: true,
-              git-repo: 'adiibanez/otp',
-              git-ref: 'OTP-27.3-noiosminversion',
+              git-repo: 'erlang/otp',
+              git-ref: 'OTP-28.0.2',
+            }
+          - {
+              otp-version: 27.3.4.2,
+              elixir-version: 1.18.2,
+              erl-opts-description: 'somemods',
+              erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
+              erl-disable-applications: '',
+              use-git: true,
+              # git-repo: 'adiibanez/otp',
+              # git-ref: 'OTP-27.3-noiosminversion',
+              git-repo: 'erlang/otp',
+              git-ref: 'OTP-27.3.4.2',
             }
           #- { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
         os: [macos-latest]
