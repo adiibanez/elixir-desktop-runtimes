@@ -802,7 +802,7 @@ jobs:
             "iroh_ex" \
             "iroh_ex" \
             "https://github.com/adiibanez/iroh_ex.git" \
-            "main" \
+            "iroh-0.90" \
             "-framework Security -framework SystemConfiguration -framework CoreFoundation -framework Foundation"
             export LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -liroh_ex"
 
