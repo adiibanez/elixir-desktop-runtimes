@@ -1,0 +1,155 @@
+name: Build Rustler NIF
+description: Cross-compile a Rustler NIF for Apple platforms
+
+inputs:
+  nif_name:
+    description: 'Name of the NIF library (e.g., btleplug_client)'
+    required: true
+  lib_name:
+    description: 'Name of the git repo/directory (e.g., rustler_btleplug)'
+    required: true
+  git_repo:
+    description: 'Git repository URL'
+    required: true
+  git_ref:
+    description: 'Git branch or tag to checkout'
+    required: true
+  native_dir:
+    description: 'Path to native code within repo (e.g., native/btleplug_client)'
+    required: true
+  rust_target:
+    description: 'Rust target triple (e.g., aarch64-apple-ios)'
+    required: true
+  ldflags:
+    description: 'Additional linker flags (frameworks, etc.)'
+    required: false
+    default: ''
+  is_3rd_tier:
+    description: 'Whether this is a 3rd tier Rust target requiring -Zbuild-std'
+    required: false
+    default: 'false'
+  sdk:
+    description: 'Apple SDK (e.g., iphoneos, iphonesimulator, macosx)'
+    required: true
+  arch:
+    description: 'Architecture (e.g., arm64, x86_64)'
+    required: true
+  erts_include_dir:
+    description: 'Path to ERTS include directory'
+    required: true
+  output_dir:
+    description: 'Directory to place built .a file'
+    required: false
+    default: '_build/nifs'
+
+outputs:
+  artifact_path:
+    description: 'Path to the built static library'
+    value: ${{ steps.build.outputs.artifact_path }}
+  lib_link_name:
+    description: 'Library name for linking (e.g., -lbtleplug_client)'
+    value: ${{ steps.build.outputs.lib_link_name }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup build environment
+      shell: bash
+      run: |
+        echo "Setting up build environment for ${{ inputs.nif_name }}"
+        echo "SDKROOT=$(xcrun -sdk ${{ inputs.sdk }} --show-sdk-path)" >> $GITHUB_ENV
+        echo "STATIC_ERLANG_NIF=yes" >> $GITHUB_ENV
+
+    - name: Add Rust target
+      shell: bash
+      if: inputs.is_3rd_tier != 'true'
+      run: rustup target add ${{ inputs.rust_target }}
+
+    - name: Clone repository
+      shell: bash
+      run: |
+        if [ -d "${{ inputs.lib_name }}" ]; then
+          rm -rf "${{ inputs.lib_name }}"
+        fi
+        git clone --depth 1 "${{ inputs.git_repo }}" --branch "${{ inputs.git_ref }}" "${{ inputs.lib_name }}"
+
+    - name: Build NIF
+      id: build
+      shell: bash
+      env:
+        CC: xcrun -sdk ${{ inputs.sdk }} cc -arch ${{ inputs.arch }}
+        CXX: xcrun -sdk ${{ inputs.sdk }} c++
+        LD: xcrun -sdk ${{ inputs.sdk }} ld
+        RANLIB: xcrun -sdk ${{ inputs.sdk }} ranlib
+        AR: xcrun -sdk ${{ inputs.sdk }} ar
+        ARCH: ${{ inputs.arch }}
+        ERTS_INCLUDE_DIR: ${{ inputs.erts_include_dir }}
+        STATIC_ERLANG_NIF: 'yes'
+      run: |
+        set -e
+
+        NATIVE_PATH="${{ inputs.lib_name }}/${{ inputs.native_dir }}"
+
+        if [ ! -d "$NATIVE_PATH" ]; then
+          echo "Error: Native directory not found: $NATIVE_PATH"
+          exit 1
+        fi
+
+        cd "$NATIVE_PATH"
+
+        # Clean previous builds
+        rm -f Cargo.lock
+        cargo clean
+
+        # Optimization flags for size
+        CARGO_OPTIMIZATION_FLAGS="-C debuginfo=0 -C lto=off -C embed-bitcode=no -C opt-level=z -C codegen-units=1 -C strip=symbols -C link-arg=-Wl,-dead_strip -C link-arg=-Wl"
+
+        # Build command varies for 3rd tier targets
+        if [[ "${{ inputs.is_3rd_tier }}" == "true" ]]; then
+          echo "Building with -Zbuild-std for 3rd tier target"
+          CARGO_CMD="cargo +nightly rustc -Zbuild-std --lib --crate-type staticlib --target=${{ inputs.rust_target }} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
+        else
+          CARGO_CMD="cargo rustc --lib --crate-type staticlib --target=${{ inputs.rust_target }} --features rustler/staticlib -- $CARGO_OPTIMIZATION_FLAGS"
+        fi
+
+        echo "Running: $CARGO_CMD"
+        echo "LDFLAGS: ${{ inputs.ldflags }}"
+
+        LDFLAGS="${{ inputs.ldflags }}" \
+        RUSTFLAGS="$CARGO_OPTIMIZATION_FLAGS" \
+        $CARGO_CMD
+
+        # Find and copy the built library
+        BUILT_LIB=$(find target -name "*.a" | grep -v "/deps" | head -1)
+        if [ -z "$BUILT_LIB" ]; then
+          echo "Error: No .a file found after build"
+          find target -name "*.a" || true
+          exit 1
+        fi
+
+        echo "Built library: $BUILT_LIB"
+
+        mkdir -p "${{ github.workspace }}/${{ inputs.output_dir }}"
+        OUTPUT_PATH="${{ github.workspace }}/${{ inputs.output_dir }}/lib${{ inputs.nif_name }}.a"
+        cp "$BUILT_LIB" "$OUTPUT_PATH"
+
+        echo "Copied to: $OUTPUT_PATH"
+        file "$OUTPUT_PATH"
+        lipo -info "$OUTPUT_PATH"
+
+        echo "artifact_path=$OUTPUT_PATH" >> $GITHUB_OUTPUT
+        echo "lib_link_name=-l${{ inputs.nif_name }}" >> $GITHUB_OUTPUT
+
+    - name: Verify NIF symbols
+      shell: bash
+      run: |
+        LIB_PATH="${{ github.workspace }}/${{ inputs.output_dir }}/lib${{ inputs.nif_name }}.a"
+        echo "Verifying NIF symbols in $LIB_PATH"
+
+        # Check for nif_init symbol
+        if nm "$LIB_PATH" 2>/dev/null | grep -E "_.*nif_init" > /dev/null; then
+          echo "NIF init symbol found"
+          nm "$LIB_PATH" 2>/dev/null | grep -E "_.*nif_init" | head -5
+        else
+          echo "Warning: NIF init symbol not found (may be expected for some NIFs)"
+        fi

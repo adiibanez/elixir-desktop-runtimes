@@ -1,0 +1,31 @@
+{
+  "nifs": [
+    {
+      "name": "btleplug_client",
+      "lib_name": "rustler_btleplug",
+      "repo": "https://github.com/adiibanez/rustler_btleplug.git",
+      "ref": "static-no-precompiled",
+      "native_dir": "native/btleplug_client",
+      "ldflags": "-framework CoreBluetooth -framework CoreFoundation -framework Foundation -ObjC",
+      "skip_3rd_tier": false
+    },
+    {
+      "name": "iroh_ex",
+      "lib_name": "iroh_ex",
+      "repo": "https://github.com/adiibanez/iroh_ex.git",
+      "ref": "iroh-0.90",
+      "native_dir": "native/iroh_ex",
+      "ldflags": "-framework Security -framework SystemConfiguration -framework CoreFoundation -framework Foundation",
+      "skip_3rd_tier": false
+    },
+    {
+      "name": "wasmex",
+      "lib_name": "wasmex",
+      "repo": "https://github.com/adiibanez/wasmex.git",
+      "ref": "static-no-precompiled",
+      "native_dir": "native/wasmex",
+      "ldflags": "",
+      "skip_3rd_tier": true
+    }
+  ]
+}
