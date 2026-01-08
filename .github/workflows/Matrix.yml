@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - refactoring
+      - ci-modularization
   # pull_request:
 
 env:
@@ -30,6 +31,28 @@ env:
     ~/.cargo/git/db/
 
 jobs:
+  define-matrix:
+    name: Define Build Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      platforms: ${{ steps.set-matrix.outputs.platforms }}
+      erlixir: ${{ steps.set-matrix.outputs.erlixir }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/config
+
+      - name: Load matrix configuration
+        id: set-matrix
+        run: |
+          PLATFORMS=$(jq -c '.platform' .github/config/apple-platforms.json)
+          ERLIXIR=$(jq -c '.erlixir' .github/config/erlixir-versions.json)
+          echo "platforms=$PLATFORMS" >> "$GITHUB_OUTPUT"
+          echo "erlixir=$ERLIXIR" >> "$GITHUB_OUTPUT"
+          echo "Loaded $(echo $PLATFORMS | jq length) platforms"
+          echo "Loaded $(echo $ERLIXIR | jq length) erlixir versions"
+
   build_setup:
     name: Setup Dependencies
     runs-on: macos-latest
@@ -73,223 +96,12 @@ jobs:
   build_platform_matrix:
     name: Build - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }} ELX${{ matrix.erlixir.elixir-version }}
     runs-on: macos-latest
-    needs: build_setup
+    needs: [build_setup, define-matrix]
     strategy:
       fail-fast: false
       matrix:
-        erlixir:
-          # - {
-          #     otp-version: master,
-          #     elixir-version: 1.18.2,
-          #     erl-opts-description: 'somemods',
-          #     erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
-          #     erl-disable-applications: '',
-          #     use-git: true,
-          #     git-repo: 'erlang/otp',
-          #     git-ref: 'master',
-          #   }
-          - {
-              otp-version: 28.0.2,
-              elixir-version: 1.18.2,
-              erl-opts-description: 'somemods',
-              erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
-              erl-disable-applications: '',
-              use-git: true,
-              git-repo: 'erlang/otp',
-              git-ref: 'OTP-28.0.2',
-            }
-          - {
-              otp-version: 27.3.4.2,
-              elixir-version: 1.18.2,
-              erl-opts-description: 'somemods',
-              erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
-              erl-disable-applications: '',
-              use-git: true,
-              # git-repo: 'adiibanez/otp',
-              # git-ref: 'OTP-27.3-noiosminversion',
-              git-repo: 'erlang/otp',
-              git-ref: 'OTP-27.3.4.2',
-            }
-          # --disable-sctp --disable-stripped-runtime
-          # - { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
-        os: [macos-latest]
-        platform:
-          # macos homebrew formula openssl setting: no-ssl3 no-ssl3-method no-zlib https://github.com/Homebrew/homebrew-core/blob/32afa4406358ffb6b9d68d47692561fc5cc63ef6/Formula/o/openssl@3.rb
-          - {
-              id: 'macos_arm64',
-              name: 'macOS arm64',
-              sdk: macosx,
-              arch: arm64,
-              base_arch: macos,
-              openssl_prefix: '_build/ios-openssl/build/openssl.macos.arm64',
-              openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
-              openssl_arch: 'darwin64-arm64',
-              otp_arch: 'aarch64-apple-darwin',
-              rust_target: 'aarch64-apple-darwin',
-            }
-          - {
-              id: 'macos_x86_64',
-              name: 'macOS x86_64',
-              sdk: macosx,
-              arch: x86_64,
-              base_arch: macos,
-              openssl_prefix: '_build/ios-openssl/build/openssl.macos.x86_64',
-              openssl_opts: 'no-ssl3 no-ssl3-method no-zlib',
-              openssl_arch: 'darwin64-x86_64',
-              otp_arch: 'x86_64-apple-darwin',
-              rust_target: 'x86_64-apple-darwin',
-            }
-          - {
-              id: 'ios',
-              name: 'iOS',
-              sdk: iphoneos,
-              arch: arm64,
-              base_arch: ios,
-              openssl_prefix: '_build/ios-openssl/build/openssl.ios',
-              openssl_arch: 'ios64-xcrun',
-              otp_arch: 'aarch64-apple-ios',
-              rust_target: 'aarch64-apple-ios',
-            }
-          - {
-              id: 'ios_sim_arm64',
-              name: 'iOS Simulator arm64',
-              sdk: iphonesimulator,
-              arch: arm64,
-              base_arch: ios_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.iossim.arm64',
-              openssl_arch: 'iossimulator-arm64-xcrun',
-              otp_arch: 'aarch64-apple-iossimulator',
-              rust_target: 'aarch64-apple-ios-sim',
-            }
-          - {
-              id: 'ios_sim_x86_64',
-              name: 'iOS Simulator x86_64',
-              sdk: iphonesimulator,
-              arch: x86_64,
-              base_arch: ios_sim,
-              openssl_prefix: '_build/ios-openssl/build/openssl.iossim.x86_64',
-              openssl_arch: 'iossimulator-x86_64-xcrun',
-              otp_arch: 'x86_64-apple-iossimulator',
-              rust_target: 'x86_64-apple-ios',
-            }
-
-          # - {
-          #     id: 'watchos',
-          #     name: 'watchOS',
-          #     sdk: watchos,
-          #     arch: arm64,
-          #     base_arch: watchos,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchos',
-          #     #openssl_arch: 'watchos-arm64_32-xcrun',
-          #     openssl_arch: 'watchos-arm64-xcrun',
-          #     otp_arch: 'aarch64-apple-watchos',
-          #     rust_target: 'aarch64-apple-watchos',
-          #     rust_is_3rd_tier: true,
-          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
-          #   }
-          # - {
-          #     id: 'watchos_sim',
-          #     name: 'watchOS Simulator',
-          #     sdk: watchsimulator,
-          #     arch: x86_64,
-          #     base_arch: watchos_sim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchossim.x86_64',
-          #     openssl_arch: 'watchsimulator-xcrun',
-          #     otp_arch: 'x86_64-apple-watchossim',
-          #     rust_target: 'x86_64-apple-watchos-sim',
-          #     rust_is_3rd_tier: true,
-          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
-          #   }
-          # - {
-          #     id: 'watchos_sim',
-          #     name: 'watchOS Simulator',
-          #     sdk: watchsimulator,
-          #     arch: arm64,
-          #     base_arch: watchos_sim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.watchossim.arm64',
-          #     openssl_arch: 'watchsimulator-xcrun',
-          #     otp_arch: 'aarch64-apple-watchossim',
-          #     rust_target: 'aarch64-apple-watchos-sim',
-          #     rust_is_3rd_tier: true,
-          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
-          #   }
-          # - {
-          #     id: 'tvos',
-          #     name: 'tvOS',
-          #     sdk: appletvos,
-          #     arch: arm64,
-          #     base_arch: tvos,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvos',
-          #     openssl_arch: 'tvos-xcrun',
-          #     otp_arch: 'aarch64-apple-tvos',
-          #     rust_target: 'aarch64-apple-tvos',
-          #     rust_is_3rd_tier: true,
-          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
-          #   }
-          # - {
-          #     id: 'tvos_sim_arm64',
-          #     name: 'tvOS Simulator arm64',
-          #     sdk: appletvsimulator,
-          #     arch: arm64,
-          #     base_arch: tvos_sim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.arm64',
-          #     openssl_arch: 'tvossimulator-xcrun',
-          #     otp_arch: 'aarch64-apple-tvossimulator',
-          #     rust_target: 'aarch64-apple-tvos-sim',
-          #     rust_is_3rd_tier: true,
-          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
-          #   }
-          # - {
-          #     id: 'tvos_sim_x86_64',
-          #     name: 'tvOS Simulator x86_64',
-          #     sdk: appletvsimulator,
-          #     arch: x86_64,
-          #     base_arch: tvos_sim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.tvossim.x86_64',
-          #     openssl_arch: 'tvossimulator-x86_64-xcrun',
-          #     otp_arch: 'x86_64-apple-tvos',
-          #     rust_target: 'x86_64-apple-tvos',
-          #     rust_is_3rd_tier: true,
-          #     erl-opts: ' --disable-hipe --disable-sctp --disable-vm-probes --without-termcap --without-odbc --disable-jit',
-          #   }
-
-          # - {
-          #     id: 'visionos',
-          #     name: 'visionOS',
-          #     sdk: xros,
-          #     arch: arm64,
-          #     base_arch: xros,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.xros',
-          #     openssl_arch: 'xros-xcrun',
-          #     otp_arch: 'aarch64-apple-visionos',
-          #     rust_target: 'aarch64-apple-visionos',
-          #     rust_is_3rd_tier: true,
-          #   }
-          # - {
-          #     id: 'visionos_sim_arm64',
-          #     name: 'visionOS Simulator arm64',
-          #     sdk: xrsimulator,
-          #     arch: arm64,
-          #     base_arch: xrossim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.arm64',
-          #     openssl_arch: 'xrossimulator-xcrun',
-          #     #otp_arch: 'aarch64-apple-visionos-sim',
-          #     otp_arch: 'aarch64-apple-visionossim',
-          #     rust_target: 'aarch64-apple-visionos-sim',
-          #     rust_is_3rd_tier: true,
-          #   }
-          # - {
-          #     id: 'visionos_sim_x86_64',
-          #     name: 'visionOS Simulator x86_64',
-          #     sdk: xrsimulator,
-          #     arch: x86_64,
-          #     base_arch: xrossim,
-          #     openssl_prefix: '_build/ios-openssl/build/openssl.xrossim.x86_64',
-          #     openssl_arch: 'xrossimulator-xcrun',
-          #     otp_arch: 'x86_64-apple-visionos',
-          #     rust_target: 'x86_64-apple-visionos',
-          #     rust_is_3rd_tier: true,
-          #   }
+        erlixir: ${{ fromJson(needs.define-matrix.outputs.erlixir) }}
+        platform: ${{ fromJson(needs.define-matrix.outputs.platforms) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -1111,35 +923,11 @@ jobs:
     # if: false
     name: Combine XC Framework
     runs-on: macos-latest
-    needs: build_platform_matrix
+    needs: [build_platform_matrix, define-matrix]
     strategy:
       fail-fast: false
       matrix:
-        erlixir:
-          - {
-              otp-version: 28.0.2,
-              elixir-version: 1.18.2,
-              erl-opts-description: 'somemods',
-              erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
-              erl-disable-applications: '',
-              use-git: true,
-              git-repo: 'erlang/otp',
-              git-ref: 'OTP-28.0.2',
-            }
-          - {
-              otp-version: 27.3.4.2,
-              elixir-version: 1.18.2,
-              erl-opts-description: 'somemods',
-              erl-opts: '--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba',
-              erl-disable-applications: '',
-              use-git: true,
-              # git-repo: 'adiibanez/otp',
-              # git-ref: 'OTP-27.3-noiosminversion',
-              git-repo: 'erlang/otp',
-              git-ref: 'OTP-27.3.4.2',
-            }
-          #- { otp-version: 26.2.5.6, elixir-version: 1.18.2, use-git: true, git-repo: "adiibanez/otp", git-ref: "OTP-26.2.5.6-noiosminversion"}
-        os: [macos-latest]
+        erlixir: ${{ fromJson(needs.define-matrix.outputs.erlixir) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
