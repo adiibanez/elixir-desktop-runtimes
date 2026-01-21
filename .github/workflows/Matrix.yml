@@ -169,7 +169,7 @@ jobs:
         id: otp-r1-cache
         with:
           path: _build/otp_builder
-          key: otp-r1-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.erl-opts-description }}-${{ hashFiles('patch/erl-xcomp-*.conf') }}
+          key: otp-r1-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.erl-opts-description }}-${{ hashFiles('patch/*.conf', 'patch/*.patch') }}
 
       - name: Build OTP Round 1
         if: steps.otp-r1-cache.outputs.cache-hit != 'true'
@@ -182,6 +182,14 @@ jobs:
           mkdir -p _build
           if [ ! -e _build/otp_builder ]; then
             cp -r otp_src_${{ matrix.erlixir.otp-version }} _build/otp_builder
+          fi
+
+          # Apply patches for iOS compatibility (zlib fdopen macro conflicts with Xcode 16+ SDKs)
+          ZUTIL_H="_build/otp_builder/erts/emulator/zlib/zutil.h"
+          if [ -f "$ZUTIL_H" ] && grep -q '#.*define fdopen.*NULL' "$ZUTIL_H"; then
+            echo "Patching zutil.h to fix fdopen macro conflict with iOS SDK..."
+            # macOS sed requires '' after -i for no backup extension
+            sed -i '' 's|#.*define fdopen(fd,mode) NULL.*|/* fdopen macro removed for iOS compatibility */|' "$ZUTIL_H"
           fi
 
           # Verify OpenSSL
