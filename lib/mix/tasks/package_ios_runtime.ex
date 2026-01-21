@@ -3,22 +3,9 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   use Mix.Task
   require EEx
 
-  # "https://github.com/elixir-desktop/exqlite",
-  # "https://github.com/diodechain/libsecp256k1.git",
-  @default_nifs [
-    "https://github.com/elixir-desktop/exqlite.git",
-    # "https://github.com/adiibanez/rustler_btleplug.git"
-    {"https://github.com/adiibanez/rustler_btleplug.git",
-     name: "rustler_btleplug", tag: "v0.0.15-alpha"}
-    #  "https://github.com/adiibanez/wasmex.git"
-    # "https://github.com/tessi/wasmex.git"
-    # [repo: "https://github.com/adiibanez/rustler_btleplug", tag: "v0.0.15-alpha"]
-  ]
-
-  @diode_nifs [
-    "https://github.com/diodechain/esqlite.git",
-    "https://github.com/diodechain/libsecp256k1.git"
-  ]
+  # NIF definitions are now centralized in Runtimes module
+  # Use RUNTIME_FLAVOR env var to select: vanilla, crypto, iroh, ble, full
+  # See Runtimes.available_flavors() and Runtimes.flavor_nifs/1
 
   @notsure_modules """
   --disable-distributed
@@ -100,25 +87,51 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   end
 
   def run(["with_diode_nifs"]) do
-    IO.puts("with_diode_nifs")
-    buildall(architectures(), @diode_nifs)
+    # Legacy: use crypto flavor for diode compatibility
+    IO.puts("Building with crypto flavor (diode NIFs)")
+    buildall(architectures(), Runtimes.flavor_nifs("crypto") |> nif_names_to_legacy())
   end
 
   def run([]) do
-    IO.puts("with empty []")
-    buildall(architectures(), @default_nifs)
+    flavor = Runtimes.current_flavor()
+    IO.puts("Building with flavor: #{flavor}")
+    buildall(architectures(), Runtimes.default_nifs())
   end
 
   def run(args) do
-    {parsed, _, _} = OptionParser.parse(args, strict: [arch: :string, nifs: :string])
+    {parsed, _, _} = OptionParser.parse(args, strict: [arch: :string, nifs: :string, flavor: :string])
     IO.inspect(parsed, label: "Received args")
 
-    nifs = Keyword.get(parsed, :nifs, @default_nifs)
+    nifs =
+      cond do
+        Keyword.has_key?(parsed, :nifs) ->
+          # Direct NIF specification (comma-separated)
+          Keyword.get(parsed, :nifs)
+
+        Keyword.has_key?(parsed, :flavor) ->
+          # Use specified flavor
+          flavor = Keyword.get(parsed, :flavor)
+          IO.puts("Using flavor: #{flavor}")
+          Runtimes.flavor_nifs(flavor) |> nif_names_to_legacy()
+
+        true ->
+          # Use default flavor from env
+          Runtimes.default_nifs()
+      end
 
     build(parsed[:arch], nifs)
-    # IO.puts("Validating nifs...")
-    # Enum.each(nifs, fn nif -> Runtimes.get_nif(nif) end)
-    # buildall(Map.keys(architectures()), nifs)
+  end
+
+  # Convert NIF names to legacy format for backwards compatibility
+  defp nif_names_to_legacy(nif_names) when is_list(nif_names) do
+    Enum.map(nif_names, fn name ->
+      case Runtimes.get_nif_config(name) do
+        nil -> name  # Already a URL
+        %{type: :c_nif, repo: repo} -> repo
+        %{type: :rustler, repo: repo, ref: ref, lib_name: lib_name} ->
+          {repo, name: lib_name, tag: ref}
+      end
+    end)
   end
 
   def openssl_target(arch) do

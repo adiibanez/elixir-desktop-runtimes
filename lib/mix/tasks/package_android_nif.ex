@@ -3,7 +3,13 @@ defmodule Mix.Tasks.Package.Android.Nif do
   alias Mix.Tasks.Package.Android.Runtime
   require EEx
 
+  # NIF definitions are centralized in Runtimes module
+  # Use RUNTIME_FLAVOR env var to select: vanilla, crypto, iroh, ble, full
+
   def run([]) do
+    flavor = Runtimes.current_flavor()
+    IO.puts("Building Android NIFs with flavor: #{flavor}")
+
     for nif <- Runtimes.default_nifs() do
       for arch <- Runtime.default_archs() do
         build(arch, Runtimes.get_nif(nif))
@@ -12,26 +18,32 @@ defmodule Mix.Tasks.Package.Android.Nif do
   end
 
   def run(args) do
-    {parsed, _, _} = OptionParser.parse(args, strict: [arch: :string, nifs: :string])
+    {parsed, _, _} = OptionParser.parse(args, strict: [arch: :string, flavor: :string])
     IO.inspect(parsed, label: "Received args")
-    # System.halt(0)
-
-    nifs = Runtimes.default_nifs()
 
     arch = Keyword.get(parsed, :arch, "arm64")
 
-    # {git, _tag} =
-    #   case args do
-    #     [] -> raise "Need git url parameter"
-    #     [git] -> {git, nil}
-    #     [git, tag] -> {git, tag}
-    #   end
+    nifs =
+      case Keyword.get(parsed, :flavor) do
+        nil ->
+          Runtimes.default_nifs()
 
-    for nif <- Runtimes.default_nifs() do
+        flavor ->
+          IO.puts("Using flavor: #{flavor}")
+          Runtimes.flavor_nifs(flavor)
+          |> Enum.map(fn name ->
+            case Runtimes.get_nif_config(name) do
+              nil -> name
+              %{type: :c_nif, repo: repo} -> repo
+              %{type: :rustler, repo: repo, ref: ref, lib_name: lib_name} ->
+                {repo, name: lib_name, tag: ref}
+            end
+          end)
+      end
+
+    for nif <- nifs do
       build(arch, Runtimes.get_nif(nif))
     end
-
-    # build(arch, Runtimes.get_nif(nifs))
   end
 
   defp build(arch, nif) do
