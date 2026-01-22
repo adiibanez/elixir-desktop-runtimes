@@ -238,6 +238,7 @@ jobs:
             _build/otp_builder/release
             _build/otp_builder/lib/asn1
             _build/otp_builder/lib/crypto
+            _build/otp_builder/xcomp
           retention-days: 1
 
   build_nifs:
@@ -415,6 +416,8 @@ jobs:
 
           export OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}}
 
+          # Ensure xcomp directory exists (should be in artifact, but create if missing)
+          mkdir -p _build/otp_builder/xcomp
           cp patch/erl-xcomp-*.conf _build/otp_builder/xcomp/
 
           rm -rf _build/otp_builder/release/${{matrix.platform.otp_arch}}
