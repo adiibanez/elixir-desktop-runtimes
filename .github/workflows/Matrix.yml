@@ -340,11 +340,39 @@ jobs:
           name: openssl-${{ matrix.platform.base_arch }}
           path: _build/ios-openssl
 
+      - name: Cache OTP source
+        uses: actions/cache@v4
+        id: otp-source-cache-r2
+        with:
+          path: otp_src_${{ matrix.erlixir.otp-version }}
+          key: otp-source-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.git-ref }}
+
+      - name: Download OTP source
+        if: steps.otp-source-cache-r2.outputs.cache-hit != 'true'
+        run: |
+          if [[ "${{ matrix.erlixir.use-git }}" == "true" ]]; then
+            git clone --depth 1 https://github.com/${{ matrix.erlixir.git-repo }} \
+              --branch ${{ matrix.erlixir.git-ref }} \
+              otp_src_${{ matrix.erlixir.otp-version }}
+          else
+            curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{ matrix.erlixir.otp-version }}/otp_src_${{ matrix.erlixir.otp-version }}.tar.gz
+            tar -xzf otp_src_${{ matrix.erlixir.otp-version }}.tar.gz
+          fi
+
       - name: Download OTP Round 1 artifact
         uses: actions/download-artifact@v4
         with:
           name: otp-r1-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}
-          path: _build/otp_builder
+          path: _build/otp_r1_artifact
+
+      - name: Merge OTP source with Round 1 artifacts
+        run: |
+          # Start with fresh OTP source
+          cp -r otp_src_${{ matrix.erlixir.otp-version }} _build/otp_builder
+          # Overlay Round 1 build artifacts (compiled libs)
+          cp -r _build/otp_r1_artifact/* _build/otp_builder/
+          echo "Merged OTP source with R1 artifacts"
+          ls -la _build/otp_builder/
 
       - name: Download NIF artifacts
         uses: actions/download-artifact@v4
