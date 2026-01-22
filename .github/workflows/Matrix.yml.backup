@@ -1,0 +1,740 @@
+name: Build Apple targets liberlang.xframework
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - refactoring
+      - ci-modularization
+  # pull_request:
+
+env:
+  OPENSSL_VERSION: '3.4.0'
+  OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
+  # TOOLCHAIN: nightly
+  # CARGO_MAKE_TOOLCHAIN: nightly
+
+  # rust 1.85.0 for xcode llvm
+  TOOLCHAIN: nightly-2025-01-01
+  CARGO_MAKE_TOOLCHAIN: nightly-2025-01-01
+
+  ENABLE_STRIPPING: true
+  ENABLE_STRIPPING_NIFS: true
+  STRIP_CMD: 'xcrun strip -x -S'
+  # https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
+  CARGO_CACHE_PATH: |
+    ~/.cargo/.crates.toml
+    ~/.cargo/.crates2.json
+    ~/.cargo/bin/
+    ~/.cargo/registry/index/
+    ~/.cargo/registry/cache/
+    ~/.cargo/git/db/
+
+jobs:
+  define-matrix:
+    name: Define Build Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      platforms: ${{ steps.set-matrix.outputs.platforms }}
+      erlixir: ${{ steps.set-matrix.outputs.erlixir }}
+      base_archs: ${{ steps.set-matrix.outputs.base_archs }}
+      nifs: ${{ steps.set-matrix.outputs.nifs }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/config
+
+      - name: Load matrix configuration
+        id: set-matrix
+        run: |
+          PLATFORMS=$(jq -c '.platform' .github/config/apple-platforms.json)
+          ERLIXIR=$(jq -c '.erlixir' .github/config/erlixir-versions.json)
+          # Extract unique base_arch values for OpenSSL builds
+          BASE_ARCHS=$(jq -c '[.platform[].base_arch] | unique' .github/config/apple-platforms.json)
+          # Load NIF packages configuration
+          NIFS=$(jq -c '.nifs' .github/config/nif-packages.json)
+
+          echo "platforms=$PLATFORMS" >> "$GITHUB_OUTPUT"
+          echo "erlixir=$ERLIXIR" >> "$GITHUB_OUTPUT"
+          echo "base_archs=$BASE_ARCHS" >> "$GITHUB_OUTPUT"
+          echo "nifs=$NIFS" >> "$GITHUB_OUTPUT"
+
+          echo "Loaded $(echo $PLATFORMS | jq length) platforms"
+          echo "Loaded $(echo $ERLIXIR | jq length) erlixir versions"
+          echo "Loaded $(echo $NIFS | jq length) NIF packages"
+          echo "Unique base_archs: $BASE_ARCHS"
+
+  build_openssl:
+    name: Build OpenSSL - ${{ matrix.base_arch }}
+    runs-on: macos-latest
+    needs: define-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        base_arch: ${{ fromJson(needs.define-matrix.outputs.base_archs) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install brew tools
+        run: brew install automake autoconf libtool
+
+      - name: Cache Openssl source
+        uses: actions/cache@v4
+        id: openssl-source-cache
+        with:
+          path: openssl-${{ env.OPENSSL_VERSION }}
+          key: openssl-source-cache-${{ env.OPENSSL_VERSION }}
+
+      - name: Download OpenSSL source
+        if: steps.openssl-source-cache.outputs.cache-hit != 'true'
+        run: |
+          wget "https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz"
+          tar xzf openssl-$OPENSSL_VERSION.tar.gz
+
+      - name: Cache OpenSSL build
+        uses: actions/cache@v4
+        id: openssl-build-cache
+        with:
+          path: _build/ios-openssl
+          key: openssl-build-${{ env.OPENSSL_VERSION }}-${{ runner.os }}-${{ matrix.base_arch }}-${{ hashFiles('./scripts/install_openssl_ios.sh') }}
+
+      - name: Build OpenSSL for ${{ matrix.base_arch }}
+        if: steps.openssl-build-cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/openssl-ios
+        with:
+          version: ${{ env.OPENSSL_VERSION }}
+          hash: ${{ env.OPENSSL_HASH }}
+          base_arch: ${{ matrix.base_arch }}
+
+      - name: Verify OpenSSL libs
+        run: |
+          find _build/ios-openssl -name "*.a" -exec lipo -info {} \;
+
+      - name: Upload OpenSSL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openssl-${{ matrix.base_arch }}
+          path: _build/ios-openssl
+          retention-days: 1
+
+  build_otp_round1:
+    name: OTP R1 - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }}
+    runs-on: macos-latest
+    needs: [build_openssl, define-matrix]
+    strategy:
+      fail-fast: false
+      matrix:
+        erlixir: ${{ fromJson(needs.define-matrix.outputs.erlixir) }}
+        platform: ${{ fromJson(needs.define-matrix.outputs.platforms) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install brew tools
+        run: brew install automake autoconf libtool
+
+      - name: Download OpenSSL artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openssl-${{ matrix.platform.base_arch }}
+          path: _build/ios-openssl
+
+      - name: Setup OpenSSL env
+        run: |
+          echo "OPENSSL_PREFIX=${{ github.workspace }}/${{ matrix.platform.openssl_prefix }}" >> "$GITHUB_ENV"
+
+      - name: Cache OTP source
+        uses: actions/cache@v4
+        id: otp-source-cache
+        with:
+          path: otp_src_${{ matrix.erlixir.otp-version }}
+          key: otp-source-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.git-ref }}
+
+      - name: Download OTP source
+        if: steps.otp-source-cache.outputs.cache-hit != 'true'
+        run: |
+          if [[ "${{ matrix.erlixir.use-git }}" == "true" ]]; then
+            git clone --depth 1 https://github.com/${{ matrix.erlixir.git-repo }} \
+              --branch ${{ matrix.erlixir.git-ref }} \
+              otp_src_${{ matrix.erlixir.otp-version }}
+          else
+            curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{ matrix.erlixir.otp-version }}/otp_src_${{ matrix.erlixir.otp-version }}.tar.gz
+            tar -xzf otp_src_${{ matrix.erlixir.otp-version }}.tar.gz
+          fi
+
+      - name: Cache OTP Round 1 build
+        uses: actions/cache@v4
+        id: otp-r1-cache
+        with:
+          path: _build/otp_builder
+          key: otp-r1-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.erl-opts-description }}-${{ hashFiles('patch/*.conf', 'patch/*.patch') }}
+
+      - name: Build OTP Round 1
+        if: steps.otp-r1-cache.outputs.cache-hit != 'true'
+        run: |
+          ulimit -n 65536
+
+          # Only built-in NIFs for Round 1
+          STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{ github.workspace }}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
+
+          mkdir -p _build
+          if [ ! -e _build/otp_builder ]; then
+            cp -r otp_src_${{ matrix.erlixir.otp-version }} _build/otp_builder
+          fi
+
+          # Apply patches for iOS compatibility (zlib fdopen macro conflicts with Xcode 16+ SDKs)
+          ZUTIL_H="_build/otp_builder/erts/emulator/zlib/zutil.h"
+          if [ -f "$ZUTIL_H" ] && grep -q '#.*define fdopen.*NULL' "$ZUTIL_H"; then
+            echo "Patching zutil.h to fix fdopen macro conflict with iOS SDK..."
+            # macOS sed requires '' after -i for no backup extension
+            sed -i '' 's|#.*define fdopen(fd,mode) NULL.*|/* fdopen macro removed for iOS compatibility */|' "$ZUTIL_H"
+          fi
+
+          # Verify OpenSSL
+          if [ ! -e "$OPENSSL_PREFIX/lib/libcrypto.a" ]; then
+            echo "Error: OpenSSL not found at $OPENSSL_PREFIX"
+            exit 1
+          fi
+          lipo -info "$OPENSSL_PREFIX/lib/libcrypto.a"
+
+          cp patch/erl-xcomp-*.conf _build/otp_builder/xcomp/
+          cd _build/otp_builder
+
+          LDFLAGS_CLEANED="${LDFLAGS//-fstack-protector-strong/}"
+
+          KERL_CONFIGURE_OPTIONS="${{ matrix.erlixir.erl-opts }}${{ matrix.platform.kerl-opts }}" \
+          LDFLAGS="-L$OPENSSL_PREFIX/lib -lcrypto ${LDFLAGS_CLEANED}" \
+          LD="xcrun -sdk ${{ matrix.platform.sdk }} ld" \
+          INCLUDE_PATH="$OPENSSL_PREFIX/include" \
+          LIB_PATH="$OPENSSL_PREFIX/lib" \
+          LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
+          XCOMP_HOST=${{ matrix.platform.otp_arch }} \
+          XCOMP_SDK="${{ matrix.platform.sdk }}" \
+          XCOMP_ARCH="-arch ${{ matrix.platform.arch }}" \
+          LIBS="$OPENSSL_PREFIX/lib/libcrypto.a" \
+          OTP_PREFIX=${{ github.workspace }}/_build/otp_${{ matrix.erlixir.otp-version }} \
+          RELEASE_LIBBEAM="yes" ./otp_build configure \
+            --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
+            --disable-dynamic-ssl-lib \
+            --disable-security-hardening-flags \
+            --with-ssl="$OPENSSL_PREFIX" \
+            --enable-static-nifs="$STATIC_NIFS"
+
+          ./otp_build boot -a
+          ./otp_build release -a
+
+          echo "OTP Round 1 complete. Checking artifacts..."
+          find . -name libbeam.a
+          find . -name asn1rt_nif.a
+
+      - name: Upload OTP Round 1 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: otp-r1-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}
+          path: |
+            _build/otp_builder/erts
+            _build/otp_builder/release
+            _build/otp_builder/lib/asn1
+            _build/otp_builder/lib/crypto
+            _build/otp_builder/xcomp
+          retention-days: 1
+
+  build_nifs:
+    name: NIF - ${{ matrix.nif.name }} ${{ matrix.platform.name }}
+    runs-on: macos-latest
+    needs: [build_otp_round1, define-matrix]
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJson(needs.define-matrix.outputs.platforms) }}
+        nif: ${{ fromJson(needs.define-matrix.outputs.nifs) }}
+        exclude:
+          # Exclude 3rd tier platforms for NIFs that don't support them
+          - platform: { rust_is_3rd_tier: true }
+            nif: { skip_3rd_tier: true }
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download OTP Round 1 artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: otp-r1-${{ matrix.platform.id }}-*
+          path: _build/otp_builder
+          merge-multiple: true
+
+      - name: Setup ERTS environment
+        id: erts-setup
+        run: |
+          MK_FILE=$(find _build/otp_builder/erts -name "vsn.mk" | head -1)
+          ERTS_VERSION=$(sed -nE 's/VSN *= *([0-9.]+)/\1/p' "$MK_FILE")
+          echo "erts_version=$ERTS_VERSION" >> "$GITHUB_OUTPUT"
+          echo "ERTS version: $ERTS_VERSION"
+
+          # Find an erlixir version from artifacts (take first available)
+          OTP_RELEASE_DIR=$(find _build/otp_builder/release -mindepth 1 -maxdepth 1 -type d | head -1)
+          echo "Release dir: $OTP_RELEASE_DIR"
+
+      - name: Setup Rust toolchain
+        if: matrix.platform.rust_is_3rd_tier != true
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.TOOLCHAIN }}
+          targets: ${{ matrix.platform.rust_target }}
+
+      - name: Setup Rust nightly (3rd tier)
+        if: matrix.platform.rust_is_3rd_tier == true
+        run: |
+          rustup toolchain install nightly
+          rustup component add rust-src --toolchain nightly
+
+      - name: Rust Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CARGO_CACHE_PATH }}
+          key: cargo-nif-${{ matrix.nif.name }}-${{ matrix.platform.rust_target }}
+
+      - name: Build NIF ${{ matrix.nif.name }}
+        uses: ./.github/actions/build-rustler-nif
+        with:
+          nif_name: ${{ matrix.nif.name }}
+          lib_name: ${{ matrix.nif.lib_name }}
+          git_repo: ${{ matrix.nif.repo }}
+          git_ref: ${{ matrix.nif.ref }}
+          native_dir: ${{ matrix.nif.native_dir }}
+          rust_target: ${{ matrix.platform.rust_target }}
+          ldflags: ${{ matrix.nif.ldflags }}
+          is_3rd_tier: ${{ matrix.platform.rust_is_3rd_tier }}
+          sdk: ${{ matrix.platform.sdk }}
+          arch: ${{ matrix.platform.arch }}
+          erts_include_dir: ${{ github.workspace }}/_build/otp_builder/release/${{ matrix.platform.otp_arch }}/erts-${{ steps.erts-setup.outputs.erts_version }}/include
+
+      - name: Upload NIF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nif-${{ matrix.nif.name }}-${{ matrix.platform.id }}
+          path: _build/nifs/lib${{ matrix.nif.name }}.a
+          retention-days: 1
+
+  build_otp_round2:
+    name: OTP R2 - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }}
+    runs-on: macos-latest
+    needs: [build_nifs, build_otp_round1, define-matrix]
+    strategy:
+      fail-fast: false
+      matrix:
+        erlixir: ${{ fromJson(needs.define-matrix.outputs.erlixir) }}
+        platform: ${{ fromJson(needs.define-matrix.outputs.platforms) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install brew tools
+        run: brew install automake autoconf libtool
+
+      - name: Download OpenSSL artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openssl-${{ matrix.platform.base_arch }}
+          path: _build/ios-openssl
+
+      - name: Cache OTP source
+        uses: actions/cache@v4
+        id: otp-source-cache-r2
+        with:
+          path: otp_src_${{ matrix.erlixir.otp-version }}
+          key: otp-source-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.git-ref }}
+
+      - name: Download OTP source
+        if: steps.otp-source-cache-r2.outputs.cache-hit != 'true'
+        run: |
+          if [[ "${{ matrix.erlixir.use-git }}" == "true" ]]; then
+            git clone --depth 1 https://github.com/${{ matrix.erlixir.git-repo }} \
+              --branch ${{ matrix.erlixir.git-ref }} \
+              otp_src_${{ matrix.erlixir.otp-version }}
+          else
+            curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{ matrix.erlixir.otp-version }}/otp_src_${{ matrix.erlixir.otp-version }}.tar.gz
+            tar -xzf otp_src_${{ matrix.erlixir.otp-version }}.tar.gz
+          fi
+
+      - name: Download OTP Round 1 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: otp-r1-${{ matrix.platform.id }}-${{ matrix.erlixir.otp-version }}
+          path: _build/otp_r1_artifact
+
+      - name: Merge OTP source with Round 1 artifacts
+        run: |
+          # Start with fresh OTP source
+          cp -r otp_src_${{ matrix.erlixir.otp-version }} _build/otp_builder
+          # Overlay Round 1 build artifacts (compiled libs)
+          cp -r _build/otp_r1_artifact/* _build/otp_builder/
+          # Restore execute permissions (GitHub artifacts don't preserve them)
+          chmod +x _build/otp_builder/otp_build _build/otp_builder/configure || true
+          find _build/otp_builder -type f -name "*.sh" -exec chmod +x {} \;
+          find _build/otp_builder -type f \( -name "config.guess" -o -name "config.sub" -o -name "install-sh" \) -exec chmod +x {} \;
+          # Make all binaries in bin directories executable (including yielding_c_fun and other build tools)
+          find _build/otp_builder -path "*/bin/*" -type f -exec chmod +x {} \;
+          # Explicitly fix yielding_c_fun which is critical for OTP build
+          find _build/otp_builder -name "yielding_c_fun" -type f -exec chmod +x {} \;
+          # Verify yielding_c_fun permissions
+          echo "Checking yielding_c_fun permissions:"
+          find _build/otp_builder -name "yielding_c_fun" -type f -exec ls -la {} \;
+          echo "Merged OTP source with R1 artifacts"
+          ls -la _build/otp_builder/
+
+      - name: Download NIF artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: nif-*-${{ matrix.platform.id }}
+          path: _build/nifs-download
+          merge-multiple: true
+
+      - name: Setup NIF artifacts
+        run: |
+          mkdir -p _build/nifs
+          find _build/nifs-download -name "*.a" -exec cp {} _build/nifs/ \;
+          echo "Downloaded NIFs:"
+          find _build/nifs -name "*.a" -exec ls -lah {} \;
+
+      - name: Setup OpenSSL env
+        run: |
+          echo "OPENSSL_PREFIX=${{ github.workspace }}/${{ matrix.platform.openssl_prefix }}" >> "$GITHUB_ENV"
+
+      - name: Setup ASDF for mix tasks
+        run: |
+          echo "" > .tool-versions
+          echo "erlang ${{ matrix.erlixir.otp-version }}" >> .tool-versions
+          echo "elixir ${{ matrix.erlixir.elixir-version }}" >> .tool-versions
+          echo PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH" >> "$GITHUB_ENV"
+
+      - uses: asdf-vm/actions/setup@master
+
+      - name: Cache ASDF
+        uses: actions/cache@v4
+        id: asdf-cache
+        with:
+          path: ~/.asdf
+          key: asdf-cache-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+
+      - name: Install ASDF tools
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@master
+
+      - name: Ensure mix dependencies
+        run: mix deps.get
+
+      - name: Compute LINK_RUSTLER_NIF_LIBS
+        run: |
+          # Build linker flags from downloaded NIFs
+          LINK_RUSTLER_NIF_LIBS=""
+          for nif in _build/nifs/lib*.a; do
+            if [ -f "$nif" ]; then
+              name=$(basename "$nif" .a | sed 's/^lib//')
+              LINK_RUSTLER_NIF_LIBS="$LINK_RUSTLER_NIF_LIBS -l$name"
+            fi
+          done
+          echo "LINK_RUSTLER_NIF_LIBS=$LINK_RUSTLER_NIF_LIBS" >> "$GITHUB_ENV"
+          echo "Linker flags: $LINK_RUSTLER_NIF_LIBS"
+
+      - name: Build OTP Round 2
+        id: otp-setup-round2
+        # if: false
+        # if: steps.otp-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          # include only .a in release directories
+          echo "Round 2"
+          NIF_LIBS=$(find ${{github.workspace}}/_build/nifs -type f -name "*.a" | awk '{printf ",%s", $1} END { print "" }')
+          echo "Round 2.1"
+          DEFAULT_STATIC_NIFS="${{ github.workspace }}/_build/otp_builder/lib/asn1/priv/lib/${{ matrix.platform.otp_arch }}/asn1rt_nif.a,${{github.workspace}}/_build/otp_builder/lib/crypto/priv/lib/${{ matrix.platform.otp_arch }}/crypto.a"
+          echo "Round 2.2"
+          STATIC_NIFS="$DEFAULT_STATIC_NIFS$NIF_LIBS"
+
+          export OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}}
+
+          # Ensure xcomp directory exists (should be in artifact, but create if missing)
+          mkdir -p _build/otp_builder/xcomp
+          cp patch/erl-xcomp-*.conf _build/otp_builder/xcomp/
+
+          rm -rf _build/otp_builder/release/${{matrix.platform.otp_arch}}
+
+          cd _build/otp_builder
+
+          # exit 1
+
+          # KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,otp_mibs,snmp,dialyzer,eldap,odbc,mnesia,observer,wx,et,tools,common_test,eunit,edoc,erl_docgen \
+          #KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}} --disable-debug --without-javac --without-odbc --without-wx --disable-sctp --disable-megaco --disable-corba --disable-hipe --disable-compiler --disable-kernel-poll" \
+
+          # KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,snmp,dialyzer,eldap,odbc,mnesia,otp_mibs,observer \
+          # KERL_CONFIGURE_DISABLE_APPLICATIONS https://github.com/kerl/kerl/blob/master/kerl
+          # https://www.erlang.org/docs/19/applications
+
+          xcodebuild -showsdks
+          xcrun --sdk ${{matrix.platform.sdk}} --show-sdk-path
+
+          echo 'int main() { return 0; }' > test_compiler.c
+          xcrun -sdk ${{matrix.platform.sdk}} cc -arch ${{matrix.platform.arch}} -o test_compiler test_compiler.c
+          #./test_compiler
+          file test_compiler
+
+          #LDFLAGS="-isysroot $SDKROOT -framework CoreBluetooth -framework CoreFoundation -framework Foundation -framework objc"
+
+          ls -l $(xcrun --sdk ${{matrix.platform.sdk}} --show-sdk-path)/usr/lib/libobjc.tbd || true
+
+          # funky business: -Wl,--allow-multiple-definition
+
+          echo "LINK_RUSTLER_NIF_LIBS: $LINK_RUSTLER_NIF_LIBS"
+
+          KERL_CONFIGURE_OPTIONS="${{matrix.erlixir.kerl-opts}}${{matrix.platform.kerl-opts}}" \
+          KERL_CONFIGURE_DISABLE_APPLICATIONS=megaco,otp_mibs,snmp,dialyzer,eldap,odbc,mnesia,observer,wx,et,tools,common_test,eunit,edoc,erl_docgen \
+          INCLUDE_PATH="$OPENSSL_PREFIX/include" \
+          LIB_PATH="$OPENSSL_PREFIX/lib" \
+          LIB_CRYPTO="$LIB_PATH/libcrypto.a" \
+          LD="xcrun -sdk ${{ matrix.platform.sdk }} ld"
+          XCOMP_HOST=${{matrix.platform.otp_arch}} \
+          XCOMP_SDK="${{matrix.platform.sdk}}" \
+          XCOMP_ARCH="-arch ${{matrix.platform.arch}}" \
+          XCOMP_LDFLAGS="-L${{env.OPENSSL_PREFIX}}/lib -lcrypto -L${{github.workspace}}/_build/nifs $LINK_RUSTLER_NIF_LIBS -framework CoreBluetooth -framework Security -framework SystemConfiguration -framework CoreFoundation -framework Foundation -ObjC" \
+          LIBS="${{ env.OPENSSL_PREFIX }}/lib/libcrypto.a" \
+          OTP_PREFIX=${{github.workspace}}/_build/otp_${{matrix.erlixir.otp-version}} \
+          RELEASE_LIBBEAM="yes" ./otp_build configure \
+          --xcomp-conf=xcomp/erl-xcomp-apple-multi-sdk.conf \
+          --disable-dynamic-ssl-lib \
+          --disable-security-hardening-flags \
+          --with-ssl="${{ env.OPENSSL_PREFIX }}" \
+          --enable-static-nifs="$STATIC_NIFS" -v
+
+          ./otp_build boot -a
+          ./otp_build release -a
+
+          find . -type d -name release
+
+          find ~+ -name libbeam.a
+          find ~+ -name asn1rt_nif.a
+          find ~+ -name crypto.a
+
+          cd ${{ github.workspace }}
+          ls -lah _build/otp_builder
+
+      - name: Debug build
+        continue-on-error: true
+        shell: bash
+        if: always() && steps.otp-setup-round2.outcome != 'success'
+        run: |
+          find _build/otp_builder -name "*.a"
+
+      - name: Upload debug Artifact for Round 2 build
+        continue-on-error: true
+        if: always() && steps.otp-setup-round2.outcome != 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-round2-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}-${{github.sha}}
+          #path: _build/liberlang_OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}.a
+          path: |
+            **/*.log
+
+        # **/*.a
+        # _build/nifs/**
+
+      - name: Combine static OTP libs
+        continue-on-error: false
+        shell: bash
+        run: |
+          BUILD_HOST=`_build/otp_builder/erts/autoconf/config.guess`
+          echo "BUID_HOST: $BUILD_HOST"
+
+          rm -f /tmp/libs.txt
+          MIX_ENV=prod mix run -e "Mix.Tasks.Package.Ios.Runtime.filter_lib_files(\"${{ github.workspace }}/_build/otp_builder\", \"${{matrix.platform.otp_arch}}\", \"$BUILD_HOST\")"  2>/dev/null
+
+          #echo mix run -e \"Mix.Tasks.Package.Ios.Runtime.filter_lib_files(\"${{ github.workspace }}/_build/otp_builder\", \"${{matrix.platform.otp_arch}}\", \"$BUILD_HOST\")"
+          # LIBS=`MIX_ENV=prod mix run -e "Mix.Tasks.Package.Ios.Runtime.filter_lib_files(\"${{ github.workspace }}/_build/otp_builder\", \"${{matrix.platform.otp_arch}}\", \"$BUILD_HOST\")"  2>/dev/null`
+          #exit 1
+
+          LIBS="`cat /tmp/libs.txt` ${{env.OPENSSL_PREFIX}}/lib/libcrypto.a"
+
+          if [[ -d ${{github.workspace}}/_build/nifs ]]; then
+            NIF_LIBS=$(find ${{github.workspace}}/_build/nifs -type f -name "*.a" | awk '{printf " %s", $1} END { print "" }')
+            LIBS+="$NIF_LIBS"
+          fi
+
+          cd _build/otp_builder
+          # find . -name libbeam.a
+          # cd ${{ github.workspace }}
+
+          # cd _build/otp_builder/release/${{matrix.platform.otp_arch}}
+          # cd _build/otp_builder/${{matrix.platform.otp_arch}}
+
+          # find . -name libbeam.a
+          # find . -name libcrypto.a
+          # INCLUDE_PATTERN="_r.a|_s.a"
+          # # https://askubuntu.com/questions/444551/get-absolute-path-of-files-using-find-command
+
+          # find ~+ -type f -name "*.a" | grep -v "$BUILD_HOST" -e "${{matrix.platform.otp_arch}}" -E "$INCLUDE_PATTERN" | awk '{print " ls -alh " $1}' | sh
+
+          # exit 1
+          #  >> /tmp/lib_report.log
+          #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " lipo -info " $1}' | sh >> /tmp/lib_report.log
+          #find ~+ -type f -name "*.a" | grep -E $INCLUDE_PATTERN | awk '{print " otool -L " $1}' | sh >> /tmp/lib_report.log
+
+          #rm -rf /tmp/otp_libs
+          #mkdir /tmp/otp_libs
+          #cp $LIBS /tmp/otp_libs
+
+          # find ~+ -type f -name "*.a" | grep -v "$BUILD_HOST" -e "${{matrix.platform.otp_arch}}" -E "$INCLUDE_PATTERN" | awk '{print " cp " $1 " `basename " $1 "`"}' | sh
+
+          # LIBS=`find ~+ -type f -name "*.a" | grep -v "$BUILD_HOST" -e "${{matrix.platform.otp_arch}}" -E "$INCLUDE_PATTERN" | awk '{printf " %s", $1} END { print "" }'`
+          echo $LIBS
+
+          OUTPUT_LIB="${{ github.workspace }}/_build/liberlang.a"
+
+          rm -f $OUTPUT_LIB
+          libtool -static -o $OUTPUT_LIB $LIBS
+
+          if [[ "$ENABLE_STRIPPING" == "true" ]]; then
+            BEFORE_STRIPPING=`ls -lah $OUTPUT_LIB | awk '{print $5}'`
+            $STRIP_CMD $OUTPUT_LIB
+
+            mkdir temp_objects
+            cd temp_objects
+
+            # Extract all object files from the stripped library
+            ar x $OUTPUT_LIB
+
+            # Recreate the archive from the extracted (and now smaller) object files
+            ar -rcs ../liberlang_repacked.a *.o
+
+            # Clean up the temporary directory
+            cd ..
+            rm -rf temp_objects
+
+            # Compare the sizes:
+            ls -lh liberlang_repacked.a
+
+            mv liberlang_repacked.a $OUTPUT_LIB
+
+            AFTER_STRIPPING=`ls -lah $OUTPUT_LIB | awk '{print $5}'`
+            echo "Stripping: $OUTPUT_LIB before: $BEFORE_STRIPPING, after: $AFTER_STRIPPING"
+          fi
+
+      - name: Check output lib
+        shell: bash
+        continue-on-error: true
+        run: |
+          file ${{ github.workspace }}/_build/liberlang.a
+          lipo -info ${{ github.workspace }}/_build/liberlang.a
+          ls -lah ${{ github.workspace }}/_build/liberlang.a
+
+      - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{ matrix.platform.id }}
+          path: _build/liberlang.a
+
+  combine_xcframework:
+    # if: false
+    name: Combine XC Framework
+    runs-on: macos-latest
+    needs: [build_otp_round2, define-matrix]
+    strategy:
+      fail-fast: false
+      matrix:
+        erlixir: ${{ fromJson(needs.define-matrix.outputs.erlixir) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download liberlang.xcframework Slice Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: xcframework-slices
+          pattern: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-*
+          # merge-multiple: true
+
+      - name: Setup xcframework env
+        shell: bash
+        run: |
+          find xcframework-slices -name "*.a"
+
+          echo "MACOS_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_arm64/liberlang.a" >> $GITHUB_ENV
+          echo "MACOS_LIB_X86_64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-macos_x86_64/liberlang.a" >> $GITHUB_ENV
+          echo "IOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios/liberlang.a" >> $GITHUB_ENV
+          echo "SIMULATOR_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_arm64/liberlang.a" >> $GITHUB_ENV
+          echo "SIMULATOR_LIB_X86_64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-ios_sim_x86_64/liberlang.a" >> $GITHUB_ENV
+          echo "TVOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos/liberlang.a" >> $GITHUB_ENV
+          echo "TVOS_SIMULATOR_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_arm64/liberlang.a" >> $GITHUB_ENV
+          echo "TVOS_SIMULATOR_LIB_X86_64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-tvos_sim_x86_64/liberlang.a" >> $GITHUB_ENV
+          echo "WATCHOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos/liberlang.a" >> $GITHUB_ENV
+          echo "WATCHOS_SIMULATOR_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-watchos_sim/liberlang.a" >> $GITHUB_ENV
+          echo "VISIONOS_LIB=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos/liberlang.a" >> $GITHUB_ENV
+          echo "VISIONOS_SIMULATOR_LIB_ARM64=xcframework-slices/liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-visionos_sim_arm64/liberlang.a" >> $GITHUB_ENV
+
+      - name: Create Combined xcframework
+        id: assemble-xcframework
+        shell: bash
+        run: |
+
+          TEMP_DIR="temp_lipo"
+          mkdir -p "$TEMP_DIR"
+
+          if [ -f "$MACOS_LIB_ARM64" ] && [ -f "$MACOS_LIB_X86_64" ]; then
+            MACOS_LIPO="$TEMP_DIR/liberlang_macos.a"
+            lipo -create "$MACOS_LIB_ARM64" "$MACOS_LIB_X86_64" -output "$MACOS_LIPO"
+          fi
+
+          if [ -f "$SIMULATOR_LIB_ARM64" ] && [ -f "$SIMULATOR_LIB_X86_64" ]; then
+            IOS_SIM_LIPO="$TEMP_DIR/liberlang_ios_sims.a"
+            lipo -create "$SIMULATOR_LIB_ARM64" "$SIMULATOR_LIB_X86_64" -output "$IOS_SIM_LIPO"
+          fi
+
+          if [ -f "$TVOS_SIMULATOR_LIB_ARM64" ] && [ -f "$TVOS_SIMULATOR_LIB_X86_64" ]; then
+            TVOS_SIM_LIPO="$TEMP_DIR/liberlang_tvos_sims.a"
+            lipo -create "$TVOS_SIMULATOR_LIB_ARM64" "$TVOS_SIMULATOR_LIB_X86_64" -output "$TVOS_SIM_LIPO"
+          fi
+
+          XCFRAMEWORK_CMD="xcodebuild -create-xcframework"
+
+          add_library_if_exists() {
+            if [ -f "$2" ]; then
+              echo "✅ Including: $1 $2"
+              XCFRAMEWORK_CMD+=" -library $2"
+            else
+              echo "⚠️ Skipping missing library: $1 $2"
+            fi
+          }
+
+          add_library_if_exists macos $MACOS_LIPO
+          add_library_if_exists ios $IOS_LIB
+          add_library_if_exists ios_sim $IOS_SIM_LIPO
+          add_library_if_exists tvos $TVOS_LIB
+          add_library_if_exists tvos_sim $TVOS_SIM_LIPO
+          add_library_if_exists watchos $WATCHOS_LIB
+          add_library_if_exists watchos_sim $WATCHOS_SIMULATOR_LIB
+          add_library_if_exists visionos $VISIONOS_LIB
+          add_library_if_exists visionos_sim $VISIONOS_SIMULATOR_LIB_ARM64
+
+          XCFRAMEWORK_CMD+=" -output liberlang.xcframework"
+
+          echo "🚀 Running: $XCFRAMEWORK_CMD"
+          eval "$XCFRAMEWORK_CMD"
+
+          mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
+          mv -f liberlang.xcframework liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
+
+      # - name: Check Architecture
+      #   if: false
+      #   continue-on-error: true
+      #   run: |
+      #     #ls -lah liberlang.xframework
+      #     #du -sh liberlang.xframework
+      #     #lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}" || 1
+      #     cd scripts
+      #     LIB_ARM=$IOS_FRAMEWORK LIB_X86=$SIMULATOR_FRAMEWORK ./tester.sh
+
+      - name: Upload Combined xcframework Artifact
+        uses: actions/upload-artifact@v4
+        if: steps.assemble-xcframework.outcome == 'success'
+        with:
+          name: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}-${{github.sha}}
+          path: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}

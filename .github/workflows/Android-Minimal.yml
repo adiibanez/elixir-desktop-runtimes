@@ -1,0 +1,152 @@
+name: Build Android Runtimes (Minimal)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ci-modularization
+      - android-test
+
+env:
+  OPENSSL_VERSION: '3.4.0'
+  OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
+  OTP_SOURCE: https://github.com/erlang/otp
+
+jobs:
+  define-matrix:
+    name: Define Build Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      platforms: ${{ steps.set-matrix.outputs.platforms }}
+      erlixir: ${{ steps.set-matrix.outputs.erlixir }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/config
+
+      - name: Load matrix configuration
+        id: set-matrix
+        run: |
+          PLATFORMS=$(jq -c '.platform' .github/config/android-platforms.json)
+          # Use only the first erlixir version for minimal testing
+          ERLIXIR=$(jq -c '[.erlixir[0]]' .github/config/erlixir-versions.json)
+
+          echo "platforms=$PLATFORMS" >> "$GITHUB_OUTPUT"
+          echo "erlixir=$ERLIXIR" >> "$GITHUB_OUTPUT"
+
+          echo "Loaded $(echo $PLATFORMS | jq length) Android platforms"
+          echo "Loaded $(echo $ERLIXIR | jq length) erlixir versions"
+          echo "Platforms: $PLATFORMS"
+          echo "Erlixir: $ERLIXIR"
+
+  build-android:
+    name: Android - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }}
+    runs-on: ubuntu-latest
+    needs: define-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJson(needs.define-matrix.outputs.platforms) }}
+        erlixir: ${{ fromJson(needs.define-matrix.outputs.erlixir) }}
+    env:
+      ARCH_IDENTIFIER: ${{ matrix.platform.arch_id }}-${{ matrix.platform.android_name }}-${{ matrix.platform.abi }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.erlixir.otp-version }}
+          elixir-version: ${{ matrix.erlixir.elixir-version }}
+
+      - name: Cache OTP source
+        uses: actions/cache@v4
+        id: otp-source-cache
+        with:
+          path: _build/otp_cache
+          key: android-otp-source-${{ matrix.erlixir.otp-version }}
+
+      - name: Download OTP source
+        if: steps.otp-source-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p _build/otp_cache
+          curl -L -O https://github.com/erlang/otp/releases/download/OTP-${{ matrix.erlixir.otp-version }}/otp_src_${{ matrix.erlixir.otp-version }}.tar.gz
+          mv otp_src_${{ matrix.erlixir.otp-version }}.tar.gz _build/otp_cache/
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate BEAM Dockerfile
+        id: generate-dockerfile
+        run: |
+          mix deps.get
+          MIX_TARGET=prod mix compile
+          mix run -e 'Mix.Tasks.Package.Android.Runtime.write_beam_dockerfile("${{ matrix.platform.arch_id }}", "${{ github.workspace }}/_build/Dockerfile_android-beam-${{ matrix.platform.arch_id }}")'
+          echo "Generated Dockerfile:"
+          cat "_build/Dockerfile_android-beam-${{ matrix.platform.arch_id }}"
+
+      - name: Build Android BEAM Docker image
+        uses: whoan/docker-build-with-cache-action@v5
+        if: steps.generate-dockerfile.outcome == 'success'
+        id: buildx-beam
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          image_name: android_beam
+          image_tag: 'arch_${{ env.ARCH_IDENTIFIER }}-${{ matrix.erlixir.otp-version }}'
+          dockerfile: '_build/Dockerfile_android-beam-${{ matrix.platform.arch_id }}'
+          build_extra_args: |
+            --platform=linux/amd64
+            --build-arg ARCH=${{ matrix.platform.arch_id }}
+            --build-arg ANDROID_NAME=${{ matrix.platform.android_name }}
+            --build-arg ABI=${{ matrix.platform.abi }}
+            --build-arg OPENSSL_VERSION=${{ env.OPENSSL_VERSION }}
+            --build-arg OPENSSL_HASH=${{ env.OPENSSL_HASH }}
+            --build-arg OTP_SOURCE=${{ env.OTP_SOURCE }}
+            --build-arg OTP_TAG=${{ matrix.erlixir.otp-version }}
+            --build-arg KERL_CONFIGURE_OPTIONS="${{ matrix.erlixir.erl-opts }}"
+
+      - name: Build Android runtime
+        if: steps.buildx-beam.outcome == 'success'
+        env:
+          ARCH: ${{ matrix.platform.arch_id }}
+          BASE_IMAGE: ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-${{ matrix.erlixir.otp-version }}
+        run: |
+          docker images
+          mix package.android.runtime --arch ${{ matrix.platform.arch_id }}
+
+      - name: Show build logs
+        if: always()
+        run: |
+          find . -name "*.log" -exec echo "=== {} ===" \; -exec cat {} \; || true
+
+      - name: List build artifacts
+        run: |
+          find _build -name "*.zip" -o -name "*.so" -o -name "liberlang*" 2>/dev/null || true
+          ls -la _build/ || true
+
+      - name: Upload Android runtime artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-runtime-${{ matrix.platform.id }}-OTP-${{ matrix.erlixir.otp-version }}
+          path: _build/*.zip
+          if-no-files-found: warn
+
+      - name: Generate checksums
+        id: checksums
+        run: |
+          cd _build
+          if ls *.zip 1> /dev/null 2>&1; then
+            sha256sum *.zip > checksums.txt
+            cat checksums.txt
+          else
+            echo "No zip files found"
+          fi

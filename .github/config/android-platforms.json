@@ -1,0 +1,16 @@
+{
+  "platform": [
+    {
+      "id": "android_arm64",
+      "name": "Android arm64",
+      "abi": 23,
+      "cpu": "aarch64",
+      "pc": "aarch64-unknown",
+      "android_name": "android",
+      "android_type": "arm64-v8a",
+      "rust_target": "aarch64-linux-android",
+      "dockcross_image": "dockcross/android-arm64",
+      "arch_id": "arm64"
+    }
+  ]
+}
