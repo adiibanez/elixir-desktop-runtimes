@@ -29,8 +29,7 @@ jobs:
         id: set-matrix
         run: |
           PLATFORMS=$(jq -c '.platform' .github/config/android-platforms.json)
-          # Use only the first erlixir version for minimal testing
-          ERLIXIR=$(jq -c '[.erlixir[0]]' .github/config/erlixir-versions.json)
+          ERLIXIR=$(jq -c '.erlixir' .github/config/erlixir-versions.json)
 
           echo "platforms=$PLATFORMS" >> "$GITHUB_OUTPUT"
           echo "erlixir=$ERLIXIR" >> "$GITHUB_OUTPUT"
