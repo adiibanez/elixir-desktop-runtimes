@@ -7,6 +7,11 @@ on:
       - ci-modularization
       - android-test
 
+# Only allow one build at a time, cancel in-progress runs on new push
+concurrency:
+  group: android-build-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   OPENSSL_VERSION: '3.4.0'
   OPENSSL_HASH: '002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3'
