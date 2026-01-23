@@ -126,6 +126,14 @@ jobs:
           docker images
           mix package.android.runtime --arch ${{ matrix.platform.arch_id }}
 
+      - name: Build Android NIFs
+        if: steps.buildx-beam.outcome == 'success'
+        env:
+          ARCH: ${{ matrix.platform.arch_id }}
+          BASE_IMAGE: ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-${{ matrix.erlixir.otp-version }}
+        run: |
+          mix package.android.nif --arch ${{ matrix.platform.arch_id }}
+
       - name: Show build logs
         if: always()
         run: |
