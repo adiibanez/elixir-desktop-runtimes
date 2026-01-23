@@ -160,6 +160,9 @@ jobs:
         nif: ${{ fromJson(needs.define-matrix.outputs.nifs) }}
     env:
       ARCH_IDENTIFIER: ${{ matrix.platform.arch_id }}-${{ matrix.platform.android_name }}-${{ matrix.platform.abi }}
+      # Required by generate_beam_dockerfile even for NIF builds
+      OTP_VERSION: '27.3'
+      OTP_TAG: OTP-27.3
 
     steps:
       - name: Checkout code
