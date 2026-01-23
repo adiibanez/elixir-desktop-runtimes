@@ -113,7 +113,7 @@ jobs:
           cat "_build/Dockerfile_android-beam-${{ matrix.platform.arch_id }}"
 
       - name: Build Android BEAM Docker image
-        uses: whoan/docker-build-with-cache-action@v5
+        uses: whoan/docker-build-with-cache-action@v8
         if: steps.generate-dockerfile.outcome == 'success'
         id: buildx-beam
         with:
