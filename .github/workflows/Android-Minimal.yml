@@ -51,6 +51,8 @@ jobs:
         erlixir: ${{ fromJson(needs.define-matrix.outputs.erlixir) }}
     env:
       ARCH_IDENTIFIER: ${{ matrix.platform.arch_id }}-${{ matrix.platform.android_name }}-${{ matrix.platform.abi }}
+      OTP_VERSION: ${{ matrix.erlixir.otp-version }}
+      OTP_TAG: OTP-${{ matrix.erlixir.otp-version }}
 
     steps:
       - name: Checkout code
