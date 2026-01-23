@@ -116,7 +116,7 @@ jobs:
             --build-arg OPENSSL_VERSION=${{ env.OPENSSL_VERSION }}
             --build-arg OPENSSL_HASH=${{ env.OPENSSL_HASH }}
             --build-arg OTP_SOURCE=${{ env.OTP_SOURCE }}
-            --build-arg OTP_TAG=${{ matrix.erlixir.otp-version }}
+            --build-arg OTP_TAG=OTP-${{ matrix.erlixir.otp-version }}
 
       - name: Build Android runtime
         if: steps.buildx-beam.outcome == 'success'
