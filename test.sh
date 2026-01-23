@@ -1,0 +1,4 @@
+if [[ ! -z "$CUSTOM_LDFLAGS" ]]; then
+  CARGO_CMD="$CUSTOM_LDFLAGS $CARGO_CMD"
+  echo $CARGO_CMD
+fi

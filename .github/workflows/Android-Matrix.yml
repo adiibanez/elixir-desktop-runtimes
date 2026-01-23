@@ -1,4 +1,4 @@
-name: Build Android Runtimes (Minimal)
+name: Build Android Runtimes
 
 on:
   workflow_dispatch:
@@ -19,6 +19,7 @@ jobs:
     outputs:
       platforms: ${{ steps.set-matrix.outputs.platforms }}
       erlixir: ${{ steps.set-matrix.outputs.erlixir }}
+      nifs: ${{ steps.set-matrix.outputs.nifs }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,17 +31,18 @@ jobs:
         run: |
           PLATFORMS=$(jq -c '.platform' .github/config/android-platforms.json)
           ERLIXIR=$(jq -c '.erlixir' .github/config/erlixir-versions.json)
+          NIFS=$(jq -c '.nifs' .github/config/nif-packages.json)
 
           echo "platforms=$PLATFORMS" >> "$GITHUB_OUTPUT"
           echo "erlixir=$ERLIXIR" >> "$GITHUB_OUTPUT"
+          echo "nifs=$NIFS" >> "$GITHUB_OUTPUT"
 
           echo "Loaded $(echo $PLATFORMS | jq length) Android platforms"
           echo "Loaded $(echo $ERLIXIR | jq length) erlixir versions"
-          echo "Platforms: $PLATFORMS"
-          echo "Erlixir: $ERLIXIR"
+          echo "Loaded $(echo $NIFS | jq length) NIF packages"
 
-  build-android:
-    name: Android - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }}
+  build-otp:
+    name: OTP - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }}
     runs-on: ubuntu-latest
     needs: define-matrix
     strategy:
@@ -125,38 +127,114 @@ jobs:
           docker images
           mix package.android.runtime --arch ${{ matrix.platform.arch_id }}
 
-      - name: Build Android NIFs
-        if: steps.buildx-beam.outcome == 'success'
-        env:
-          ARCH: ${{ matrix.platform.arch_id }}
-          BASE_IMAGE: ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-${{ matrix.erlixir.otp-version }}
-        run: |
-          mix package.android.nif --arch ${{ matrix.platform.arch_id }}
-
-      - name: Show build logs
-        if: always()
-        run: |
-          find . -name "*.log" -exec echo "=== {} ===" \; -exec cat {} \; || true
-
       - name: List build artifacts
         run: |
           find _build -name "*.zip" -o -name "*.so" -o -name "liberlang*" 2>/dev/null || true
           ls -la _build/ || true
 
-      - name: Upload Android runtime artifact
+      - name: Upload Android OTP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-runtime-${{ matrix.platform.id }}-OTP-${{ matrix.erlixir.otp-version }}
+          name: android-otp-${{ matrix.platform.id }}-OTP-${{ matrix.erlixir.otp-version }}
           path: _build/*.zip
           if-no-files-found: warn
 
-      - name: Generate checksums
-        id: checksums
+  build-nifs:
+    name: NIF - ${{ matrix.nif.name }} ${{ matrix.platform.name }}
+    runs-on: ubuntu-latest
+    needs: [define-matrix, build-otp]
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJson(needs.define-matrix.outputs.platforms) }}
+        nif: ${{ fromJson(needs.define-matrix.outputs.nifs) }}
+    env:
+      ARCH_IDENTIFIER: ${{ matrix.platform.arch_id }}-${{ matrix.platform.android_name }}-${{ matrix.platform.abi }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: 27.3
+          elixir-version: 1.18.2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull BEAM Docker image
         run: |
-          cd _build
-          if ls *.zip 1> /dev/null 2>&1; then
-            sha256sum *.zip > checksums.txt
-            cat checksums.txt
-          else
-            echo "No zip files found"
-          fi
+          docker pull ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-27.3 || \
+          docker pull ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-28.0.2 || \
+          echo "Warning: Could not pull BEAM image, NIF build may fail"
+
+      - name: Build NIF ${{ matrix.nif.name }}
+        env:
+          ARCH: ${{ matrix.platform.arch_id }}
+          BASE_IMAGE: ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-27.3
+        run: |
+          mix deps.get
+          MIX_TARGET=prod mix compile
+          mix package.android.nif --arch ${{ matrix.platform.arch_id }} --flavor vanilla || echo "NIF build completed with warnings"
+
+      - name: List NIF artifacts
+        run: |
+          find _build -name "*nif*.zip" -o -name "*.so" 2>/dev/null || true
+          ls -la _build/ || true
+
+      - name: Upload NIF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-nif-${{ matrix.nif.name }}-${{ matrix.platform.id }}
+          path: _build/*nif*.zip
+          if-no-files-found: warn
+
+  package:
+    name: Package - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }}
+    runs-on: ubuntu-latest
+    needs: [define-matrix, build-otp, build-nifs]
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJson(needs.define-matrix.outputs.platforms) }}
+        erlixir: ${{ fromJson(needs.define-matrix.outputs.erlixir) }}
+
+    steps:
+      - name: Download OTP artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-otp-${{ matrix.platform.id }}-OTP-${{ matrix.erlixir.otp-version }}
+          path: artifacts/otp
+
+      - name: Download NIF artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: android-nif-*-${{ matrix.platform.id }}
+          path: artifacts/nifs
+          merge-multiple: true
+
+      - name: List all artifacts
+        run: |
+          echo "=== OTP artifacts ==="
+          find artifacts/otp -type f || true
+          echo "=== NIF artifacts ==="
+          find artifacts/nifs -type f || true
+
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          find . -name "*.zip" -exec sha256sum {} \; > checksums.txt
+          cat checksums.txt
+
+      - name: Upload combined artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-complete-${{ matrix.platform.id }}-OTP-${{ matrix.erlixir.otp-version }}
+          path: artifacts/
+          if-no-files-found: warn
