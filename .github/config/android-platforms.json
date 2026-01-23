@@ -11,6 +11,30 @@
       "rust_target": "aarch64-linux-android",
       "dockcross_image": "dockcross/android-arm64",
       "arch_id": "arm64"
+    },
+    {
+      "id": "android_arm",
+      "name": "Android arm (32-bit)",
+      "abi": 23,
+      "cpu": "arm",
+      "pc": "arm-unknown",
+      "android_name": "androideabi",
+      "android_type": "armeabi-v7a",
+      "rust_target": "armv7-linux-androideabi",
+      "dockcross_image": "dockcross/android-arm",
+      "arch_id": "arm"
+    },
+    {
+      "id": "android_x86_64",
+      "name": "Android x86_64 (emulator)",
+      "abi": 23,
+      "cpu": "x86_64",
+      "pc": "x86_64-pc",
+      "android_name": "android",
+      "android_type": "x86_64",
+      "rust_target": "x86_64-linux-android",
+      "dockcross_image": "dockcross/android-x86_64",
+      "arch_id": "x86_64"
     }
   ]
 }
