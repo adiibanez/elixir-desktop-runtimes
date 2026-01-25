@@ -16,7 +16,8 @@
       "ref": "iroh-0.90",
       "native_dir": "native/iroh_ex",
       "ldflags": "-framework Security -framework SystemConfiguration -framework CoreFoundation -framework Foundation",
-      "skip_3rd_tier": false
+      "skip_3rd_tier": true,
+      "skip_3rd_tier_reason": "netwatch dependency doesn't support visionOS"
     },
     {
       "name": "wasmex",
