@@ -1,17 +1,20 @@
 name: Code Quality
 
 on:
+  workflow_dispatch:  # Allow manual triggers
   pull_request:
     paths:
       - 'lib/**/*.ex'
       - 'mix.exs'
       - '.credo.exs'
+      - '.github/workflows/code-quality.yml'
   push:
     branches: [master, ci-modularization]
     paths:
       - 'lib/**/*.ex'
       - 'mix.exs'
       - '.credo.exs'
+      - '.github/workflows/code-quality.yml'
 
 jobs:
   quality:
