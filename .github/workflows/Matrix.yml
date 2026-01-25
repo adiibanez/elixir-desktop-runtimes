@@ -150,7 +150,7 @@ jobs:
         id: otp-source-cache
         with:
           path: otp_src_${{ matrix.erlixir.otp-version }}
-          key: otp-source-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.git-ref }}
+          key: otp-source-${{ matrix.erlixir.otp-version }}
 
       - name: Download OTP source
         if: steps.otp-source-cache.outputs.cache-hit != 'true'
@@ -345,7 +345,7 @@ jobs:
         id: otp-source-cache-r2
         with:
           path: otp_src_${{ matrix.erlixir.otp-version }}
-          key: otp-source-${{ matrix.erlixir.otp-version }}-${{ matrix.erlixir.git-ref }}
+          key: otp-source-${{ matrix.erlixir.otp-version }}
 
       - name: Download OTP source
         if: steps.otp-source-cache-r2.outputs.cache-hit != 'true'
