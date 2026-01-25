@@ -56,6 +56,28 @@
       "openssl_arch": "iossimulator-x86_64-xcrun",
       "otp_arch": "x86_64-apple-iossimulator",
       "rust_target": "x86_64-apple-ios"
+    },
+    {
+      "id": "visionos",
+      "name": "visionOS",
+      "sdk": "xros",
+      "arch": "arm64",
+      "base_arch": "visionos",
+      "openssl_prefix": "_build/ios-openssl/build/openssl.xros",
+      "openssl_arch": "xros-xcrun",
+      "otp_arch": "aarch64-apple-xros",
+      "rust_target": "aarch64-apple-visionos"
+    },
+    {
+      "id": "visionos_sim_arm64",
+      "name": "visionOS Simulator arm64",
+      "sdk": "xrsimulator",
+      "arch": "arm64",
+      "base_arch": "visionos_sim",
+      "openssl_prefix": "_build/ios-openssl/build/openssl.xrossim.arm64",
+      "openssl_arch": "xrossimulator-xcrun",
+      "otp_arch": "aarch64-apple-xrossimulator",
+      "rust_target": "aarch64-apple-visionos-sim"
     }
   ]
 }
