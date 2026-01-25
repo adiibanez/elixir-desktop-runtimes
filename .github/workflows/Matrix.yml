@@ -14,9 +14,9 @@ env:
   # TOOLCHAIN: nightly
   # CARGO_MAKE_TOOLCHAIN: nightly
 
-  # rust 1.85.0 for xcode llvm
-  TOOLCHAIN: nightly-2025-01-01
-  CARGO_MAKE_TOOLCHAIN: nightly-2025-01-01
+  # rust 1.88+ required by time crate (updated from 1.85.0)
+  TOOLCHAIN: nightly-2025-10-01
+  CARGO_MAKE_TOOLCHAIN: nightly-2025-10-01
 
   ENABLE_STRIPPING: true
   ENABLE_STRIPPING_NIFS: true
