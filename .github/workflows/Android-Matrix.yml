@@ -25,6 +25,7 @@ jobs:
       platforms: ${{ steps.set-matrix.outputs.platforms }}
       erlixir: ${{ steps.set-matrix.outputs.erlixir }}
       nifs: ${{ steps.set-matrix.outputs.nifs }}
+      flavors: ${{ steps.set-matrix.outputs.flavors }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,14 +38,17 @@ jobs:
           PLATFORMS=$(jq -c '.platform' .github/config/android-platforms.json)
           ERLIXIR=$(jq -c '.erlixir' .github/config/erlixir-versions.json)
           NIFS=$(jq -c '.nifs' .github/config/nif-packages.json)
+          FLAVORS=$(jq -c '.flavors' .github/config/flavors.json)
 
           echo "platforms=$PLATFORMS" >> "$GITHUB_OUTPUT"
           echo "erlixir=$ERLIXIR" >> "$GITHUB_OUTPUT"
           echo "nifs=$NIFS" >> "$GITHUB_OUTPUT"
+          echo "flavors=$FLAVORS" >> "$GITHUB_OUTPUT"
 
           echo "Loaded $(echo $PLATFORMS | jq length) Android platforms"
           echo "Loaded $(echo $ERLIXIR | jq length) erlixir versions"
           echo "Loaded $(echo $NIFS | jq length) NIF packages"
+          echo "Loaded $(echo $FLAVORS | jq length) flavors"
 
   build-otp:
     name: OTP - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }}
@@ -221,7 +225,7 @@ jobs:
           if-no-files-found: warn
 
   package:
-    name: Package - ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }}
+    name: Package - ${{ matrix.flavor.name }} ${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }}
     runs-on: ubuntu-latest
     needs: [define-matrix, build-otp, build-nifs]
     strategy:
@@ -229,6 +233,7 @@ jobs:
       matrix:
         platform: ${{ fromJson(needs.define-matrix.outputs.platforms) }}
         erlixir: ${{ fromJson(needs.define-matrix.outputs.erlixir) }}
+        flavor: ${{ fromJson(needs.define-matrix.outputs.flavors) }}
 
     steps:
       - name: Download OTP artifact
@@ -237,29 +242,39 @@ jobs:
           name: android-otp-${{ matrix.platform.id }}-OTP-${{ matrix.erlixir.otp-version }}
           path: artifacts/otp
 
-      - name: Download NIF artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: android-nif-*-${{ matrix.platform.id }}
-          path: artifacts/nifs
-          merge-multiple: true
+      - name: Download NIF artifacts for flavor
+        run: |
+          mkdir -p artifacts/nifs
+          # Download only NIFs needed for this flavor
+          FLAVOR_NIFS='${{ toJson(matrix.flavor.nifs) }}'
+          echo "Downloading NIFs for ${{ matrix.flavor.name }} flavor: $FLAVOR_NIFS"
+          for nif in $(echo "$FLAVOR_NIFS" | jq -r '.[]'); do
+            echo "Looking for android-nif-${nif}-${{ matrix.platform.id }}"
+            gh run download ${{ github.run_id }} \
+              --name "android-nif-${nif}-${{ matrix.platform.id }}" \
+              --dir artifacts/nifs || echo "NIF $nif not found (may be C NIF)"
+          done
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: List all artifacts
         run: |
           echo "=== OTP artifacts ==="
           find artifacts/otp -type f || true
-          echo "=== NIF artifacts ==="
+          echo "=== NIF artifacts for ${{ matrix.flavor.name }} flavor ==="
           find artifacts/nifs -type f || true
 
       - name: Generate checksums
         run: |
           cd artifacts
           find . -name "*.zip" -exec sha256sum {} \; > checksums.txt
+          echo "Flavor: ${{ matrix.flavor.name }}" >> checksums.txt
+          echo "NIFs: ${{ toJson(matrix.flavor.nifs) }}" >> checksums.txt
           cat checksums.txt
 
       - name: Upload combined artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-complete-${{ matrix.platform.id }}-OTP-${{ matrix.erlixir.otp-version }}
+          name: android-${{ matrix.flavor.name }}-${{ matrix.platform.id }}-OTP-${{ matrix.erlixir.otp-version }}
           path: artifacts/
           if-no-files-found: warn

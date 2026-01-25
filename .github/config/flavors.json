@@ -1,0 +1,19 @@
+{
+  "flavors": [
+    {
+      "name": "vanilla",
+      "description": "Minimal - just SQLite",
+      "nifs": ["exqlite"]
+    },
+    {
+      "name": "iroh",
+      "description": "SQLite + P2P networking",
+      "nifs": ["exqlite", "iroh_ex"]
+    },
+    {
+      "name": "full",
+      "description": "All available NIFs",
+      "nifs": ["exqlite", "btleplug_client", "iroh_ex", "wasmex"]
+    }
+  ]
+}
