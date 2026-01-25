@@ -371,19 +371,14 @@ jobs:
           cp -r otp_src_${{ matrix.erlixir.otp-version }} _build/otp_builder
           # Overlay Round 1 build artifacts (compiled libs)
           cp -r _build/otp_r1_artifact/* _build/otp_builder/
-          # Restore execute permissions (GitHub artifacts don't preserve them)
-          chmod +x _build/otp_builder/otp_build _build/otp_builder/configure || true
-          find _build/otp_builder -type f -name "*.sh" -exec chmod +x {} \;
-          find _build/otp_builder -type f \( -name "config.guess" -o -name "config.sub" -o -name "install-sh" \) -exec chmod +x {} \;
-          # Make all binaries in bin directories executable (including yielding_c_fun and other build tools)
-          find _build/otp_builder -path "*/bin/*" -type f -exec chmod +x {} \;
-          # Explicitly fix yielding_c_fun which is critical for OTP build
-          find _build/otp_builder -name "yielding_c_fun" -type f -exec chmod +x {} \;
-          # Verify yielding_c_fun permissions
-          echo "Checking yielding_c_fun permissions:"
-          find _build/otp_builder -name "yielding_c_fun" -type f -exec ls -la {} \;
           echo "Merged OTP source with R1 artifacts"
           ls -la _build/otp_builder/
+
+      - name: Restore artifact permissions
+        uses: ./.github/actions/restore-permissions
+        with:
+          path: _build/otp_builder
+          type: otp
 
       - name: Download NIF artifacts
         uses: actions/download-artifact@v4
