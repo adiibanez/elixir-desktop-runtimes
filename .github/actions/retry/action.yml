@@ -1,0 +1,101 @@
+name: 'Retry with Exponential Backoff'
+description: 'Retry a command with exponential backoff on failure'
+
+inputs:
+  command:
+    description: 'Command to execute'
+    required: true
+  max_attempts:
+    description: 'Maximum number of attempts'
+    required: false
+    default: '3'
+  initial_delay:
+    description: 'Initial delay in seconds'
+    required: false
+    default: '30'
+  max_delay:
+    description: 'Maximum delay in seconds'
+    required: false
+    default: '300'
+  retry_on:
+    description: 'Only retry if output contains this string (optional)'
+    required: false
+    default: ''
+  working_directory:
+    description: 'Working directory for command'
+    required: false
+    default: '.'
+
+outputs:
+  attempts:
+    description: 'Number of attempts made'
+    value: ${{ steps.retry.outputs.attempts }}
+  success:
+    description: 'Whether the command succeeded'
+    value: ${{ steps.retry.outputs.success }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Execute with retry
+      id: retry
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      env:
+        COMMAND: ${{ inputs.command }}
+        MAX_ATTEMPTS: ${{ inputs.max_attempts }}
+        INITIAL_DELAY: ${{ inputs.initial_delay }}
+        MAX_DELAY: ${{ inputs.max_delay }}
+        RETRY_ON: ${{ inputs.retry_on }}
+      run: |
+        attempt=1
+        delay=$INITIAL_DELAY
+
+        while [ $attempt -le $MAX_ATTEMPTS ]; do
+          echo "::group::Attempt $attempt of $MAX_ATTEMPTS"
+          echo "Executing: $COMMAND"
+
+          # Capture output and exit code
+          set +e
+          output=$(eval "$COMMAND" 2>&1)
+          exit_code=$?
+          set -e
+
+          echo "$output"
+          echo "::endgroup::"
+
+          if [ $exit_code -eq 0 ]; then
+            echo "Command succeeded on attempt $attempt"
+            echo "attempts=$attempt" >> "$GITHUB_OUTPUT"
+            echo "success=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Check if we should retry based on output pattern
+          if [ -n "$RETRY_ON" ]; then
+            if ! echo "$output" | grep -q "$RETRY_ON"; then
+              echo "Output doesn't match retry pattern '$RETRY_ON', not retrying"
+              echo "attempts=$attempt" >> "$GITHUB_OUTPUT"
+              echo "success=false" >> "$GITHUB_OUTPUT"
+              exit $exit_code
+            fi
+          fi
+
+          if [ $attempt -lt $MAX_ATTEMPTS ]; then
+            echo "Command failed (exit code: $exit_code), waiting ${delay}s before retry..."
+            sleep $delay
+
+            # Exponential backoff with max cap
+            delay=$((delay * 2))
+            if [ $delay -gt $MAX_DELAY ]; then
+              delay=$MAX_DELAY
+            fi
+          fi
+
+          attempt=$((attempt + 1))
+        done
+
+        echo "Command failed after $MAX_ATTEMPTS attempts"
+        echo "attempts=$MAX_ATTEMPTS" >> "$GITHUB_OUTPUT"
+        echo "success=false" >> "$GITHUB_OUTPUT"
+        exit 1
