@@ -13,7 +13,8 @@ defmodule Runtimes.MixProject do
       deps: deps(),
       dialyzer: [
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
-        plt_add_apps: [:mix, :eex]
+        plt_add_apps: [:mix, :eex],
+        ignore_warnings: ".dialyzer_ignore.exs"
       ]
     ]
   end
