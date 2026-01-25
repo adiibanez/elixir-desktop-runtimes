@@ -1,0 +1,57 @@
+name: Code Quality
+
+on:
+  pull_request:
+    paths:
+      - 'lib/**/*.ex'
+      - 'mix.exs'
+      - '.credo.exs'
+  push:
+    branches: [master, ci-modularization]
+    paths:
+      - 'lib/**/*.ex'
+      - 'mix.exs'
+      - '.credo.exs'
+
+jobs:
+  quality:
+    name: Credo & Dialyzer
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.16'
+          otp-version: '26'
+
+      - name: Cache deps
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: deps-${{ runner.os }}-${{ hashFiles('mix.lock') }}
+          restore-keys: deps-${{ runner.os }}-
+
+      - name: Cache PLT
+        uses: actions/cache@v4
+        with:
+          path: priv/plts
+          key: plt-${{ runner.os }}-elixir1.16-otp26-${{ hashFiles('mix.lock') }}
+          restore-keys: plt-${{ runner.os }}-elixir1.16-otp26-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile
+        run: mix compile --warnings-as-errors
+
+      - name: Run Credo
+        run: mix credo --strict
+
+      - name: Create PLT directory
+        run: mkdir -p priv/plts
+
+      - name: Run Dialyzer
+        run: mix dialyzer --format github
