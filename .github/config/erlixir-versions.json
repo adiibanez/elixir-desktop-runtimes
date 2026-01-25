@@ -1,15 +1,6 @@
 {
+  "_comment": "OTP 28 temporarily disabled - Hex package manager not yet compatible",
   "erlixir": [
-    {
-      "otp-version": "28.0.2",
-      "elixir-version": "1.18.2",
-      "erl-opts-description": "somemods",
-      "erl-opts": "--disable-debugger --disable-year2038 --disable-megaco-flex-scanner-lineno --disable-megaco-reentrant-flex-scanner --without-javac --without-odbc --without-wx --disable-megaco --disable-corba",
-      "erl-disable-applications": "",
-      "use-git": false,
-      "git-repo": "erlang/otp",
-      "git-ref": "OTP-28.0.2"
-    },
     {
       "otp-version": "27.3.4.2",
       "elixir-version": "1.18.2",

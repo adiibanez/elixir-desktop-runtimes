@@ -112,7 +112,8 @@ jobs:
         env:
           KERL_CONFIGURE_OPTIONS: ${{ matrix.erlixir.erl-opts }}
         run: |
-          mix archive.install hex hex --force
+          mix local.hex --force --if-missing
+          mix local.rebar --force --if-missing
           mix deps.get
           MIX_TARGET=prod mix compile
           mix run -e 'Mix.Tasks.Package.Android.Runtime.write_beam_dockerfile("${{ matrix.platform.arch_id }}", "${{ github.workspace }}/_build/Dockerfile_android-beam-${{ matrix.platform.arch_id }}")'
@@ -209,7 +210,8 @@ jobs:
           ARCH: ${{ matrix.platform.arch_id }}
           BASE_IMAGE: ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-27.3.4.2
         run: |
-          mix archive.install hex hex --force
+          mix local.hex --force --if-missing
+          mix local.rebar --force --if-missing
           mix deps.get
           MIX_TARGET=prod mix compile
           mix package.android.nif --arch ${{ matrix.platform.arch_id }} --flavor vanilla || echo "NIF build completed with warnings"
