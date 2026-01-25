@@ -1,0 +1,45 @@
+name: Config Sync Check
+
+on:
+  pull_request:
+    paths:
+      - 'lib/runtimes.ex'
+      - '.github/config/nif-packages.json'
+  push:
+    branches: [master, ci-modularization]
+    paths:
+      - 'lib/runtimes.ex'
+      - '.github/config/nif-packages.json'
+
+jobs:
+  check-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.16'
+          otp-version: '26'
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Regenerate nif-packages.json
+        run: mix run -e "Runtimes.write_nif_packages_json()"
+
+      - name: Check for drift
+        run: |
+          if git diff --quiet .github/config/nif-packages.json; then
+            echo "Config is in sync"
+          else
+            echo "ERROR: nif-packages.json is out of sync with lib/runtimes.ex"
+            echo ""
+            echo "Run this command locally and commit the changes:"
+            echo "  mix run -e \"Runtimes.write_nif_packages_json()\""
+            echo ""
+            echo "Diff:"
+            git diff .github/config/nif-packages.json
+            exit 1
+          fi
