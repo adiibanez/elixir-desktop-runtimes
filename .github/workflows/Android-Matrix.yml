@@ -149,6 +149,13 @@ jobs:
           find _build -name "*.zip" -o -name "*.so" -o -name "liberlang*" 2>/dev/null || true
           ls -la _build/ || true
 
+      - name: Report build metrics
+        uses: ./.github/actions/report-metrics
+        with:
+          artifact_path: _build/
+          artifact_name: "Android OTP (${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }})"
+          size_threshold_mb: '100'
+
       - name: Upload Android OTP artifact
         uses: actions/upload-artifact@v4
         with:

@@ -627,6 +627,13 @@ jobs:
           lipo -info ${{ github.workspace }}/_build/liberlang.a
           ls -lah ${{ github.workspace }}/_build/liberlang.a
 
+      - name: Report build metrics
+        uses: ./.github/actions/report-metrics
+        with:
+          artifact_path: ${{ github.workspace }}/_build/liberlang.a
+          artifact_name: "liberlang.a (${{ matrix.platform.name }})"
+          size_threshold_mb: '150'
+
       - name: Upload liberlang.a Artifact for ${{ matrix.platform.name }}
         uses: actions/upload-artifact@v4
         with:
@@ -722,15 +729,13 @@ jobs:
           mkdir liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}
           mv -f liberlang.xcframework liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/
 
-      # - name: Check Architecture
-      #   if: false
-      #   continue-on-error: true
-      #   run: |
-      #     #ls -lah liberlang.xframework
-      #     #du -sh liberlang.xframework
-      #     #lipo -info "$OUTPUT_XCFRAMEWORK/${FRAMEWORK_NAME}" || 1
-      #     cd scripts
-      #     LIB_ARM=$IOS_FRAMEWORK LIB_X86=$SIMULATOR_FRAMEWORK ./tester.sh
+      - name: Report xcframework metrics
+        if: steps.assemble-xcframework.outcome == 'success'
+        uses: ./.github/actions/report-metrics
+        with:
+          artifact_path: liberlang-OTP-${{matrix.erlixir.otp-version}}-ELX-${{matrix.erlixir.elixir-version}}/liberlang.xcframework
+          artifact_name: "liberlang.xcframework (OTP ${{matrix.erlixir.otp-version}})"
+          size_threshold_mb: '500'
 
       - name: Upload Combined xcframework Artifact
         uses: actions/upload-artifact@v4

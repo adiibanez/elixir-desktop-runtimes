@@ -1,0 +1,103 @@
+name: 'Report Build Metrics'
+description: 'Report artifact sizes and timing to job summary'
+
+inputs:
+  artifact_path:
+    description: 'Path to artifact file or directory'
+    required: true
+  artifact_name:
+    description: 'Name for reporting'
+    required: true
+  step_name:
+    description: 'Build step name for timing'
+    required: false
+    default: ''
+  start_time:
+    description: 'Start timestamp (from date +%s)'
+    required: false
+    default: ''
+  size_threshold_mb:
+    description: 'Warn if size exceeds this (MB)'
+    required: false
+    default: '100'
+
+outputs:
+  size_bytes:
+    description: 'Size in bytes'
+    value: ${{ steps.metrics.outputs.size_bytes }}
+  size_human:
+    description: 'Human readable size'
+    value: ${{ steps.metrics.outputs.size_human }}
+  duration_seconds:
+    description: 'Duration in seconds (if start_time provided)'
+    value: ${{ steps.metrics.outputs.duration_seconds }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Collect and report metrics
+      id: metrics
+      shell: bash
+      env:
+        ARTIFACT_PATH: ${{ inputs.artifact_path }}
+        ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        STEP_NAME: ${{ inputs.step_name }}
+        START_TIME: ${{ inputs.start_time }}
+        SIZE_THRESHOLD_MB: ${{ inputs.size_threshold_mb }}
+      run: |
+        # Calculate size
+        if [ -d "$ARTIFACT_PATH" ]; then
+          SIZE_BYTES=$(du -sb "$ARTIFACT_PATH" 2>/dev/null | cut -f1 || echo "0")
+        elif [ -f "$ARTIFACT_PATH" ]; then
+          SIZE_BYTES=$(stat -f%z "$ARTIFACT_PATH" 2>/dev/null || stat -c%s "$ARTIFACT_PATH" 2>/dev/null || echo "0")
+        else
+          echo "Warning: Artifact not found at $ARTIFACT_PATH"
+          SIZE_BYTES=0
+        fi
+
+        # Human readable size
+        if [ $SIZE_BYTES -gt 1073741824 ]; then
+          SIZE_HUMAN="$(echo "scale=2; $SIZE_BYTES / 1073741824" | bc)GB"
+        elif [ $SIZE_BYTES -gt 1048576 ]; then
+          SIZE_HUMAN="$(echo "scale=2; $SIZE_BYTES / 1048576" | bc)MB"
+        elif [ $SIZE_BYTES -gt 1024 ]; then
+          SIZE_HUMAN="$(echo "scale=2; $SIZE_BYTES / 1024" | bc)KB"
+        else
+          SIZE_HUMAN="${SIZE_BYTES}B"
+        fi
+
+        echo "size_bytes=$SIZE_BYTES" >> "$GITHUB_OUTPUT"
+        echo "size_human=$SIZE_HUMAN" >> "$GITHUB_OUTPUT"
+
+        # Calculate duration if start time provided
+        DURATION=""
+        if [ -n "$START_TIME" ]; then
+          END_TIME=$(date +%s)
+          DURATION_SECONDS=$((END_TIME - START_TIME))
+          DURATION_HUMAN="${DURATION_SECONDS}s"
+          if [ $DURATION_SECONDS -gt 60 ]; then
+            DURATION_HUMAN="$((DURATION_SECONDS / 60))m $((DURATION_SECONDS % 60))s"
+          fi
+          echo "duration_seconds=$DURATION_SECONDS" >> "$GITHUB_OUTPUT"
+          DURATION=" | Duration: $DURATION_HUMAN"
+        fi
+
+        # Check threshold
+        THRESHOLD_BYTES=$((SIZE_THRESHOLD_MB * 1048576))
+        WARNING=""
+        if [ $SIZE_BYTES -gt $THRESHOLD_BYTES ]; then
+          WARNING=" :warning:"
+        fi
+
+        # Write to job summary
+        echo "### $ARTIFACT_NAME$WARNING" >> "$GITHUB_STEP_SUMMARY"
+        echo "| Metric | Value |" >> "$GITHUB_STEP_SUMMARY"
+        echo "|--------|-------|" >> "$GITHUB_STEP_SUMMARY"
+        echo "| Size | $SIZE_HUMAN ($SIZE_BYTES bytes) |" >> "$GITHUB_STEP_SUMMARY"
+        if [ -n "$DURATION" ]; then
+          echo "| Duration | $DURATION_HUMAN |" >> "$GITHUB_STEP_SUMMARY"
+        fi
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+
+        # Console output
+        echo "📊 $ARTIFACT_NAME: $SIZE_HUMAN$DURATION$WARNING"
