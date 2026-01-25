@@ -179,8 +179,8 @@ jobs:
     env:
       ARCH_IDENTIFIER: ${{ matrix.platform.arch_id }}-${{ matrix.platform.android_name }}-${{ matrix.platform.abi }}
       # Required by generate_beam_dockerfile even for NIF builds (must match an OTP version from erlixir-versions.json)
-      OTP_VERSION: '27.3.4.2'
-      OTP_TAG: OTP-27.3.4.2
+      OTP_VERSION: '28.3.1'
+      OTP_TAG: OTP-28.3.1
 
     steps:
       - name: Checkout code
@@ -189,8 +189,8 @@ jobs:
       - name: Setup Elixir
         uses: erlef/setup-beam@v1
         with:
-          otp-version: 27.3.4.2
-          elixir-version: 1.18.2
+          otp-version: 28.3.1
+          elixir-version: 1.19.5
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -201,14 +201,14 @@ jobs:
 
       - name: Pull BEAM Docker image
         run: |
+          docker pull ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-28.3.1 || \
           docker pull ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-27.3.4.2 || \
-          docker pull ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-28.0.2 || \
           echo "Warning: Could not pull BEAM image, NIF build may fail"
 
       - name: Build NIF ${{ matrix.nif.name }}
         env:
           ARCH: ${{ matrix.platform.arch_id }}
-          BASE_IMAGE: ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-27.3.4.2
+          BASE_IMAGE: ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-28.3.1
         run: |
           mix local.hex --force --if-missing
           mix local.rebar --force --if-missing
