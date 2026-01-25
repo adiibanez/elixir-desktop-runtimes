@@ -92,16 +92,16 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pre-pull dockcross base image
-        uses: ./.github/actions/retry
-        with:
-          command: docker pull dockcross/android-${{ matrix.platform.arch_id }}:20250311-4bd0eec
-          max_attempts: '5'
-          initial_delay: '30'
-          max_delay: '120'
-          retry_on: 'rate limit'
-
-      - name: Verify dockcross image
-        run: docker images | grep dockcross || echo "Warning: dockcross image may not be cached"
+        run: |
+          for i in 1 2 3 4 5; do
+            echo "Attempt $i to pull dockcross/android-${{ matrix.platform.arch_id }}:20250311-4bd0eec"
+            if docker pull dockcross/android-${{ matrix.platform.arch_id }}:20250311-4bd0eec; then
+              break
+            fi
+            echo "Pull failed, waiting before retry..."
+            sleep $((30 * i))
+          done
+          docker images | grep dockcross || echo "Warning: dockcross image may not be cached"
 
       - name: Generate BEAM Dockerfile
         id: generate-dockerfile
@@ -150,11 +150,9 @@ jobs:
           ls -la _build/ || true
 
       - name: Report build metrics
-        uses: ./.github/actions/report-metrics
-        with:
-          artifact_path: _build/
-          artifact_name: "Android OTP (${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }})"
-          size_threshold_mb: '100'
+        run: |
+          echo "### Android OTP (${{ matrix.platform.name }} OTP${{ matrix.erlixir.otp-version }})" >> $GITHUB_STEP_SUMMARY
+          du -sh _build/ >> $GITHUB_STEP_SUMMARY || true
 
       - name: Upload Android OTP artifact
         uses: actions/upload-artifact@v4
@@ -196,14 +194,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull BEAM Docker image
-        uses: ./.github/actions/retry
-        with:
-          command: |
-            docker pull ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-27.3.4.2 || \
-            docker pull ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-28.0.2
-          max_attempts: '3'
-          initial_delay: '15'
-          max_delay: '60'
+        run: |
+          docker pull ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-27.3.4.2 || \
+          docker pull ghcr.io/${{ github.repository_owner }}/android_beam:arch_${{ env.ARCH_IDENTIFIER }}-28.0.2 || \
+          echo "Warning: Could not pull BEAM image, NIF build may fail"
 
       - name: Build NIF ${{ matrix.nif.name }}
         env:
