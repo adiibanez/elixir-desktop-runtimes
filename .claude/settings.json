@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      ".github/workflows/claude-agent.yml",
+      "*.secret",
+      ".env*",
+      "**/*.pem",
+      "**/*.key",
+      "**/credentials*"
+    ]
+  }
+}

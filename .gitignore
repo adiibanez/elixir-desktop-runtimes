@@ -13,3 +13,6 @@
 /tmp
 /test_main
 /openssl-1.1.1k
+
+# Claude Code local settings (personal permissions)
+.claude/settings.local.json

@@ -1,0 +1,133 @@
+name: Claude Code Agent
+
+on:
+  schedule:
+    # Run every 4 hours
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+    inputs:
+      task_override:
+        description: 'Override task (skip project board)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run (no commits/PRs)'
+        required: false
+        type: boolean
+        default: false
+
+# Only one agent at a time
+concurrency:
+  group: claude-agent
+  cancel-in-progress: false  # Don't cancel running agents
+
+env:
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better context
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Fetch tasks from GitHub Project
+        id: tasks
+        if: ${{ !inputs.task_override }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Fetch items from project board with "ready" status
+          TASKS=$(gh project item-list ${{ vars.PROJECT_NUMBER }} \
+            --owner ${{ github.repository_owner }} \
+            --format json \
+            --jq '.items[] | select(.status == "Todo") | {title: .title, body: .content.body, number: .content.number}' \
+            | head -1)
+
+          if [ -z "$TASKS" ]; then
+            echo "No tasks ready"
+            echo "has_task=false" >> $GITHUB_OUTPUT
+          else
+            echo "task=$TASKS" >> $GITHUB_OUTPUT
+            echo "has_task=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Claude Agent
+        if: steps.tasks.outputs.has_task == 'true' || inputs.task_override
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          TASK="${{ inputs.task_override || fromJson(steps.tasks.outputs.task).body }}"
+          TASK_TITLE="${{ fromJson(steps.tasks.outputs.task).title || inputs.task_override }}"
+
+          # Configure git for commits
+          git config user.name "Claude Agent"
+          git config user.email "claude-agent@users.noreply.github.com"
+
+          # Create feature branch
+          BRANCH="agent/task-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+
+          # Run Claude Code with the task
+          claude --print --dangerously-skip-permissions "$TASK"
+
+          # Check if there are changes
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "No changes made"
+            exit 0
+          fi
+
+          # Exit early if dry run
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run - skipping commit and PR creation"
+            git diff --stat
+            exit 0
+          fi
+
+          # Commit and push
+          git add -A
+          git commit -m "Agent: ${TASK_TITLE:-Task completion}"
+          git push -u origin "$BRANCH"
+
+          # Create PR with auto-merge
+          gh pr create \
+            --title "Agent: ${TASK_TITLE}" \
+            --body "Automated PR from Claude Agent.
+
+          Task: $TASK
+
+          ---
+          *This PR was created automatically by Claude Code Agent*" \
+            --base master
+
+          # Enable auto-merge (requires branch protection with required checks)
+          gh pr merge --auto --squash
+
+      - name: Update project board
+        if: steps.tasks.outputs.has_task == 'true' && !inputs.dry_run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Move task to "In Progress" or "Done"
+          # Note: This requires project item ID and field IDs which need to be configured
+          echo "Task completed, project board update would happen here"
+          # gh project item-edit \
+          #   --project-id ${{ vars.PROJECT_NUMBER }} \
+          #   --id ${{ fromJson(steps.tasks.outputs.task).number }} \
+          #   --field-id Status \
+          #   --single-select-option-id "Done"
