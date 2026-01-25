@@ -66,7 +66,8 @@
       "openssl_prefix": "_build/ios-openssl/build/openssl.xros",
       "openssl_arch": "xros-xcrun",
       "otp_arch": "aarch64-apple-ios",
-      "rust_target": "aarch64-apple-visionos"
+      "rust_target": "aarch64-apple-visionos",
+      "rust_is_3rd_tier": true
     },
     {
       "id": "visionos_sim_arm64",
@@ -77,7 +78,8 @@
       "openssl_prefix": "_build/ios-openssl/build/openssl.xrossim.arm64",
       "openssl_arch": "xrossimulator-xcrun",
       "otp_arch": "aarch64-apple-iossimulator",
-      "rust_target": "aarch64-apple-visionos-sim"
+      "rust_target": "aarch64-apple-visionos-sim",
+      "rust_is_3rd_tier": true
     }
   ]
 }
